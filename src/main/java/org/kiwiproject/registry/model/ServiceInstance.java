@@ -24,19 +24,19 @@ public class ServiceInstance {
     }
 
     @With
-    protected final String instanceId;
+    private final String instanceId;
 
     @With
-    protected final Status status;
+    private final Status status;
 
-    protected final String serviceName;
-    protected final String hostName;
-    protected final String ip;
-    protected final List<Port> ports;
-    protected final ServicePaths paths;
-    protected final String commitRef;
-    protected final String description;
-    protected final String version;
+    private final String serviceName;
+    private final String hostName;
+    private final String ip;
+    private final List<Port> ports;
+    private final ServicePaths paths;
+    private final String commitRef;
+    private final String description;
+    private final String version;
 
     /**
      * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}

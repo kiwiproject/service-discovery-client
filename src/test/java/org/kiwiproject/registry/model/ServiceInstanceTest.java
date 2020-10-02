@@ -13,7 +13,7 @@ class ServiceInstanceTest {
     void shouldBeAbleToBeCreatedFromServiceInfo() {
         var serviceInfo = ServiceInfoHelper.buildTestServiceInfo();
 
-        var instance = ServiceInstance.fromServiceInfo(serviceInfo).build();
+        var instance = ServiceInstance.fromServiceInfo(serviceInfo);
 
         assertThat(instance.getInstanceId()).isBlank();
         assertThat(instance.getServiceName()).isEqualTo(serviceInfo.getName());
@@ -25,5 +25,16 @@ class ServiceInstanceTest {
         assertThat(instance.getCommitRef()).isEqualTo(serviceInfo.getCommitRef());
         assertThat(instance.getDescription()).isEqualTo(serviceInfo.getDescription());
         assertThat(instance.getVersion()).isEqualTo(serviceInfo.getVersion());
+    }
+
+    @Test
+    void shouldAllowSettingCertainFieldsWithWithers() {
+        var instance = ServiceInstance.builder()
+                .build()
+                .withInstanceId("instance")
+                .withStatus(ServiceInstance.Status.DOWN);
+
+        assertThat(instance.getInstanceId()).isEqualTo("instance");
+        assertThat(instance.getStatus()).isEqualTo(ServiceInstance.Status.DOWN);
     }
 }

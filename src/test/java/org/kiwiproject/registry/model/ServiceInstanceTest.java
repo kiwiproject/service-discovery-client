@@ -36,7 +36,5 @@ class ServiceInstanceTest {
 
         assertThat(instance.getInstanceId()).isEqualTo("instance");
         assertThat(instance.getStatus()).isEqualTo(ServiceInstance.Status.DOWN);
-
-
     }
 }

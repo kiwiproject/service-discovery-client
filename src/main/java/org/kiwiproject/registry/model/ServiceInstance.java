@@ -2,6 +2,7 @@ package org.kiwiproject.registry.model;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.With;
 import org.kiwiproject.registry.config.ServiceInfo;
 
 import java.util.List;
@@ -22,13 +23,17 @@ public class ServiceInstance {
         STARTING
     }
 
+    @With
     protected final String instanceId;
+
+    @With
+    protected final Status status;
+
     protected final String serviceName;
     protected final String hostName;
     protected final String ip;
     protected final List<Port> ports;
     protected final ServicePaths paths;
-    protected final Status status;
     protected final String commitRef;
     protected final String description;
     protected final String version;
@@ -39,7 +44,7 @@ public class ServiceInstance {
      * @param serviceInfo The information about the service used to initialize the {@code ServiceInstanceBuilder}
      * @return a {@code ServiceInstanceBuilder} with values copied from the given {@link ServiceInfo}
      */
-    public static ServiceInstanceBuilder fromServiceInfo(ServiceInfo serviceInfo) {
+    public static ServiceInstance fromServiceInfo(ServiceInfo serviceInfo) {
         return ServiceInstance.builder()
                 .serviceName(serviceInfo.getName())
                 .hostName(serviceInfo.getHostname())
@@ -48,7 +53,8 @@ public class ServiceInstance {
                 .paths(serviceInfo.getPaths())
                 .commitRef(serviceInfo.getCommitRef())
                 .description(serviceInfo.getDescription())
-                .version(serviceInfo.getVersion());
+                .version(serviceInfo.getVersion())
+                .build();
     }
 
 }

@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.kiwiproject</groupId>
+    <artifactId>kiwi-parent</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>service-discovery-client</artifactId>
+  <version>0.1.0</version>
+  <packaging>jar</packaging>
+
+  <name>${project.groupId}:${project.artifactId}</name>
+  <description>
+    Abstract service discovery API for service registration and lookup
+  </description>
+  <url>https://github.com/kiwiproject/service-discovery-client</url>
+  <inceptionYear>2020</inceptionYear>
+
+  <scm>
+    <connection>scm:git:https://github.com/kiwiproject/service-discovery-client.git</connection>
+    <developerConnection>scm:git:git@github.com:kiwiproject/service-discovery-client.git</developerConnection>
+    <url>https://github.com/kiwiproject/service-discovery-client</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <!-- Versions for required dependencies -->
+
+    <!-- Versions for provided dependencies -->
+
+    <!-- Versions for optional dependencies -->
+
+    <!-- Versions for test dependencies -->
+
+    <!-- Versions for plugins -->
+
+    <!-- Build properties -->
+
+  </properties>
+
+  <dependencies>
+    <!-- Required dependencies -->
+
+    <!-- Test dependencies -->
+
+  </dependencies>
+</project>

@@ -2,6 +2,10 @@ package org.kiwiproject.registry.server;
 
 import static java.util.Objects.isNull;
 
+import com.google.common.annotations.VisibleForTesting;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -15,6 +19,9 @@ import java.util.UUID;
 @Slf4j
 public class NoopRegistryService implements RegistryService {
 
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private ServiceInstance dummyInstance;
 
     @Override
@@ -46,5 +53,6 @@ public class NoopRegistryService implements RegistryService {
     @Override
     public void unregister() {
         LOG.info("Un-registering dummy service: service [{}], instance [{}]", dummyInstance.getServiceName(), dummyInstance.getInstanceId());
+        dummyInstance = null;
     }
 }

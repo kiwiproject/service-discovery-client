@@ -72,4 +72,17 @@ class NoopRegistryServiceTest {
             assertThat(firstRegisteredInstance).isSameAs(secondRegistredInstance);
         }
     }
+
+    @Nested
+    class Unregister {
+
+        @Test
+        void shouldNullOutStoredInstance() {
+            registryService.setDummyInstance(ServiceInstance.builder().build());
+
+            registryService.unregister();
+
+            assertThat(registryService.getDummyInstance()).isNull();
+        }
+    }
 }

@@ -34,10 +34,10 @@ public class ServiceInstance {
     protected final String version;
 
     /**
-     * Returns a new {@link ServiceInstanceBuilder} built from a given {@link ServiceInfo}
+     * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}
      *
-     * @param serviceInfo The information about the service used to initialize the {@link ServiceInstanceBuilder}
-     * @return a {@link ServiceInstanceBuilder} with values copied from the given {@link ServiceInfo}
+     * @param serviceInfo The information about the service used to initialize the {@code ServiceInstanceBuilder}
+     * @return a {@code ServiceInstanceBuilder} with values copied from the given {@link ServiceInfo}
      */
     public static ServiceInstanceBuilder fromServiceInfo(ServiceInfo serviceInfo) {
         return ServiceInstance.builder()

@@ -1,5 +1,7 @@
 package org.kiwiproject.registry.util;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.model.Port;
@@ -13,7 +15,7 @@ public class ServiceInfoHelper {
     public static ServiceInfo buildTestServiceInfo() {
         return new ServiceInfo() {
 
-            private final List<Port> ports = List.of(
+            private final List<Port> ports = newArrayList(
                     Port.builder()
                             .number(80)
                             .secure(Port.Security.NOT_SECURE)

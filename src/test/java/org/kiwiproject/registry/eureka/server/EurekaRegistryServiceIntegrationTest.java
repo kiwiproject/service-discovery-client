@@ -7,11 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.netflix.appinfo.InstanceInfo;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.eureka.junit.EurekaServerExtension;
@@ -26,6 +29,7 @@ import java.time.Instant;
 import java.util.Locale;
 
 @DisplayName("EurekaRegistryService")
+@ExtendWith(SoftAssertionsExtension.class)
 class EurekaRegistryServiceIntegrationTest {
 
     @RegisterExtension
@@ -55,20 +59,20 @@ class EurekaRegistryServiceIntegrationTest {
     class CreateCandidateFrom {
 
         @Test
-        void shouldCreateAServiceInstanceFromTheServiceInfo() {
+        void shouldCreateAServiceInstanceFromTheServiceInfo(SoftAssertions softly) {
             var serviceInfo = ServiceInfoHelper.buildTestServiceInfo();
 
             var serviceInstance = service.createCandidateFrom(serviceInfo);
 
-            assertThat(serviceInstance.getInstanceId()).isBlank();
-            assertThat(serviceInstance.getServiceName()).isEqualTo(serviceInfo.getName());
-            assertThat(serviceInstance.getPorts()).isEqualTo(serviceInfo.getPorts());
-            assertThat(serviceInstance.getVersion()).isEqualTo(serviceInfo.getVersion());
-            assertThat(serviceInstance.getDescription()).isEqualTo(serviceInfo.getDescription());
-            assertThat(serviceInstance.getCommitRef()).isEqualTo(serviceInfo.getCommitRef());
-            assertThat(serviceInstance.getPaths()).isEqualTo(serviceInfo.getPaths());
-            assertThat(serviceInstance.getIp()).isEqualTo(serviceInfo.getIp());
-            assertThat(serviceInstance.getStatus()).isEqualTo(ServiceInstance.Status.STARTING);
+            softly.assertThat(serviceInstance.getInstanceId()).isBlank();
+            softly.assertThat(serviceInstance.getServiceName()).isEqualTo(serviceInfo.getName());
+            softly.assertThat(serviceInstance.getPorts()).isEqualTo(serviceInfo.getPorts());
+            softly.assertThat(serviceInstance.getVersion()).isEqualTo(serviceInfo.getVersion());
+            softly.assertThat(serviceInstance.getDescription()).isEqualTo(serviceInfo.getDescription());
+            softly.assertThat(serviceInstance.getCommitRef()).isEqualTo(serviceInfo.getCommitRef());
+            softly.assertThat(serviceInstance.getPaths()).isEqualTo(serviceInfo.getPaths());
+            softly.assertThat(serviceInstance.getIp()).isEqualTo(serviceInfo.getIp());
+            softly.assertThat(serviceInstance.getStatus()).isEqualTo(ServiceInstance.Status.STARTING);
         }
 
     }

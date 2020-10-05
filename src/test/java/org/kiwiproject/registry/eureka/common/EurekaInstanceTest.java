@@ -4,9 +4,12 @@ import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
@@ -15,40 +18,42 @@ import org.kiwiproject.registry.util.ServiceInfoHelper;
 import java.util.Map;
 
 @DisplayName("EurekaInstance")
+@ExtendWith(SoftAssertionsExtension.class)
 class EurekaInstanceTest {
 
     @Nested
     class FromServiceInstance {
 
+        @SuppressWarnings("unchecked")
         @Test
-        void shouldReturnNewInstanceWhenOnlyNonSecurePorts() {
+        void shouldReturnNewInstanceWhenOnlyNonSecurePorts(SoftAssertions softly) {
             var service = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo()).withStatus(ServiceInstance.Status.STARTING);
             var instance = EurekaInstance.fromServiceInstance(service);
 
-            assertThat(instance.getHostName()).isEqualTo(service.getHostName());
-            assertThat(instance.getIpAddr()).isEqualTo(service.getIp());
-            assertThat(instance.getVipAddress()).isEqualTo(service.getServiceName());
-            assertThat(instance.getSecureVipAddress()).isEqualTo(service.getServiceName());
-            assertThat(instance.getStatus()).isEqualTo(service.getStatus().name());
-            assertThat(instance.getPort()).contains(
+            softly.assertThat(instance.getHostName()).isEqualTo(service.getHostName());
+            softly.assertThat(instance.getIpAddr()).isEqualTo(service.getIp());
+            softly.assertThat(instance.getVipAddress()).isEqualTo(service.getServiceName());
+            softly.assertThat(instance.getSecureVipAddress()).isEqualTo(service.getServiceName());
+            softly.assertThat(instance.getStatus()).isEqualTo(service.getStatus().name());
+            softly.assertThat(instance.getPort()).contains(
                     entry("$", 80),
                     entry("@enabled", true)
             );
-            assertThat(instance.getSecurePort()).contains(
+            softly.assertThat(instance.getSecurePort()).contains(
                     entry("$", 0),
                     entry("@enabled", false)
             );
-            assertThat(instance.getAdminPort()).isZero();
-            assertThat(instance.getHomePageUrl()).isEqualTo("http://localhost:80" + ServicePaths.DEFAULT_HOMEPAGE_PATH);
-            assertThat(instance.getStatusPageUrl()).isEqualTo("http://localhost:0" + ServicePaths.DEFAULT_STATUS_PATH);
-            assertThat(instance.getHealthCheckUrl()).isEqualTo("http://localhost:0" + ServicePaths.DEFAULT_HEALTHCHECK_PATH);
-            assertThat(instance.getMetadata()).contains(
+            softly.assertThat(instance.getAdminPort()).isZero();
+            softly.assertThat(instance.getHomePageUrl()).isEqualTo("http://localhost:80" + ServicePaths.DEFAULT_HOMEPAGE_PATH);
+            softly.assertThat(instance.getStatusPageUrl()).isEqualTo("http://localhost:0" + ServicePaths.DEFAULT_STATUS_PATH);
+            softly.assertThat(instance.getHealthCheckUrl()).isEqualTo("http://localhost:0" + ServicePaths.DEFAULT_HEALTHCHECK_PATH);
+            softly.assertThat(instance.getMetadata()).contains(
                     entry("commitRef", service.getCommitRef()),
                     entry("description", service.getDescription()),
                     entry("version", service.getVersion())
             );
-            assertThat(instance.getLeaseInfo()).isNullOrEmpty();
-            assertThat(instance.getDataCenterInfo()).isNullOrEmpty();
+            softly.assertThat(instance.getLeaseInfo()).isNullOrEmpty();
+            softly.assertThat(instance.getDataCenterInfo()).isNullOrEmpty();
         }
 
         @Test

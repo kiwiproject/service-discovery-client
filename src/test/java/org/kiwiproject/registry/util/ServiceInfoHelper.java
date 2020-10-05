@@ -12,7 +12,19 @@ import java.util.List;
 @UtilityClass
 public class ServiceInfoHelper {
 
+    public static ServiceInfo buildTestServiceinfoWithHostName(String hostname) {
+        return buildTestServiceInfo("test-service", hostname);
+    }
+
+    public static ServiceInfo buildTestServiceInfoWithName(String name) {
+        return buildTestServiceInfo(name, "localhost");
+    }
+
     public static ServiceInfo buildTestServiceInfo() {
+        return buildTestServiceInfo("test-service", "localhost");
+    }
+
+    public static ServiceInfo buildTestServiceInfo(String name, String hostname) {
         return new ServiceInfo() {
 
             private final List<Port> ports = newArrayList(
@@ -27,12 +39,12 @@ public class ServiceInfoHelper {
 
             @Override
             public String getName() {
-                return "test-service";
+                return name;
             }
 
             @Override
             public String getHostname() {
-                return "localhost";
+                return hostname;
             }
 
             @Override

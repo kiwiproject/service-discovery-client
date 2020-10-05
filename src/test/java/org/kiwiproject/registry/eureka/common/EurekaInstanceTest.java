@@ -2,6 +2,7 @@ package org.kiwiproject.registry.eureka.common;
 
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -10,6 +11,8 @@ import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
+
+import java.util.Map;
 
 @DisplayName("EurekaInstance")
 class EurekaInstanceTest {
@@ -72,6 +75,115 @@ class EurekaInstanceTest {
             assertThat(instance.getHomePageUrl()).isEqualTo("https://localhost:8081" + ServicePaths.DEFAULT_HOMEPAGE_PATH);
             assertThat(instance.getStatusPageUrl()).isEqualTo("https://localhost:8083" + ServicePaths.DEFAULT_STATUS_PATH);
             assertThat(instance.getHealthCheckUrl()).isEqualTo("https://localhost:8083" + ServicePaths.DEFAULT_HEALTHCHECK_PATH);
+        }
+    }
+
+    @Nested
+    class ToServiceInstance {
+
+        @Test
+        void shouldCreateAServiceInstanceWithEurekaInstanceData() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .adminPort(8081)
+                    .homePageUrl("http://localhost:8080/api")
+                    .statusPageUrl("http://localhost:8081/status")
+                    .healthCheckUrl("http://localhost:8081/health")
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0"
+                    ))
+                    .build();
+
+            var serviceInstance = eurekaInstance.toServiceInstance();
+
+            assertThat(serviceInstance.getInstanceId()).isEqualTo(eurekaInstance.getHostName());
+            assertThat(serviceInstance.getStatus()).isEqualTo(ServiceInstance.Status.UP);
+            assertThat(serviceInstance.getServiceName()).isEqualTo(eurekaInstance.getVipAddress());
+            assertThat(serviceInstance.getHostName()).isEqualTo(eurekaInstance.getHostName());
+            assertThat(serviceInstance.getIp()).isEqualTo(eurekaInstance.getIpAddr());
+
+            assertThat(serviceInstance.getPorts())
+                    .extracting("number", "secure", "type")
+                    .containsExactlyInAnyOrder(
+                            tuple(8080, Port.Security.NOT_SECURE, Port.PortType.APPLICATION),
+                            tuple(8081, Port.Security.NOT_SECURE, Port.PortType.ADMIN)
+                    );
+
+            assertThat(serviceInstance.getPaths())
+                    .isEqualToComparingFieldByField(ServicePaths.builder()
+                            .homePagePath("/api")
+                            .statusPath("/status")
+                            .healthCheckPath("/health")
+                            .build());
+
+            assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
+            assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
+            assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+        }
+
+        @Test
+        void shouldResolveDefaultPathsIfNotSet() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .adminPort(8081)
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0"
+                    ))
+                    .build();
+
+            var serviceInstance = eurekaInstance.toServiceInstance();
+
+            assertThat(serviceInstance.getPaths())
+                    .isEqualToComparingFieldByField(ServicePaths.builder()
+                            .homePagePath(ServicePaths.DEFAULT_HOMEPAGE_PATH)
+                            .statusPath(ServicePaths.DEFAULT_STATUS_PATH)
+                            .healthCheckPath(ServicePaths.DEFAULT_HEALTHCHECK_PATH)
+                            .build());
+        }
+
+        @Test
+        void shouldExcludeAdminPortIfNotSet() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0"
+                    ))
+                    .build();
+
+            var serviceInstance = eurekaInstance.toServiceInstance();
+
+            assertThat(serviceInstance.getPorts())
+                    .extracting("number", "secure", "type")
+                    .containsExactlyInAnyOrder(
+                            tuple(8080, Port.Security.NOT_SECURE, Port.PortType.APPLICATION)
+                    );
         }
     }
 }

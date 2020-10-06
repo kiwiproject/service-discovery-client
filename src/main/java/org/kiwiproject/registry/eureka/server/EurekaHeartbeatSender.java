@@ -6,8 +6,14 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.kiwiproject.jaxrs.KiwiResponses.successful;
 import static org.kiwiproject.logging.LazyLogParameterSupplier.lazy;
+import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.CANNOT_SELF_HEAL;
+import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_FAILED;
+import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_SUCCEEDED;
 
 import com.google.common.annotations.VisibleForTesting;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
@@ -30,7 +36,14 @@ class EurekaHeartbeatSender implements Runnable {
     private final EurekaRestClient client;
     private final EurekaInstance registeredInstance;
     private final EurekaRegistryService registryService;
+
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private int heartbeatFailures;
+
+    @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
     private Instant heartbeatFailureStartedAt;
 
     EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance) {
@@ -116,28 +129,39 @@ class EurekaHeartbeatSender implements Runnable {
         return DurationFormatUtils.formatDurationWords(duration.toMillis(), true, true);
     }
 
+    enum FailureHandlerResult {
+        CANNOT_SELF_HEAL,
+        SELF_HEALING_FAILED,
+        SELF_HEALING_SUCCEEDED
+    }
+
     @VisibleForTesting
-    void handleHeartbeatFailuresExceededMax(String appId, Response response, Exception exception) {
+    FailureHandlerResult handleHeartbeatFailuresExceededMax(String appId, Response response, Exception exception) {
         // To be conservative, if we have failed to heart beat beyond the threshold number of heart beats,
         // then consider ourselves as no longer registered.
         LOG.warn("Heartbeat failure threshold exceeded, so marking as no longer registered");
-        registryService.registeredInstance.set(null);
+        registryService.clearRegisteredInstance();
 
         if (isCannotConnect(exception)) {
             LOG.error("Received ConnectException, indicating a network partition. Cannot self-heal right now.");
+            return CANNOT_SELF_HEAL;
         } else if (isSocketTimeout(exception)) {
             LOG.error("Received SocketTimeoutException, indicating a (possibly temporary) network problem. Cannot self-heal right now.");
+            return CANNOT_SELF_HEAL;
         } else if (receivedNotFound(response)) {
             LOG.error("Eureka reporting 404 Not Found for heartbeat. Eureka probably expired our registration. Will attempt to re-register...");
             try {
                 registryService.register(registeredInstance.toServiceInstance());
                 LOG.info("Self-healing complete. Re-registered app {} with Eureka.", appId);
+                return SELF_HEALING_SUCCEEDED;
             } catch (Exception e) {
                 LOG.error("Error re-registering app {}. Self-healing failed.", appId, e);
+                return SELF_HEALING_FAILED;
             }
-        } else {
-            LOG.error("Able to connect to Eureka, but receiving unknown error. Cannot self-heal right now.", exception);
         }
+
+        LOG.error("Able to connect to Eureka, but receiving unknown error. Cannot self-heal right now.", exception);
+        return CANNOT_SELF_HEAL;
     }
 
     private static boolean isCannotConnect(@Nullable Exception exception) {

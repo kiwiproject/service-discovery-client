@@ -15,6 +15,8 @@ import static org.kiwiproject.net.KiwiUrls.stripTrailingSlashes;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.base.Optionals;
@@ -118,7 +120,7 @@ public class EurekaRegistryService implements RegistryService {
 
     private final EurekaRegistrationConfig config;
     private final EurekaRestClient client;
-    private final SimpleRetryer registrRetryer;
+    private final SimpleRetryer registerRetryer;
     private final SimpleRetryer awaitRetryer;
     private final SimpleRetryer unregisterRetryer;
     private final KiwiEnvironment environment;
@@ -127,9 +129,11 @@ public class EurekaRegistryService implements RegistryService {
     private final AtomicReference<String> currentEurekaUrl;
 
     @VisibleForTesting
-    final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
-
+    @Getter(AccessLevel.PACKAGE)
     final AtomicReference<EurekaInstance> registeredInstance;
+
+    @VisibleForTesting
+    final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
         this.config = config;
@@ -141,7 +145,7 @@ public class EurekaRegistryService implements RegistryService {
         this.registeredInstance = new AtomicReference<>();
         this.heartbeatExecutor = new AtomicReference<>();
 
-        this.registrRetryer = SimpleRetryer.builder()
+        this.registerRetryer = SimpleRetryer.builder()
                 .environment(environment)
                 .maxAttempts(MAX_REGISTRATION_ATTEMPTS)
                 .retryDelayTime(RETRY_DELAY)
@@ -258,7 +262,7 @@ public class EurekaRegistryService implements RegistryService {
 
         var registrationFunction = registrationSender(appId, eurekaInstance);
 
-        var response = registrRetryer.tryGetObject(eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode()))
+        var response = registerRetryer.tryGetObject(eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode()))
                 .orElseThrow(() -> {
                     var errMsg = format("Received errors or non-204 responses on ALL %s attempts to register (via POST) with Eureka",
                             MAX_REGISTRATION_ATTEMPTS);
@@ -402,4 +406,9 @@ public class EurekaRegistryService implements RegistryService {
             cyclerLock.unlock();
         }
     }
+
+    void clearRegisteredInstance() {
+        registeredInstance.set(null);
+    }
+
 }

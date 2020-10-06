@@ -1,7 +1,9 @@
 package org.kiwiproject.registry.eureka.server;
 
+import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.APP_TIMESTAMP_FORMATTER;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,6 +29,7 @@ import org.kiwiproject.registry.util.ServiceInfoHelper;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 @DisplayName("EurekaRegistryService")
 @ExtendWith(SoftAssertionsExtension.class)
@@ -45,6 +48,7 @@ class EurekaRegistryServiceIntegrationTest {
         var client = new EurekaRestClient();
 
         var config = new EurekaRegistrationConfig();
+        config.setHeartbeatInvervalInSeconds(1);
         config.setRegistryUrls("http://localhost:" + EUREKA.getPort() + "/eureka/v2");
 
         service = new EurekaRegistryService(config, client, environment);
@@ -53,6 +57,11 @@ class EurekaRegistryServiceIntegrationTest {
     @AfterEach
     void cleanupEureka() {
         EUREKA.getEurekaServer().cleanupApps();
+
+        if (nonNull(service.heartbeatExecutor.get())) {
+            service.heartbeatExecutor.get().shutdownNow();
+            service.heartbeatExecutor.set(null);
+        }
     }
 
     @Nested
@@ -103,8 +112,18 @@ class EurekaRegistryServiceIntegrationTest {
 
             var eurekaInstance = service.registeredInstance.get();
             assertThat(eurekaInstance).isNotNull();
-            assertThat(eurekaInstance.getApp()).isEqualTo(serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
-                    + "-" + APP_TIMESTAMP_FORMATTER.format(now));
+
+            var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
+                    + "-" + APP_TIMESTAMP_FORMATTER.format(now);
+
+            assertThat(eurekaInstance.getApp()).isEqualTo(expectedAppId);
+            assertThat(service.heartbeatExecutor.get()).isNotNull();
+            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+
+            await().atMost(5, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 1);
+
+            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
+            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(0);
         }
 
         @Test
@@ -140,6 +159,57 @@ class EurekaRegistryServiceIntegrationTest {
 
             assertThat(service.registeredInstance.get()).isNull();
             assertThat(EUREKA.getEurekaServer().getApplicationByName(appId)).isPresent();
+        }
+
+        @Test
+        void shouldRetryHeartbeatsIfFailureOccurs() {
+            var now = Instant.now();
+            when(environment.currentInstant()).thenReturn(now);
+
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper
+                    .buildTestServiceinfoWithHostName("FailHeartbeat-1"))
+                    .withStatus(ServiceInstance.Status.STARTING);
+
+            var registeredInstance = service.register(serviceInstance);
+
+            var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
+                    + "-" + APP_TIMESTAMP_FORMATTER.format(now);
+
+            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+
+            await().atMost(5, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 1);
+
+            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
+            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(1);
+            assertThat(EUREKA.getEurekaServer().getHeartbeatCount()).hasValue(2);
+        }
+
+        @Test
+        void shouldRetryHeartbeatsIfFailureOccursUntilThresholdThenTrySelfHeal() {
+            var now = Instant.now();
+            when(environment.currentInstant()).thenReturn(now);
+
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper
+                    .buildTestServiceinfoWithHostName("FailHeartbeat-6"))
+                    .withStatus(ServiceInstance.Status.STARTING);
+
+            var registeredInstance = service.register(serviceInstance);
+            var eurekaInstance = service.registeredInstance.get();
+            var heartbeatExecutor = service.heartbeatExecutor.get();
+
+            var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
+                    + "-" + APP_TIMESTAMP_FORMATTER.format(now);
+
+            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+
+            await().atMost(10, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 6);
+
+            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
+            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(6);
+            assertThat(EUREKA.getEurekaServer().getHeartbeatCount()).hasValue(7);
+
+            assertThat(eurekaInstance).isNotSameAs(service.registeredInstance.get());
+            assertThat(heartbeatExecutor).isNotSameAs(service.heartbeatExecutor.get());
         }
     }
 

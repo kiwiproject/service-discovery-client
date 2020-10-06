@@ -9,10 +9,14 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.base.KiwiStrings.splitOnCommas;
+import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.stripTrailingSlashes;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.base.Optionals;
@@ -34,6 +38,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
@@ -114,7 +120,7 @@ public class EurekaRegistryService implements RegistryService {
 
     private final EurekaRegistrationConfig config;
     private final EurekaRestClient client;
-    private final SimpleRetryer registrRetryer;
+    private final SimpleRetryer registerRetryer;
     private final SimpleRetryer awaitRetryer;
     private final SimpleRetryer unregisterRetryer;
     private final KiwiEnvironment environment;
@@ -123,7 +129,11 @@ public class EurekaRegistryService implements RegistryService {
     private final AtomicReference<String> currentEurekaUrl;
 
     @VisibleForTesting
+    @Getter(AccessLevel.PACKAGE)
     final AtomicReference<EurekaInstance> registeredInstance;
+
+    @VisibleForTesting
+    final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
         this.config = config;
@@ -133,8 +143,9 @@ public class EurekaRegistryService implements RegistryService {
         this.cyclerLock = new ReentrantLock();
         this.currentEurekaUrl = new AtomicReference<>();
         this.registeredInstance = new AtomicReference<>();
+        this.heartbeatExecutor = new AtomicReference<>();
 
-        this.registrRetryer = SimpleRetryer.builder()
+        this.registerRetryer = SimpleRetryer.builder()
                 .environment(environment)
                 .maxAttempts(MAX_REGISTRATION_ATTEMPTS)
                 .retryDelayTime(RETRY_DELAY)
@@ -183,10 +194,57 @@ public class EurekaRegistryService implements RegistryService {
         LOG.info("Successful registration of app {}, instance {} with vip address {}",
                 registeredInstanceFromEureka.getApp(), registeredInstanceFromEureka.getInstanceId(), registeredInstanceFromEureka.getVipAddress());
 
-        // TODO: Start heartbeat
+        startHeartbeat();
 
         return registeredInstanceFromEureka.toServiceInstance();
 
+    }
+
+    private void startHeartbeat() {
+        if (nonNull(heartbeatExecutor.get())) {
+            shutdownHeartbeat();
+        }
+
+        var heartbeatInterval = config.getHeartbeatInvervalInSeconds();
+        LOG.debug("Starting heartbeat with interval {} seconds", heartbeatInterval);
+
+        heartbeatExecutor.set(newHeartbeatExecutor());
+        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get()),
+                heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
+    }
+
+    private void shutdownHeartbeat() {
+        var executor = heartbeatExecutor.get();
+
+        if (isNull(executor)) {
+            LOG.trace("Heartbeat executor was null; nothing to shut down.");
+            return;
+        }
+
+        LOG.info("Shutting heartbeat executor down: {}", executor);
+        var tasks = executor.shutdownNow();
+
+        if (isNotNullOrEmpty(tasks)) {
+            LOG.info("There are {} task(s) that never started for heartbeat executor: {}", tasks.size(), executor);
+        }
+
+        try {
+            var terminated = executor.awaitTermination(5, TimeUnit.SECONDS);
+            LOG.info("Heartbeat executor {} terminated before timeout? {}", executor, terminated);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOG.warn("Interrupted waiting for termination of heartbeat executor {}", executor);
+        }
+
+        heartbeatExecutor.set(null);
+    }
+
+    private static ScheduledExecutorService newHeartbeatExecutor() {
+        var threadFactory = new ThreadFactoryBuilder()
+                .setNameFormat("eureka-heartbeat-%d")
+                .setDaemon(true)
+                .build();
+        return Executors.newScheduledThreadPool(1, threadFactory);
     }
 
     private void registerWithEureka(String appId, ServiceInstance serviceToRegister) {
@@ -204,7 +262,7 @@ public class EurekaRegistryService implements RegistryService {
 
         var registrationFunction = registrationSender(appId, eurekaInstance);
 
-        var response = registrRetryer.tryGetObject(eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode()))
+        var response = registerRetryer.tryGetObject(eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode()))
                 .orElseThrow(() -> {
                     var errMsg = format("Received errors or non-204 responses on ALL %s attempts to register (via POST) with Eureka",
                             MAX_REGISTRATION_ATTEMPTS);
@@ -256,7 +314,7 @@ public class EurekaRegistryService implements RegistryService {
 
     @Override
     public void unregister() {
-        // TODO: Stop heartbeat executor
+        shutdownHeartbeat();
 
         if (isNotRegistered()) {
             LOG.warn("Ignoring un-register request because not currently registered (call register first)");
@@ -338,7 +396,6 @@ public class EurekaRegistryService implements RegistryService {
         return currentEurekaUrl.get();
     }
 
-    @VisibleForTesting
     String getNextEurekaUrl() {
         try {
             cyclerLock.lock();
@@ -349,4 +406,9 @@ public class EurekaRegistryService implements RegistryService {
             cyclerLock.unlock();
         }
     }
+
+    void clearRegisteredInstance() {
+        registeredInstance.set(null);
+    }
+
 }

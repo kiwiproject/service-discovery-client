@@ -41,7 +41,7 @@
     <!-- Versions for optional dependencies -->
 
     <!-- Versions for test dependencies -->
-    <embedded-eureka.version>0.1.0</embedded-eureka.version>
+    <embedded-eureka.version>0.2.0</embedded-eureka.version>
 
     <!-- Versions for plugins -->
 

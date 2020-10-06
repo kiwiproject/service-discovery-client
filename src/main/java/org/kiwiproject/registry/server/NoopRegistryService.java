@@ -1,6 +1,8 @@
 package org.kiwiproject.registry.server;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.AccessLevel;
@@ -47,6 +49,14 @@ public class NoopRegistryService implements RegistryService {
             dummyInstance = serviceToRegister.toBuilder().status(ServiceInstance.Status.UP).build();
         }
 
+        return dummyInstance;
+    }
+
+    @Override
+    public ServiceInstance updateStatus(ServiceInstance.Status newStatus) {
+        checkState(nonNull(dummyInstance), "Can not update status before calling register");
+
+        dummyInstance = dummyInstance.withStatus(newStatus);
         return dummyInstance;
     }
 

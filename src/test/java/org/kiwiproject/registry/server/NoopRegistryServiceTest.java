@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.kiwiproject.collect.KiwiLists.first;
 
@@ -70,6 +71,29 @@ class NoopRegistryServiceTest {
             assertThat(firstRegisteredInstance).isNotSameAs(instanceCandidate);
             assertThat(secondRegistredInstance).isNotSameAs(instanceCandidate);
             assertThat(firstRegisteredInstance).isSameAs(secondRegistredInstance);
+        }
+    }
+
+    @Nested
+    class UpdateStatus {
+
+        @Test
+        void shouldUpdateTheStatusAndReturnNewInstanceIfExists() {
+            var instance = ServiceInstance.builder().status(ServiceInstance.Status.STARTING).build();
+            registryService.setDummyInstance(instance);
+
+            var updatedInstance = registryService.updateStatus(ServiceInstance.Status.UP);
+
+            assertThat(updatedInstance).isNotSameAs(instance);
+            assertThat(updatedInstance.getStatus()).isEqualTo(ServiceInstance.Status.UP);
+        }
+
+        @Test
+        void shouldThrowIllegalStateExceptionIfNotRegisteredFirst() {
+
+            assertThatThrownBy(() -> registryService.updateStatus(ServiceInstance.Status.DOWN))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Can not update status before calling register");
         }
     }
 

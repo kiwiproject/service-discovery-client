@@ -118,10 +118,16 @@ public class EurekaRegistryService implements RegistryService {
      */
     private static final int MAX_UNREGISTER_ATTEMPTS = 5;
 
+    /**
+     * Maximum number of attempts we will make to update status in Eureka (via PUT request).
+     */
+    private static final int MAX_UPDATE_STATUS_ATTEMPTS = 5;
+
     private final EurekaRegistrationConfig config;
     private final EurekaRestClient client;
     private final SimpleRetryer registerRetryer;
     private final SimpleRetryer awaitRetryer;
+    private final SimpleRetryer updateStatusRetryer;
     private final SimpleRetryer unregisterRetryer;
     private final KiwiEnvironment environment;
     private final Iterator<String> eurekaUrlCycler;
@@ -155,6 +161,13 @@ public class EurekaRegistryService implements RegistryService {
         this.awaitRetryer = SimpleRetryer.builder()
                 .environment(environment)
                 .maxAttempts(MAX_AWAIT_REGISTRATION_CONFIRMATION_TRIES)
+                .retryDelayTime(RETRY_DELAY)
+                .retryDelayUnit(RETRY_DELAY_UNIT)
+                .build();
+
+        this.updateStatusRetryer = SimpleRetryer.builder()
+                .environment(environment)
+                .maxAttempts(MAX_UPDATE_STATUS_ATTEMPTS)
                 .retryDelayTime(RETRY_DELAY)
                 .retryDelayUnit(RETRY_DELAY_UNIT)
                 .build();
@@ -307,6 +320,44 @@ public class EurekaRegistryService implements RegistryService {
                 return client.findInstance(eurekaUrl, appId, instanceId);
             } catch (Exception e) {
                 LOG.error("Failed to get instance with appId {}, instanceId {} from Eureka at {} due to unexpected exception", appId, instanceId, eurekaUrl, e);
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public ServiceInstance updateStatus(ServiceInstance.Status newStatus) {
+        checkState(isRegistered(), "Can not update status before calling register");
+
+        var instanceToUnregister = registeredInstance.get();
+
+        var appId = instanceToUnregister.getApp();
+        var instanceId = instanceToUnregister.getInstanceId();
+
+        var response = updateStatusRetryer.tryGetObject(eurekaCallRetrySupplier(
+                updateStatusSender(appId, instanceId, newStatus), OK.getStatusCode()));
+
+        Optionals.ifPresentOrElseThrow(response,
+                resp -> {
+                    LOG.info("Instance with appId {}, instanceId {} has been updated successfully to status {}", appId, instanceId, newStatus);
+                    registeredInstance.set(instanceToUnregister.withStatus(newStatus.name()));
+                },
+                () -> {
+                    var msg = format("Error updating status for app {}, instance {}", appId, instanceId);
+                    LOG.error(msg);
+                    return new RegistrationException(msg);
+                });
+
+        return registeredInstance.get().toServiceInstance();
+    }
+
+    private Function<String, Response> updateStatusSender(String appId, String instanceId, ServiceInstance.Status newStatus) {
+        return eurekaUrl -> {
+            try {
+                return client.updateStatus(eurekaUrl, appId, instanceId, newStatus);
+            } catch (Exception e) {
+                LOG.error("Failed to update status to {} for instance with appId {}, instanceId {} from Eureka at {} due to unexpected exception",
+                        newStatus, appId, instanceId, eurekaUrl, e);
                 return null;
             }
         };

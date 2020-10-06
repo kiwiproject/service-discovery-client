@@ -214,6 +214,62 @@ class EurekaRegistryServiceIntegrationTest {
     }
 
     @Nested
+    class UpdateStatus {
+        @Test
+        void shouldUpdateStatus() {
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
+                    .withStatus(ServiceInstance.Status.STARTING);
+            var initialEurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("APPID").withStatus("STARTING");
+            service.registeredInstance.set(initialEurekaInstance);
+
+            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
+                    .setAppName(initialEurekaInstance.getApp())
+                    .setInstanceId(initialEurekaInstance.getInstanceId())
+                    .setStatus(InstanceInfo.InstanceStatus.STARTING)
+                    .build());
+
+            service.updateStatus(ServiceInstance.Status.UP);
+
+            var updatedEurekaInstance = service.registeredInstance.get();
+            assertThat(updatedEurekaInstance).isNotSameAs(initialEurekaInstance);
+            assertThat(updatedEurekaInstance.getStatus()).isEqualTo(ServiceInstance.Status.UP.name());
+
+            var storedEurekaApplication = EUREKA.getEurekaServer().getApplicationByName("APPID");
+            assertThat(storedEurekaApplication).isPresent();
+
+            var instances = storedEurekaApplication.get().getInstances();
+            assertThat(instances).extracting("status").contains(InstanceInfo.InstanceStatus.UP);
+        }
+
+        @Test
+        void shouldRetryUpdateStatusAndThrowExceptionIfAllTriesExpire() {
+            // FailStatusChange
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("FailStatusChange"))
+                    .withStatus(ServiceInstance.Status.STARTING);
+            var initialEurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("APPID").withStatus("STARTING");
+            service.registeredInstance.set(initialEurekaInstance);
+
+            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
+                    .setAppName(initialEurekaInstance.getApp())
+                    .setInstanceId(initialEurekaInstance.getInstanceId())
+                    .setHostName("FailStatusChange")
+                    .setStatus(InstanceInfo.InstanceStatus.STARTING)
+                    .build());
+
+            assertThatThrownBy(() -> service.updateStatus(ServiceInstance.Status.DOWN))
+                    .isInstanceOf(RegistrationException.class)
+                    .hasMessage("Error updating status for app APPID, instance FailStatusChange");
+
+            assertThat(service.registeredInstance.get()).isSameAs(initialEurekaInstance);
+            var storedEurekaApplication = EUREKA.getEurekaServer().getApplicationByName("APPID");
+            assertThat(storedEurekaApplication).isPresent();
+
+            var instances = storedEurekaApplication.get().getInstances();
+            assertThat(instances).extracting("status").contains(InstanceInfo.InstanceStatus.STARTING);
+        }
+    }
+
+    @Nested
     class UnRegister {
 
         @Test

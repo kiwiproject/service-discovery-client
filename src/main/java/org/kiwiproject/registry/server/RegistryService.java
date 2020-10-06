@@ -26,6 +26,14 @@ public interface RegistryService {
     ServiceInstance register(ServiceInstance serviceToRegister);
 
     /**
+     * Sends an update to the registry server to inform of a service status change
+     *
+     * @param newStatus         The new status that will be sent
+     * @return a copy of the original {@link ServiceInstance} with the new status set
+     */
+    ServiceInstance updateStatus(ServiceInstance.Status newStatus);
+
+    /**
      * Unregisters any registrations that were previously registered. This should be a NO-OP if nothing has ever been registered.
      */
     void unregister();

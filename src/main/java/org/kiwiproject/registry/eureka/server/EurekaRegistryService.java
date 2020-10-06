@@ -129,7 +129,6 @@ public class EurekaRegistryService implements RegistryService {
     @VisibleForTesting
     final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
-    @VisibleForTesting
     final AtomicReference<EurekaInstance> registeredInstance;
 
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
@@ -393,7 +392,6 @@ public class EurekaRegistryService implements RegistryService {
         return currentEurekaUrl.get();
     }
 
-    @VisibleForTesting
     String getNextEurekaUrl() {
         try {
             cyclerLock.lock();

@@ -125,7 +125,9 @@ public class EurekaRegistryService implements RegistryService {
     private final Iterator<String> eurekaUrlCycler;
     private final Lock cyclerLock;
     private final AtomicReference<String> currentEurekaUrl;
-    private final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
+
+    @VisibleForTesting
+    final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
     @VisibleForTesting
     final AtomicReference<EurekaInstance> registeredInstance;

@@ -20,24 +20,24 @@ class EurekaParser {
 
     @SuppressWarnings("unchecked")
     public static List<EurekaInstance> parseEurekaResponse(Map<String, Object> response) {
-        checkArgumentNotNull(response, "Map data of Eureka response must not be null");
+        checkArgumentNotNull(response, "Eureka response map cannot be null");
 
         var applications = (Map<String, Object>) response.get("applications");
 
-        checkState(nonNull(applications), "Eureka data must contain a key 'applications' that contains a Map");
+        checkState(nonNull(applications), "Eureka data must contain a key 'applications' that contains a Map<String, Object>");
 
-        var applicationMap = applications.get("application");
+        var applicationOrApplicationList = applications.get("application");
 
         var eurekaInstances = new ArrayList<EurekaInstance>();
 
-        if (nonNull(applicationMap)) {
-            if (applicationMap instanceof List<?>) {
-                for (Map<String, Object> application : (List<Map<String, Object>>) applicationMap) {
+        if (nonNull(applicationOrApplicationList)) {
+            if (applicationOrApplicationList instanceof List<?>) {
+                for (Map<String, Object> application : (List<Map<String, Object>>) applicationOrApplicationList) {
                     var instances = application.get("instance");
                     eurekaInstances.addAll(parseInstances(instances));
                 }
             } else {
-                eurekaInstances.addAll(parseInstances(((Map<String, Object>) applicationMap).get("instance")));
+                eurekaInstances.addAll(parseInstances(((Map<String, Object>) applicationOrApplicationList).get("instance")));
             }
         }
 

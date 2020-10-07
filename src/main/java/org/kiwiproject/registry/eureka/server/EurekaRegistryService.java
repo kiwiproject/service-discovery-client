@@ -8,12 +8,9 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
-import static org.kiwiproject.base.KiwiStrings.splitOnCommas;
 import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
-import static org.kiwiproject.net.KiwiUrls.stripTrailingSlashes;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,6 +20,7 @@ import org.kiwiproject.base.Optionals;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
+import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -35,15 +33,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -130,9 +125,7 @@ public class EurekaRegistryService implements RegistryService {
     private final SimpleRetryer updateStatusRetryer;
     private final SimpleRetryer unregisterRetryer;
     private final KiwiEnvironment environment;
-    private final Iterator<String> eurekaUrlCycler;
-    private final Lock cyclerLock;
-    private final AtomicReference<String> currentEurekaUrl;
+    private final EurekaUrlProvider urlProvider;
 
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
@@ -145,9 +138,7 @@ public class EurekaRegistryService implements RegistryService {
         this.config = config;
         this.client = client;
         this.environment = environment;
-        this.eurekaUrlCycler = Iterators.cycle(stripTrailingSlashes(splitOnCommas(config.getRegistryUrls())));
-        this.cyclerLock = new ReentrantLock();
-        this.currentEurekaUrl = new AtomicReference<>();
+        this.urlProvider = new EurekaUrlProvider(config.getRegistryUrls());
         this.registeredInstance = new AtomicReference<>();
         this.heartbeatExecutor = new AtomicReference<>();
 
@@ -222,7 +213,7 @@ public class EurekaRegistryService implements RegistryService {
         LOG.debug("Starting heartbeat with interval {} seconds", heartbeatInterval);
 
         heartbeatExecutor.set(newHeartbeatExecutor());
-        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get()),
+        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get(), urlProvider),
                 heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
     }
 
@@ -417,13 +408,13 @@ public class EurekaRegistryService implements RegistryService {
 
     private Supplier<Response> eurekaCallRetrySupplier(Function<String, Response> restCallFunction, int successfulStatusCode) {
         return () -> {
-            var eurekaUrl = getCurrentEurekaUrl();
+            var eurekaUrl = urlProvider.getCurrentEurekaUrl();
             LOG.debug("Attempting a call to Eureka");
 
             var response = restCallFunction.apply(eurekaUrl);
 
             if (isNull(response)) {
-                getNextEurekaUrl();
+                urlProvider.getNextEurekaUrl();
                 LOG.error("Call to Eureka failed. See previous error for details");
                 return null;
             }
@@ -432,30 +423,11 @@ public class EurekaRegistryService implements RegistryService {
                 return response;
             }
 
-            getNextEurekaUrl();
+            urlProvider.getNextEurekaUrl();
             LOG.error("HTTP {} - Call to Eureka at {} failed to respond successfully. Response body: {}",
                     response.getStatus(), eurekaUrl, response.readEntity(String.class));
             return null;
         };
-    }
-
-    String getCurrentEurekaUrl() {
-        if (isNull(currentEurekaUrl.get())) {
-            return getNextEurekaUrl();
-        }
-
-        return currentEurekaUrl.get();
-    }
-
-    String getNextEurekaUrl() {
-        try {
-            cyclerLock.lock();
-            var next = eurekaUrlCycler.next();
-            currentEurekaUrl.set(next);
-            return next;
-        } finally {
-            cyclerLock.unlock();
-        }
     }
 
     void clearRegisteredInstance() {

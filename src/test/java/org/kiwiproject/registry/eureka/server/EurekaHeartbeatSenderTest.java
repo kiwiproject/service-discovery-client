@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
+import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 
@@ -38,7 +39,7 @@ class EurekaHeartbeatSenderTest {
         var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
                 .withStatus(ServiceInstance.Status.UP);
         var eurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance);
-        sender = new EurekaHeartbeatSender(client, service, eurekaInstance);
+        sender = new EurekaHeartbeatSender(client, service, eurekaInstance, new EurekaUrlProvider("http://localhost:8764"));
     }
 
     @Nested

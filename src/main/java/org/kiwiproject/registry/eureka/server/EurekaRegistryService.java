@@ -213,7 +213,7 @@ public class EurekaRegistryService implements RegistryService {
         LOG.debug("Starting heartbeat with interval {} seconds", heartbeatInterval);
 
         heartbeatExecutor.set(newHeartbeatExecutor());
-        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get()),
+        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get(), urlProvider),
                 heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
     }
 

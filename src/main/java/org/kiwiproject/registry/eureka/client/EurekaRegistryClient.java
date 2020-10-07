@@ -23,7 +23,7 @@ import org.kiwiproject.registry.client.ServiceInstanceFilter;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
-import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
+import org.kiwiproject.registry.eureka.config.EurekaConfig;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryer;
 
@@ -50,12 +50,11 @@ public class EurekaRegistryClient implements RegistryClient {
     private final EurekaRestClient client;
     private final EurekaUrlProvider urlProvider;
     private final KiwiRetryer<Response> clientRetryer;
-    private final int maxAttempts;
 
-    public EurekaRegistryClient(EurekaRegistrationConfig config, EurekaRestClient client) {
+    public EurekaRegistryClient(EurekaConfig config, EurekaRestClient client) {
         this.client = client;
         this.urlProvider = new EurekaUrlProvider(config.getRegistryUrls());
-        maxAttempts = urlProvider.urlCount() * EUREKA_ATTEMPT_MULTIPLIER;
+        var maxAttempts = urlProvider.urlCount() * EUREKA_ATTEMPT_MULTIPLIER;
         this.clientRetryer = KiwiRetryer.<Response>builder()
                 .exceptionPredicates(List.of(
                         CONNECTION_ERROR, NO_ROUTE_TO_HOST, SOCKET_TIMEOUT, SSL_HANDSHAKE_ERROR, UNKNOWN_HOST, temporaryServerSideStatusCodes()

@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
+import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
 import javax.annotation.Nullable;
@@ -36,6 +37,7 @@ class EurekaHeartbeatSender implements Runnable {
     private final EurekaRestClient client;
     private final EurekaInstance registeredInstance;
     private final EurekaRegistryService registryService;
+    private final EurekaUrlProvider urlProvider;
 
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
@@ -46,10 +48,11 @@ class EurekaHeartbeatSender implements Runnable {
     @Getter(AccessLevel.PACKAGE)
     private Instant heartbeatFailureStartedAt;
 
-    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance) {
+    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance, EurekaUrlProvider urlProvider) {
         this.client = client;
         this.registeredInstance = registeredInstance;
         this.registryService = registryService;
+        this.urlProvider = urlProvider;
     }
 
     @Override
@@ -61,7 +64,7 @@ class EurekaHeartbeatSender implements Runnable {
                     lazy(() -> ISO_INSTANT.format(Instant.now())), registeredInstance.getApp(),
                     registeredInstance.getInstanceId(), this);
 
-            response = client.sendHeartbeat(registryService.getCurrentEurekaUrl(), registeredInstance.getApp(),
+            response = client.sendHeartbeat(urlProvider.getCurrentEurekaUrl(), registeredInstance.getApp(),
                     registeredInstance.getInstanceId());
         } catch (Exception e) {
             exception = e;
@@ -76,7 +79,7 @@ class EurekaHeartbeatSender implements Runnable {
         // Some error occurred, either an exception or maybe a 404...
 
         heartbeatFailures++;
-        registryService.getNextEurekaUrl();
+        urlProvider.getNextEurekaUrl();
 
         if (heartbeatFailures == 1) {
             LOG.trace("Recording initial heartbeat failure date/time");

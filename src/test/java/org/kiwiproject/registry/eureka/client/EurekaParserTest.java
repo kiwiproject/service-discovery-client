@@ -27,14 +27,14 @@ class EurekaParserTest {
     void parseEurekaResponse_ShouldThrowIllegalArgumentException_WhenResponseMapIsNull() {
         assertThatThrownBy(() -> EurekaParser.parseEurekaResponse(null))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Map data of Eureka response must not be null");
+                .hasMessage("Eureka response map cannot be null");
     }
 
     @Test
     void parseEurekaResponse_ShouldThrowIllegalStateException_WhenResponseMapIsMissingApplicationsElement() {
         assertThatThrownBy(() -> EurekaParser.parseEurekaResponse(Map.of()))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Eureka data must contain a key 'applications' that contains a Map");
+                .hasMessage("Eureka data must contain a key 'applications' that contains a Map<String, Object>");
     }
 
     @Test

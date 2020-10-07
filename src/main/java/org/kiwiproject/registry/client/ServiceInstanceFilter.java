@@ -11,6 +11,12 @@ import org.kiwiproject.registry.model.ServiceInstance;
 
 import java.util.List;
 
+/**
+ * Utility class that provides version filtering of lists of {@link ServiceInstance} objects.
+ *
+ * NOTE: For all {@link List} of {@link ServiceInstance} being passed into the utility methods, the assumption is that
+ * all instances are for the same service name.
+ */
 @Slf4j
 @UtilityClass
 public class ServiceInstanceFilter {

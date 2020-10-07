@@ -1,9 +1,10 @@
 package org.kiwiproject.registry.eureka.client;
 
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.MapUtils.getString;
 
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @UtilityClass
-public class EurekaParser {
+class EurekaParser {
 
     @SuppressWarnings("unchecked")
     public static List<EurekaInstance> parseEurekaResponse(Map<String, Object> response) {
@@ -79,6 +80,15 @@ public class EurekaParser {
                 .leaseInfo(leaseInfo)
                 .metadata(metadataMap)
                 .build();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private static <K> String getString(final Map<? super K, ?> map, final K key) {
+        var value = map.getOrDefault(key, null);
+
+        verify(isNull(value) || value instanceof String, "Value from Map must be a string or null");
+
+        return (String) value;
     }
 
 }

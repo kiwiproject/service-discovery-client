@@ -78,7 +78,6 @@ class ServiceInstanceFilterTest {
             assertThat(ServiceInstanceFilter.versionIsExactly(instance, "2018.11.03-SNAPSHOT")).isFalse();
             assertThat(ServiceInstanceFilter.versionIsExactly(instance, "2018.12.01-SNAPSHOT")).isFalse();
             assertThat(ServiceInstanceFilter.versionIsExactly(instance, "2019.01.01-SNAPSHOT")).isFalse();
-
             assertThat(ServiceInstanceFilter.versionIsExactly(instance, "2018.11.01-snapshot")).isTrue();
             assertThat(ServiceInstanceFilter.versionIsExactly(instance, "2018.11.01")).isFalse();
         }
@@ -113,7 +112,6 @@ class ServiceInstanceFilterTest {
                     instance8,
                     instance9,
                     instance10
-
             );
             Collections.shuffle(instances);
 
@@ -152,7 +150,6 @@ class ServiceInstanceFilterTest {
                     instance8,
                     instance9,
                     instance10
-
             );
             Collections.shuffle(instances);
         }

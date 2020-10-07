@@ -31,7 +31,6 @@
     <kiwi.version>0.11.0</kiwi.version>
 
     <!-- Versions for provided dependencies -->
-    <commons-collections.version>4.4</commons-collections.version>
     <guava-retrying.version>2.0.0</guava-retrying.version>
     <hibernate-validator.version>6.1.5.Final</hibernate-validator.version>
     <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version>
@@ -61,13 +60,6 @@
     </dependency>
 
     <!-- Provided dependencies -->
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>${commons-collections.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>

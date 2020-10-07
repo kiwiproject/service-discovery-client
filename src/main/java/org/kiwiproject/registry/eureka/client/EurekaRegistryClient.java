@@ -34,6 +34,9 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * {@link RegistryClient} implementation for looking up services from Eureka registry server.
+ */
 @Slf4j
 public class EurekaRegistryClient implements RegistryClient {
 

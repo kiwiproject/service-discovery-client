@@ -1,0 +1,35 @@
+{
+  "applications": {
+    "application": [
+      {
+        "instance": {
+          "instanceId": "TEST-SERVICE-LOCALHOST",
+          "app": "TEST-SERVICE",
+          "hostName": "localhost",
+          "vipAddress": "TEST-SERVICE-LOCALHOST",
+          "ipAddr": "127.0.0.1",
+          "status": "UP",
+          "homePageUrl": "http://localhost",
+          "healthCheckUrl": "http://localhost/healthCheck",
+          "statusUrl": "http://localhost/ping",
+          "port": {
+            "$": 8080,
+            "@enabled": true
+          },
+          "securePort": {
+            "$": 0,
+            "@enabled": false
+          },
+          "metadata": {
+            "description": "A simple service",
+            "commitRef": "abcdef",
+            "version": "2018.01.01"
+          },
+          "leaseInfo": {
+            "durationInSecs": 5
+          }
+        }
+      }
+    ]
+  }
+}

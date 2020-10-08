@@ -48,7 +48,7 @@ class EurekaRegistryServiceIntegrationTest {
         var client = new EurekaRestClient();
 
         var config = new EurekaRegistrationConfig();
-        config.setHeartbeatInvervalInSeconds(1);
+        config.setHeartbeatIntervalInSeconds(1);
         config.setRegistryUrls("http://localhost:" + EUREKA.getPort() + "/eureka/v2");
 
         service = new EurekaRegistryService(config, client, environment);

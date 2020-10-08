@@ -38,7 +38,7 @@ public class EurekaRegistrationConfig extends EurekaConfig {
      */
     @Min(1)
     @Max(MAX_LEASE_RENEWAL_INTERVAL_SECONDS)
-    private int heartbeatInvervalInSeconds = DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS;
+    private int heartbeatIntervalInSeconds = DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS;
 
     /**
      * The amount of time before a service will expire from Eureka (in seconds)

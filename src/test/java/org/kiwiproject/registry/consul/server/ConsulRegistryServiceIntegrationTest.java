@@ -149,7 +149,9 @@ class ConsulRegistryServiceIntegrationTest {
 
         @Test
         void shouldReturnNullIfNotRegistered() {
-            assertThat(service.updateStatus(ServiceInstance.Status.UP)).isNull();
+            assertThatThrownBy(() -> service.updateStatus(ServiceInstance.Status.UP))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage("Can not update status before calling register");
         }
 
         @Test

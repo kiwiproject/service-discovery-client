@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class ConsulRegistrationConfigTest {
 
     @Test
-    void shouldDefaultProperties() {
+    void shouldHaveDefaultProperties() {
         var config = new ConsulRegistrationConfig();
 
         assertThat(config.getCheckIntervalInSeconds()).isEqualTo(ConsulRegistrationConfig.DEFAULT_CHECK_INTERVAL_IN_SECONDS);

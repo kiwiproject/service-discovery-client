@@ -4,9 +4,9 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.registry.model.Port.Security.NOT_SECURE;
 import static org.kiwiproject.registry.model.Port.Security.SECURE;
-import static org.kiwiproject.registry.util.Paths.urlForPath;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.Ports.findPort;
+import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;

@@ -12,7 +12,7 @@ import java.util.List;
  * Utility methods for generating URLs from the service information
  */
 @UtilityClass
-public class Paths {
+public class ServiceInstancePaths {
 
     private static final String URL_HOST_FORMAT = "{}://{}:{}{}";
 

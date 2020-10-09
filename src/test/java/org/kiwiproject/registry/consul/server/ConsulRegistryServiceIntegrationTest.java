@@ -34,7 +34,7 @@ class ConsulRegistryServiceIntegrationTest {
     // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
     //       something with the extension or with the Nested test classes
     @RegisterExtension
-    public ConsulExtension CONSUL = new ConsulExtension();
+    ConsulExtension CONSUL = new ConsulExtension();
 
     private ConsulRegistryService service;
     private KiwiEnvironment environment;
@@ -98,7 +98,7 @@ class ConsulRegistryServiceIntegrationTest {
 
             assertThat(registeredInstance).isNotSameAs(serviceInstance);
 
-            var storedInstance = service.registeredService.get();
+            var storedInstance = service.getRegisteredServiceInstance();
             assertThat(storedInstance).isNotNull();
             assertThat(storedInstance.getInstanceId()).isNotBlank();
 
@@ -123,7 +123,7 @@ class ConsulRegistryServiceIntegrationTest {
                     .hasMessageStartingWith("Unable to register service " + serviceInstance.getServiceName() + ", id ")
                     .hasMessageEndingWith(" with Consul after 60 attempts");
 
-            assertThat(serviceToFail.registeredService.get()).isNull();
+            assertThat(serviceToFail.getRegisteredServiceInstance()).isNull();
         }
 
         @Test
@@ -140,7 +140,7 @@ class ConsulRegistryServiceIntegrationTest {
             var services = consul.catalogClient().getService(serviceInstance.getServiceName()).getResponse();
 
             var hostName = services.stream().map(CatalogService::getServiceAddress).findFirst();
-            assertThat(hostName).isPresent().get().isEqualTo("example.test");
+            assertThat(hostName).hasValue("example.test");
         }
     }
 
@@ -170,7 +170,7 @@ class ConsulRegistryServiceIntegrationTest {
 
             service.unregister();
 
-            assertThat(service.registeredService.get()).isNull();
+            assertThat(service.getRegisteredServiceInstance()).isNull();
             assertThat(consul.catalogClient().getService("APPID").getResponse()).isEmpty();
         }
 
@@ -193,7 +193,7 @@ class ConsulRegistryServiceIntegrationTest {
                     .isInstanceOf(RegistrationException.class)
                     .hasMessage("Error un-registering service APPID, id INSTANCEID");
 
-            assertThat(serviceToFail.registeredService.get()).isNotNull();
+            assertThat(serviceToFail.getRegisteredServiceInstance()).isNotNull();
         }
     }
 }

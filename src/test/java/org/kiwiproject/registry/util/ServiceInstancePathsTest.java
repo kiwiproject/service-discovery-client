@@ -10,7 +10,7 @@ import org.kiwiproject.registry.model.Port;
 import java.util.List;
 
 @DisplayName("Paths")
-class PathsTest {
+class ServiceInstancePathsTest {
 
     @Nested
     class UrlForPath {
@@ -19,7 +19,7 @@ class PathsTest {
         void shouldBuildPathWithHttpsWhenSecurePortIsFound() {
             var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build());
 
-            var path = Paths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("https://localhost:8080/foo");
         }
@@ -28,7 +28,7 @@ class PathsTest {
         void shouldBuildPathWithHttpWhenNonSecurePortIsFound() {
             var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build());
 
-            var path = Paths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("http://localhost:8080/foo");
         }
@@ -40,7 +40,7 @@ class PathsTest {
                     Port.builder().number(8081).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build()
             );
 
-            var path = Paths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("https://localhost:8080/foo");
         }

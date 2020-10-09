@@ -5,9 +5,9 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
-import static org.kiwiproject.registry.util.Paths.urlForPath;
 import static org.kiwiproject.registry.util.Ports.determineScheme;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
+import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.orbitz.consul.Consul;
@@ -24,7 +24,7 @@ import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
-import org.kiwiproject.registry.util.Paths;
+import org.kiwiproject.registry.util.ServiceInstancePaths;
 import org.kiwiproject.retry.SimpleRetryer;
 
 import java.net.MalformedURLException;
@@ -45,33 +45,33 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ConsulRegistryService implements RegistryService {
 
     /**
-     * Maximum number of attempts we will make trying to register with Eureka (via POST)
+     * Maximum number of attempts we will make trying to register with Consul
      */
     @VisibleForTesting
     static final int MAX_REGISTRATION_ATTEMPTS = 60;
 
     /**
-     * Value for delay to wait if a call to Eureka fails.
+     * Value for delay to wait if a call to Consul fails.
      */
     private static final long RETRY_DELAY = 1;
 
     /**
-     * Unit for delay to wait if a call to Eureka fails.
+     * Unit for delay to wait if a call to Consul fails.
      */
     private static final TimeUnit RETRY_DELAY_UNIT = TimeUnit.SECONDS;
 
     /**
-     * Value for delay when un-registering if a call to Eureka fails.
+     * Value for delay when un-registering if a call to Consul fails.
      */
     private static final long UNREGISTER_RETRY_DELAY = 3;
 
     /**
-     * Time unit for delay when un-registering if a call to Eureka fails.
+     * Time unit for delay when un-registering if a call to Consul fails.
      */
     private static final TimeUnit UNREGISTER_RETRY_DELAY_UNIT = TimeUnit.SECONDS;
 
     /**
-     * Maximum number of attempts we will make to un-register from Eureka (via DELETE request).
+     * Maximum number of attempts we will make to un-register from Consul
      */
     private static final int MAX_UNREGISTER_ATTEMPTS = 5;
 
@@ -128,31 +128,28 @@ public class ConsulRegistryService implements RegistryService {
         }
 
         registeredService.set(service.get());
-        return registeredService.get().toBuilder().build();
+        return getRegisteredServiceInstance().toBuilder().build();
     }
 
     @Override
     public ServiceInstance updateStatus(ServiceInstance.Status newStatus) {
-        LOG.info("Ignoring status update as Consul handles it's own status through it's health check process");
+        checkState(isRegistered(), "Can not update status before calling register");
 
-        if (isRegistered()) {
-            return registeredService.get().toBuilder().build();
-        }
-
-        return null;
+        LOG.warn("Ignoring status update as Consul handles it's own status through it's health check process");
+        return getRegisteredServiceInstance().toBuilder().build();
     }
 
     @Override
     public void unregister() {
         checkState(isRegistered(), "Cannot unregister since registration was never called");
 
-        var serviceName = registeredService.get().getServiceName();
-        var instanceId = registeredService.get().getInstanceId();
+        var serviceName = getRegisteredServiceInstance().getServiceName();
+        var instanceId = getRegisteredServiceInstance().getInstanceId();
 
         LOG.info("Unregistering service {} with id {}", serviceName, instanceId);
 
         var result = unregisterRetryer.tryGetObject(() -> {
-            consul.agentClient().deregister(registeredService.get().getInstanceId());
+            consul.agentClient().deregister(getRegisteredServiceInstance().getInstanceId());
             return instanceId;
         });
 
@@ -169,7 +166,7 @@ public class ConsulRegistryService implements RegistryService {
     }
 
     private boolean isRegistered() {
-        return nonNull(registeredService.get());
+        return nonNull(getRegisteredServiceInstance());
     }
 
     private Registration fromServiceInstance(ServiceInstance serviceInstance) {
@@ -177,9 +174,9 @@ public class ConsulRegistryService implements RegistryService {
         var check = ImmutableRegCheck.builder()
                 .http(urlForPath(serviceInstance.getHostName(), serviceInstance.getPorts(), Port.PortType.ADMIN,
                         serviceInstance.getPaths().getStatusPath()))
-                .interval(String.format("%ds", config.getCheckIntervalInSeconds()))
+                .interval(format("{}s", config.getCheckIntervalInSeconds()))
                 .deregisterCriticalServiceAfter(
-                        String.format("%dm", config.getDeregisterIntervalInMinutes()))
+                        format("{}m", config.getDeregisterIntervalInMinutes()))
                 .build();
 
         var address = adjustAddressIfNeeded(serviceInstance);
@@ -208,13 +205,18 @@ public class ConsulRegistryService implements RegistryService {
             return instance.getHostName();
         }
 
-        var urlString = Paths.urlForPath(instance.getHostName(), instance.getPorts(), Port.PortType.APPLICATION, instance.getPaths().getHomePagePath());
+        var urlString = ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), Port.PortType.APPLICATION, instance.getPaths().getHomePagePath());
         try {
             var url = new URL(replaceDomainsIn(urlString, config.getDomainOverride()));
             return url.getHost();
         } catch (MalformedURLException e) {
             return instance.getHostName();
         }
+    }
+
+    @VisibleForTesting
+    ServiceInstance getRegisteredServiceInstance() {
+        return registeredService.get();
     }
 
 }

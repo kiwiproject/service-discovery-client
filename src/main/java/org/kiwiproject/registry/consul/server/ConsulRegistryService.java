@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * {@link RegistryService} implementation for Consul discovery servers
- *
+ * <p>
  * NOTE: This class is intended to manage the registration and unregistration of a service with Consul.  If your service
  * is using a framework that has Consul integration, you might not want to use this class as it may attempt to register
  * more than once (once from here and once from the framework integration)

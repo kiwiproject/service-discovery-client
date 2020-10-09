@@ -2,6 +2,7 @@ package org.kiwiproject.registry.consul.client;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
@@ -17,6 +18,7 @@ import org.kiwiproject.registry.model.ServicePaths;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,24 +58,29 @@ public class ConsulRegistryClient implements RegistryClient {
         var metadata = catalogService.getServiceMeta();
         var scheme = metadata.get("scheme");
 
+        var ports = new ArrayList<Port>();
         var port = Port.builder()
                 .number(catalogService.getServicePort())
                 .secure(Port.Security.fromScheme(scheme))
                 .type(Port.PortType.APPLICATION)
                 .build();
+        ports.add(port);
 
-        var adminPort = Port.builder()
-                .number(Integer.parseInt(metadata.get("adminPort")))
-                .secure(Port.Security.fromScheme(scheme))
-                .type(Port.PortType.ADMIN)
-                .build();
+        if (isNotBlank(metadata.get("adminPort"))) {
+            var adminPort = Port.builder()
+                    .number(Integer.parseInt(metadata.get("adminPort")))
+                    .secure(Port.Security.fromScheme(scheme))
+                    .type(Port.PortType.ADMIN)
+                    .build();
+            ports.add(adminPort);
+        }
 
 
         return ServiceInstance.builder()
                 .instanceId(catalogService.getServiceId())
                 .serviceName(catalogService.getServiceName())
                 .hostName(adjustAddressIfNeeded(catalogService.getServiceAddress(), scheme))
-                .ports(List.of(port, adminPort))
+                .ports(ports)
                 .paths(ServicePaths.builder()
                         .homePagePath(metadata.get("homePagePath"))
                         .statusPath(metadata.get("statusPath"))

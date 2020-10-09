@@ -44,7 +44,10 @@
     <!-- Versions for optional dependencies -->
 
     <!-- Versions for test dependencies -->
+    <ant.version>1.10.8</ant.version>
+    <embedded-consul.version>2.2.0</embedded-consul.version>
     <embedded-eureka.version>0.2.0</embedded-eureka.version>
+    <groovy.version>2.5.13</groovy.version>
 
     <!-- Versions for plugins -->
 
@@ -256,6 +259,36 @@
 
     <!-- Test dependencies -->
     <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>${ant.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.pszymczyk.consul</groupId>
+      <artifactId>embedded-consul</artifactId>
+      <version>${embedded-consul.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant-launcher</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
       <groupId>org.kiwiproject</groupId>
       <artifactId>embedded-eureka</artifactId>
       <version>${embedded-eureka.version}</version>
@@ -266,6 +299,13 @@
           <artifactId>kiwi</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-xml</artifactId>
+      <version>${groovy.version}</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

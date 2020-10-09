@@ -28,7 +28,7 @@ public class ServiceInstancePaths {
     public static String urlForPath(String hostName, List<Port> ports, Port.PortType type, String path) {
         var port = findFirstPortPreferSecure(ports, type);
 
-        var protocol = port.getSecure() == Port.Security.SECURE ? "https" : "http";
+        var protocol = port.getSecure().getScheme();
         return f(URL_HOST_FORMAT, protocol, hostName, port.getNumber(), path);
     }
 

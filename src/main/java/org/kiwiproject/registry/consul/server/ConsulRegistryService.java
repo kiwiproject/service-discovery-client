@@ -180,6 +180,7 @@ public class ConsulRegistryService implements RegistryService {
                 .build();
 
         var address = adjustAddressIfNeeded(serviceInstance);
+        var adminPort = findFirstPortPreferSecure(serviceInstance.getPorts(), Port.PortType.ADMIN);
 
         return ImmutableRegistration.builder()
                 .port(findFirstPortPreferSecure(serviceInstance.getPorts(), Port.PortType.APPLICATION).getNumber())
@@ -194,8 +195,10 @@ public class ConsulRegistryService implements RegistryService {
                         "description", serviceInstance.getDescription(),
                         "homePagePath", serviceInstance.getPaths().getHomePagePath(),
                         "healthCheckPath", serviceInstance.getPaths().getHealthCheckPath(),
-                        "statusCheckPath", serviceInstance.getPaths().getStatusPath(),
-                        "scheme", determineScheme(serviceInstance.getPorts(), Port.PortType.APPLICATION)
+                        "statusPath", serviceInstance.getPaths().getStatusPath(),
+                        "scheme", determineScheme(serviceInstance.getPorts(), Port.PortType.APPLICATION),
+                        "adminPort", Integer.toString(adminPort.getNumber()),
+                        "ipAddress", serviceInstance.getIp()
                 ))
                 .build();
     }

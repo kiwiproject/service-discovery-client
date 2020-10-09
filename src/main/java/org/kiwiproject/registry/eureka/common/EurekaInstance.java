@@ -2,9 +2,11 @@ package org.kiwiproject.registry.eureka.common;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.registry.model.Port.Security.NOT_SECURE;
 import static org.kiwiproject.registry.model.Port.Security.SECURE;
+import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
+import static org.kiwiproject.registry.util.Ports.findPort;
+import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
@@ -28,8 +30,6 @@ import java.util.Objects;
 @Value
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EurekaInstance {
-
-    private static final String URL_HOST_FORMAT = "{}://{}:{}{}";
 
     @With
     String app;
@@ -87,14 +87,6 @@ public class EurekaInstance {
 
     }
 
-    private static Port findPort(List<Port> ports, Port.Security security, Port.PortType type) {
-        return ports.stream()
-                .filter(p -> p.getSecure() == security)
-                .filter(p -> p.getType() == type)
-                .findFirst()
-                .orElseGet(() -> Port.builder().number(0).secure(security).type(type).build());
-    }
-
     private static Map<String, Object> portToEurekaPortMap(Port port) {
         return Map.of(
                 "$", port.getNumber(),
@@ -103,33 +95,14 @@ public class EurekaInstance {
     }
 
     private static int findFirstAdminPortNumberPreferSecure(List<Port> ports) {
-        var securePort = findPort(ports, Port.Security.SECURE, Port.PortType.ADMIN);
+        var firstAdminPort = findFirstPortPreferSecure(ports, Port.PortType.ADMIN);
 
-        if (securePort.getNumber() > 0) {
-            return securePort.getNumber();
-        }
-
-        return findPort(ports, NOT_SECURE, Port.PortType.ADMIN).getNumber();
-    }
-
-    private static Port findFirstPortPreferSecure(List<Port> ports, Port.PortType type) {
-        var securePort = findPort(ports, Port.Security.SECURE, type);
-        if (securePort.getNumber() > 0) {
-            return securePort;
-        }
-
-        return findPort(ports, NOT_SECURE, type);
-    }
-
-    private static String urlForPath(String hostName, List<Port> ports, Port.PortType type, String path) {
-        var port = findFirstPortPreferSecure(ports, type);
-
-        var protocol = port.getSecure() == Port.Security.SECURE ? "https" : "http";
-        return f(URL_HOST_FORMAT, protocol, hostName, port.getNumber(), path);
+        return firstAdminPort.getNumber();
     }
 
     public ServiceInstance toServiceInstance() {
-        var ports = portListFromPortsIgnoringNulls(buildAdminPort(), buildApplicationPort(port, NOT_SECURE), buildApplicationPort(securePort, SECURE));
+        var ports = portListFromPortsIgnoringNulls(buildAdminPort(), buildApplicationPort(port, NOT_SECURE),
+                buildApplicationPort(securePort, SECURE));
 
         return ServiceInstance.builder()
                 .instanceId(getInstanceId())

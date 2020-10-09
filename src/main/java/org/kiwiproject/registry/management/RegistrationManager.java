@@ -3,6 +3,7 @@ package org.kiwiproject.registry.management;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.registry.config.ServiceInfo;
+import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
 
 /**
@@ -32,8 +33,9 @@ public class RegistrationManager {
                 candidate.getServiceName(), candidate.getHostName(), candidate.getPorts());
 
         registryService.register(candidate);
-
         LOG.info("Service registration sent");
+
+        registryService.updateStatus(ServiceInstance.Status.UP);
     }
 
     /**

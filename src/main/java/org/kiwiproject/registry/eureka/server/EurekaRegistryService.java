@@ -209,7 +209,7 @@ public class EurekaRegistryService implements RegistryService {
             shutdownHeartbeat();
         }
 
-        var heartbeatInterval = config.getHeartbeatInvervalInSeconds();
+        var heartbeatInterval = config.getHeartbeatIntervalInSeconds();
         LOG.debug("Starting heartbeat with interval {} seconds", heartbeatInterval);
 
         heartbeatExecutor.set(newHeartbeatExecutor());
@@ -261,7 +261,7 @@ public class EurekaRegistryService implements RegistryService {
                 ))
                 .withLeaseInfo(Map.of(
                         LEASE_DURATION_IN_SECONDS, config.getExpirationIntervalInSeconds(),
-                        LEASE_RENEWAL_INTERVAL_IN_SECONDS, config.getHeartbeatInvervalInSeconds()
+                        LEASE_RENEWAL_INTERVAL_IN_SECONDS, config.getHeartbeatIntervalInSeconds()
                 ));
 
         var registrationFunction = registrationSender(appId, eurekaInstance);

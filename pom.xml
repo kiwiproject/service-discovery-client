@@ -31,6 +31,7 @@
     <kiwi.version>0.11.0</kiwi.version>
 
     <!-- Versions for provided dependencies -->
+    <consul-client.version>1.4.2</consul-client.version>
     <guava-retrying.version>2.0.0</guava-retrying.version>
     <hibernate-validator.version>6.1.5.Final</hibernate-validator.version>
     <jakarta.activation-api.version>1.2.2</jakarta.activation-api.version>
@@ -38,11 +39,15 @@
     <jakarta.xml.bind-api>2.3.3</jakarta.xml.bind-api>
     <jersey.version>2.31</jersey.version>
     <metrics-servlet.version>4.1.11</metrics-servlet.version>
+    <okhttp.version>3.12.2</okhttp.version>
 
     <!-- Versions for optional dependencies -->
 
     <!-- Versions for test dependencies -->
+    <ant.version>1.10.8</ant.version>
+    <embedded-consul.version>2.2.0</embedded-consul.version>
     <embedded-eureka.version>0.2.0</embedded-eureka.version>
+    <groovy.version>2.5.13</groovy.version>
 
     <!-- Versions for plugins -->
 
@@ -60,6 +65,64 @@
     </dependency>
 
     <!-- Provided dependencies -->
+    <dependency>
+      <groupId>com.orbitz.consul</groupId>
+      <artifactId>consul-client</artifactId>
+      <version>${consul-client.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-guava</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-jdk8</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>okhttp</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-core</artifactId>
@@ -187,7 +250,44 @@
       </exclusions>
     </dependency>
 
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>${okhttp.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
     <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>${ant.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.pszymczyk.consul</groupId>
+      <artifactId>embedded-consul</artifactId>
+      <version>${embedded-consul.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant-launcher</artifactId>
+        </exclusion>
+
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>org.kiwiproject</groupId>
       <artifactId>embedded-eureka</artifactId>
@@ -199,6 +299,13 @@
           <artifactId>kiwi</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-xml</artifactId>
+      <version>${groovy.version}</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

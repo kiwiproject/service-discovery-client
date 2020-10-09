@@ -13,6 +13,6 @@ class EurekaRegistrationConfigTest {
         var config = new EurekaRegistrationConfig();
 
         assertThat(config.getExpirationIntervalInSeconds()).isEqualTo(EurekaRegistrationConfig.DEFAULT_LEASE_EXPIRATION_DURATION_SECONDS);
-        assertThat(config.getHeartbeatInvervalInSeconds()).isEqualTo(EurekaRegistrationConfig.DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS);
+        assertThat(config.getHeartbeatIntervalInSeconds()).isEqualTo(EurekaRegistrationConfig.DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS);
     }
 }

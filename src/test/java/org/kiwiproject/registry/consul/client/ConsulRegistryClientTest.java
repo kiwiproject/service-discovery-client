@@ -115,14 +115,14 @@ class ConsulRegistryClientTest {
     class FindInstanceByServiceAndInstanceId {
         @Test
         void shouldReturnServiceInstanceWhenMatchFound() {
-            var instance = client.findServiceInstanceBy("APPID", "localhost");
+            var instance = client.findServiceInstanceBy("APPID", "INSTANCEID");
 
             assertThat(instance).isPresent();
         }
 
         @Test
         void shouldReturnOptionalEmptyWhenNotFound() {
-            var instance = client.findServiceInstanceBy("NOOP", "localhost");
+            var instance = client.findServiceInstanceBy("NOOP", "INSTANCEID");
             assertThat(instance).isEmpty();
         }
     }

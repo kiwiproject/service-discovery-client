@@ -81,6 +81,36 @@ class EurekaInstanceTest {
             assertThat(instance.getStatusPageUrl()).isEqualTo("https://localhost:8083" + ServicePaths.DEFAULT_STATUS_PATH);
             assertThat(instance.getHealthCheckUrl()).isEqualTo("https://localhost:8083" + ServicePaths.DEFAULT_HEALTHCHECK_PATH);
         }
+
+        @Test
+        void shouldMapDefaultMetadata() {
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
+                    .withStatus(ServiceInstance.Status.UP);
+
+            var eurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance);
+
+            assertThat(eurekaInstance.getMetadata()).containsOnly(
+                    entry("commitRef", serviceInstance.getCommitRef()),
+                    entry("description", serviceInstance.getDescription()),
+                    entry("version", serviceInstance.getVersion())
+            );
+        }
+
+        @Test
+        void shouldMapCustomMetadataWithDefaultMetadata() {
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
+                    .withStatus(ServiceInstance.Status.UP)
+                    .withMetadata(Map.of("category", "CORE"));
+
+            var eurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance);
+
+            assertThat(eurekaInstance.getMetadata()).containsOnly(
+                    entry("commitRef", serviceInstance.getCommitRef()),
+                    entry("description", serviceInstance.getDescription()),
+                    entry("version", serviceInstance.getVersion()),
+                    entry("category", "CORE")
+            );
+        }
     }
 
     @Nested
@@ -189,6 +219,67 @@ class EurekaInstanceTest {
                     .containsExactlyInAnyOrder(
                             tuple(8080, Port.Security.NOT_SECURE, Port.PortType.APPLICATION)
                     );
+        }
+
+        @Test
+        void shouldMapDefaultMetadataBack() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .adminPort(8081)
+                    .homePageUrl("http://localhost:8080/api")
+                    .statusPageUrl("http://localhost:8081/status")
+                    .healthCheckUrl("http://localhost:8081/health")
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0"
+                    ))
+                    .build();
+
+            var serviceInstance = eurekaInstance.toServiceInstance();
+
+            assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
+            assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
+            assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+            assertThat(serviceInstance.getMetadata()).isEmpty();
+        }
+
+        @Test
+        void shouldMapCustomMetadataIgnoringDefaults() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .adminPort(8081)
+                    .homePageUrl("http://localhost:8080/api")
+                    .statusPageUrl("http://localhost:8081/status")
+                    .healthCheckUrl("http://localhost:8081/health")
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0",
+                            "category", "CORE"
+                    ))
+                    .build();
+
+            var serviceInstance = eurekaInstance.toServiceInstance();
+
+            assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
+            assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
+            assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+            assertThat(serviceInstance.getMetadata()).containsOnly(entry("category", "CORE"));
         }
     }
 }

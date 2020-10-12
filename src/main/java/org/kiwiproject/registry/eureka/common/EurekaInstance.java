@@ -1,7 +1,9 @@
 package org.kiwiproject.registry.eureka.common;
 
 import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 import static org.kiwiproject.registry.model.Port.Security.NOT_SECURE;
 import static org.kiwiproject.registry.model.Port.Security.SECURE;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
@@ -22,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * This model matches the format of the data being sent to the Eureka server
@@ -30,6 +33,12 @@ import java.util.Objects;
 @Value
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EurekaInstance {
+
+    private static final String COMMIT_REF_FIELD = "commitRef";
+    private static final String DESCRIPTION_FIELD = "description";
+    private static final String VERSION_FIELD = "version";
+
+    private static final List<String> METADATA_EXCLUDED_KEYS = List.of(COMMIT_REF_FIELD, DESCRIPTION_FIELD, VERSION_FIELD);
 
     @With
     String app;
@@ -60,11 +69,6 @@ public class EurekaInstance {
     }
 
     public static EurekaInstance fromServiceInstance(ServiceInstance serviceInstance) {
-        var metadataMap = Map.of(
-                "commitRef", serviceInstance.getCommitRef(),
-                "description", serviceInstance.getDescription(),
-                "version", serviceInstance.getVersion()
-        );
 
         var hostName = serviceInstance.getHostName();
         var ports = serviceInstance.getPorts();
@@ -82,9 +86,28 @@ public class EurekaInstance {
                 .homePageUrl(urlForPath(hostName, ports, Port.PortType.APPLICATION, paths.getHomePagePath()))
                 .statusPageUrl(urlForPath(hostName, ports, Port.PortType.ADMIN, paths.getStatusPath()))
                 .healthCheckUrl(urlForPath(hostName, ports, Port.PortType.ADMIN, paths.getHealthCheckPath()))
-                .metadata(metadataMap)
+                .metadata(mergeMetadata(serviceInstance))
                 .build();
 
+    }
+
+    private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance) {
+        var defaultMetadataMap = Map.of(
+                COMMIT_REF_FIELD, serviceInstance.getCommitRef(),
+                DESCRIPTION_FIELD, serviceInstance.getDescription(),
+                VERSION_FIELD, serviceInstance.getVersion()
+        );
+
+        if (isNullOrEmpty(serviceInstance.getMetadata())) {
+            return defaultMetadataMap;
+        }
+
+        return Stream.concat(defaultMetadataMap.entrySet().stream(), serviceInstance.getMetadata().entrySet().stream())
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (value1, value2) -> value2
+                ));
     }
 
     private static Map<String, Object> portToEurekaPortMap(Port port) {
@@ -110,12 +133,19 @@ public class EurekaInstance {
                 .serviceName(vipAddress)
                 .hostName(hostName)
                 .ip(ipAddr)
-                .commitRef(metadata.get("commitRef"))
-                .description(metadata.get("description"))
-                .version(metadata.get("version"))
+                .commitRef(metadata.get(COMMIT_REF_FIELD))
+                .description(metadata.get(DESCRIPTION_FIELD))
+                .version(metadata.get(VERSION_FIELD))
+                .metadata(filterMetadata())
                 .paths(buildPaths())
                 .ports(ports)
                 .build();
+    }
+
+    private Map<String, String> filterMetadata() {
+        return metadata.entrySet().stream()
+                .filter(entry -> !METADATA_EXCLUDED_KEYS.contains(entry.getKey()))
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<Port> portListFromPortsIgnoringNulls(Port...ports) {

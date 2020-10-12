@@ -14,6 +14,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
 
+import java.util.List;
+import java.util.Map;
+
 @DisplayName("ConsulRegistryClient")
 class ConsulRegistryClientTest {
 
@@ -23,6 +26,7 @@ class ConsulRegistryClientTest {
     final ConsulExtension consulExtension = new ConsulExtension();
 
     private ConsulRegistryClient client;
+    private ConsulConfig config;
 
     @SuppressWarnings("UnstableApiUsage")
     @BeforeEach
@@ -30,13 +34,21 @@ class ConsulRegistryClientTest {
         var consul = Consul.builder()
                 .withHostAndPort(HostAndPort.fromParts("localhost", consulExtension.getHttpPort()))
                 .build();
-        client = new ConsulRegistryClient(consul, new ConsulConfig());
+
+        config = new ConsulConfig();
+        client = new ConsulRegistryClient(consul, config);
 
         consul.agentClient()
                 .register(ImmutableRegistration.builder()
                         .name("APPID")
                         .id("INSTANCEID")
-                        .address("localhost")
+                        .address("localhost.home")
+                        .port(8080)
+                        .tags(List.of("service-type:default", "category:CORE"))
+                        .meta(Map.of(
+                                "adminPort", "8081",
+                                "scheme", "http"
+                        ))
                         .build());
     }
 
@@ -126,4 +138,19 @@ class ConsulRegistryClientTest {
             assertThat(instance).isEmpty();
         }
     }
+
+    @Nested
+    class WithDomainOverride {
+        @Test
+        void shouldChangeTheDomainInAddress() {
+            config.setDomainOverride("test");
+            var instance = client.findServiceInstanceBy("APPID");
+
+            assertThat(instance).isPresent();
+
+            var serviceInstance = instance.get();
+            assertThat(serviceInstance.getHostName()).isEqualTo("localhost.test");
+        }
+    }
+
 }

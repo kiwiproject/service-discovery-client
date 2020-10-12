@@ -2,8 +2,12 @@ package org.kiwiproject.registry.consul.server;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.nonNull;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
+import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 import static org.kiwiproject.registry.util.Ports.determineScheme;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
@@ -18,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.base.Optionals;
 import org.kiwiproject.base.UUIDs;
+import org.kiwiproject.collect.KiwiLists;
+import org.kiwiproject.collect.KiwiMaps;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.consul.config.ConsulRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
@@ -29,10 +35,12 @@ import org.kiwiproject.retry.SimpleRetryer;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 /**
  * {@link RegistryService} implementation for Consul discovery servers
@@ -80,6 +88,11 @@ public class ConsulRegistryService implements RegistryService {
     private final SimpleRetryer registerRetryer;
     private final SimpleRetryer unregisterRetryer;
 
+    /**
+     * List of keys from the {@link ServiceInstance} metadata that should become tags, otherwise they will be in metadata
+     */
+    private final List<String> metadataTags;
+
     @VisibleForTesting
     final AtomicReference<ServiceInstance> registeredService;
 
@@ -87,6 +100,7 @@ public class ConsulRegistryService implements RegistryService {
         this.consul = consul;
         this.config = config;
         this.registeredService = new AtomicReference<>();
+        this.metadataTags = config.getMetadataTags();
 
         this.registerRetryer = SimpleRetryer.builder()
                 .environment(environment)
@@ -188,19 +202,50 @@ public class ConsulRegistryService implements RegistryService {
                 .id(UUIDs.randomUUIDString())
                 .name(serviceInstance.getServiceName())
                 .address(address)
-                .tags(List.of("service-type:default"))
-                .meta(Map.of(
-                        "version", serviceInstance.getVersion(),
-                        "commitRef", serviceInstance.getCommitRef(),
-                        "description", serviceInstance.getDescription(),
-                        "homePagePath", serviceInstance.getPaths().getHomePagePath(),
-                        "healthCheckPath", serviceInstance.getPaths().getHealthCheckPath(),
-                        "statusPath", serviceInstance.getPaths().getStatusPath(),
-                        "scheme", determineScheme(serviceInstance.getPorts(), Port.PortType.APPLICATION),
-                        "adminPort", Integer.toString(adminPort.getNumber()),
-                        "ipAddress", serviceInstance.getIp()
-                ))
+                .tags(buildTags(serviceInstance))
+                .meta(mergeMetadata(serviceInstance, adminPort))
                 .build();
+    }
+
+    private List<String> buildTags(ServiceInstance serviceInstance) {
+        var tags = new ArrayList<String>(List.of("service-type:default"));
+
+        if (KiwiMaps.isNullOrEmpty(serviceInstance.getMetadata()) || KiwiLists.isNullOrEmpty(metadataTags)) {
+            return tags;
+        }
+
+        var metadataAsTags = serviceInstance.getMetadata().entrySet().stream()
+                .filter(entry -> metadataTags.contains(entry.getKey()))
+                .map(entry -> f("{}:{}", entry.getKey(), entry.getValue()))
+                .collect(toList());
+
+        tags.addAll(metadataAsTags);
+        return tags;
+    }
+
+    private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance, Port adminPort) {
+        var defaultMetadataMap = Map.of(
+                "version", serviceInstance.getVersion(),
+                "commitRef", serviceInstance.getCommitRef(),
+                "description", serviceInstance.getDescription(),
+                "homePagePath", serviceInstance.getPaths().getHomePagePath(),
+                "healthCheckPath", serviceInstance.getPaths().getHealthCheckPath(),
+                "statusPath", serviceInstance.getPaths().getStatusPath(),
+                "scheme", determineScheme(serviceInstance.getPorts(), Port.PortType.APPLICATION),
+                "adminPort", Integer.toString(adminPort.getNumber()),
+                "ipAddress", serviceInstance.getIp()
+        );
+
+        if (isNullOrEmpty(serviceInstance.getMetadata())) {
+            return defaultMetadataMap;
+        }
+
+        return Stream.concat(defaultMetadataMap.entrySet().stream(), serviceInstance.getMetadata().entrySet().stream())
+                .collect(toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (value1, value2) -> value2
+                ));
     }
 
     private String adjustAddressIfNeeded(ServiceInstance instance) {

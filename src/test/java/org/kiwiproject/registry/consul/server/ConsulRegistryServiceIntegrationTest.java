@@ -26,6 +26,8 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @DisplayName("ConsulRegistryService")
 @ExtendWith(SoftAssertionsExtension.class)
@@ -49,6 +51,7 @@ class ConsulRegistryServiceIntegrationTest {
                 .build();
         environment = mock(KiwiEnvironment.class);
         config = new ConsulRegistrationConfig();
+        config.setMetadataTags(List.of("leader"));
         service = new ConsulRegistryService(consul, config, environment);
     }
 
@@ -92,7 +95,11 @@ class ConsulRegistryServiceIntegrationTest {
             when(environment.currentInstant()).thenReturn(now);
 
             var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
-                    .withStatus(ServiceInstance.Status.UP);
+                    .withStatus(ServiceInstance.Status.UP)
+                    .withMetadata(Map.of(
+                            "category", "CORE",
+                            "leader", "true"
+                    ));
 
             var registeredInstance = service.register(serviceInstance);
 

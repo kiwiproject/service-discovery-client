@@ -24,7 +24,18 @@ public class Port {
      * Enum defining whether the port is secure or not
      */
     public enum Security {
-        SECURE, NOT_SECURE
+        SECURE("https"), NOT_SECURE("http");
+
+        @Getter
+        private final String scheme;
+
+        Security(String scheme) {
+            this.scheme = scheme;
+        }
+
+        public static Security fromScheme(String schemeToCheck) {
+            return SECURE.scheme.equalsIgnoreCase(schemeToCheck) ? SECURE : NOT_SECURE;
+        }
     }
 
     private final int number;

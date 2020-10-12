@@ -8,6 +8,7 @@ import org.kiwiproject.registry.model.ServiceInstance;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Base of all registry client implementations in order to find running services
@@ -49,7 +50,9 @@ public interface RegistryClient {
      * @param serviceName The name of the service that is being requested
      * @return an {@link Optional} containing the found service or {@code Optional.empty()}
      */
-    Optional<ServiceInstance> findServiceInstanceBy(String serviceName);
+    default Optional<ServiceInstance> findServiceInstanceBy(String serviceName) {
+        return findServiceInstanceBy(InstanceQuery.builder().serviceName(serviceName).build());
+    }
 
     /**
      * Attempts to find a service instance with the given service name and the given instance id.
@@ -69,7 +72,15 @@ public interface RegistryClient {
      * @param query a {@link InstanceQuery} containing the search parameters to find the instance
      * @return an {@link Optional} containing the found service or {@code Optional.empty()}
      */
-    Optional<ServiceInstance> findServiceInstanceBy(InstanceQuery query);
+    default Optional<ServiceInstance> findServiceInstanceBy(InstanceQuery query) {
+        var instances = findAllServiceInstancesBy(query);
+
+        if (instances.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(selectRandom(instances));
+    }
 
     /**
      * Attempts to find all service instances with the given service name.
@@ -77,7 +88,9 @@ public interface RegistryClient {
      * @param serviceName The name of the service that is being requested
      * @return a {@link List} containing the found services
      */
-    List<ServiceInstance> findAllServiceInstancesBy(String serviceName);
+    default List<ServiceInstance> findAllServiceInstancesBy(String serviceName) {
+        return findAllServiceInstancesBy(InstanceQuery.builder().serviceName(serviceName).build());
+    }
 
     /**
      * Attempts to find all service instances from the given {@link InstanceQuery}.
@@ -86,4 +99,13 @@ public interface RegistryClient {
      * @return a {@link List} containing the found services
      */
     List<ServiceInstance> findAllServiceInstancesBy(InstanceQuery query);
+
+    private static <T> T selectRandom(List<T> items) {
+        var index = selectRandomIndex(items);
+        return items.get(index);
+    }
+
+    private static <T> int selectRandomIndex(List<T> items) {
+        return ThreadLocalRandom.current().nextInt(items.size());
+    }
 }

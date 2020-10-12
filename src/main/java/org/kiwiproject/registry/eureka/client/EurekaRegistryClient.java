@@ -31,7 +31,6 @@ import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -107,11 +106,6 @@ public class EurekaRegistryClient implements RegistryClient {
     }
 
     @Override
-    public Optional<ServiceInstance> findServiceInstanceBy(String serviceName) {
-        return findServiceInstanceBy(InstanceQuery.builder().serviceName(serviceName).build());
-    }
-
-    @Override
     public Optional<ServiceInstance> findServiceInstanceBy(String serviceName, String instanceId) {
         checkArgumentNotBlank(instanceId, "The instance ID cannot be blank");
 
@@ -120,22 +114,6 @@ public class EurekaRegistryClient implements RegistryClient {
         return instances.stream()
                 .filter(instance -> instance.getInstanceId().equals(instanceId))
                 .findFirst();
-    }
-
-    @Override
-    public Optional<ServiceInstance> findServiceInstanceBy(InstanceQuery query) {
-        var instances = findAllServiceInstancesBy(query);
-
-        if (instances.isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(selectRandom(instances));
-    }
-
-    @Override
-    public List<ServiceInstance> findAllServiceInstancesBy(String serviceName) {
-        return findAllServiceInstancesBy(InstanceQuery.builder().serviceName(serviceName).build());
     }
 
     @Override
@@ -177,15 +155,6 @@ public class EurekaRegistryClient implements RegistryClient {
                 throw e;
             }
         });
-    }
-
-    private static <T> T selectRandom(List<T> items) {
-        var index = selectRandomIndex(items);
-        return items.get(index);
-    }
-
-    private static <T> int selectRandomIndex(List<T> items) {
-        return ThreadLocalRandom.current().nextInt(items.size());
     }
 
 }

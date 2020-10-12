@@ -91,7 +91,7 @@ public class RegistrationLifecycleListener extends AbstractLifeCycle.AbstractLif
 
         return portProtocol.map(protocol -> Port.builder()
                 .type(portType)
-                .secure("https".equalsIgnoreCase(protocol) ? Port.Security.SECURE : Port.Security.NOT_SECURE)
+                .secure(Port.Security.fromScheme(protocol))
                 .number(port)
                 .build());
     }

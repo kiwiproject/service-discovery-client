@@ -57,7 +57,6 @@ public class Ports {
      */
     public static String determineScheme(List<Port> ports, Port.PortType type) {
         var firstPort = findFirstPortPreferSecure(ports, type);
-
-        return firstPort.getSecure() == Port.Security.SECURE ? "https" : "http";
+        return firstPort.getSecure().getScheme();
     }
 }

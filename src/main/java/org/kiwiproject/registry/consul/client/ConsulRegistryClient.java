@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.orbitz.consul.Consul;
@@ -28,8 +29,8 @@ public class ConsulRegistryClient implements RegistryClient {
     private final ConsulConfig config;
 
     public ConsulRegistryClient(Consul consul, ConsulConfig config) {
-        this.config = config;
-        this.consul = consul;
+        this.config = requireNotNull(config);
+        this.consul = requireNotNull(consul);
     }
 
     @Override

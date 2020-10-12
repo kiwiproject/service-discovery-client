@@ -20,7 +20,7 @@ class ConsulRegistryClientTest {
     // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
     //       something with the extension or with the Nested test classes
     @RegisterExtension
-    ConsulExtension CONSUL = new ConsulExtension();
+    final ConsulExtension consulExtension = new ConsulExtension();
 
     private ConsulRegistryClient client;
 
@@ -28,7 +28,7 @@ class ConsulRegistryClientTest {
     @BeforeEach
     void setUp() {
         var consul = Consul.builder()
-                .withHostAndPort(HostAndPort.fromParts("localhost", CONSUL.getHttpPort()))
+                .withHostAndPort(HostAndPort.fromParts("localhost", consulExtension.getHttpPort()))
                 .build();
         client = new ConsulRegistryClient(consul, new ConsulConfig());
 

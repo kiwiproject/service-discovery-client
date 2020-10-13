@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class ConsulRegistryClient implements RegistryClient {
 
@@ -31,7 +32,7 @@ public class ConsulRegistryClient implements RegistryClient {
     private static final List<String> METADATA_EXCLUDED_KEYS = List.of("commitRef", "description", "version", "homePagePath", "healthCheckPath", "statusPath",
             "scheme", ADMIN_PORT_FIELD, "ipAddress");
 
-    private static final List<String> TAGS_EXCLUDED = List.of("service-type:default");
+    private static final Set<String> TAGS_EXCLUDED = Set.of("service-type:default");
 
     private final Consul consul;
     private final ConsulConfig config;
@@ -119,8 +120,12 @@ public class ConsulRegistryClient implements RegistryClient {
 
         if (isNotNullOrEmpty(filteredTags)) {
             filteredTags.forEach(tag -> {
-                var tagSplit = tag.split(":");
-                metadata.put(tagSplit[0], tagSplit[1]);
+                if (tag.contains(":")) {
+                    var tagSplit = tag.split(":");
+                    metadata.put(tagSplit[0], tagSplit[1]);
+                } else {
+                    metadata.put(tag, tag);
+                }
             });
         }
     }

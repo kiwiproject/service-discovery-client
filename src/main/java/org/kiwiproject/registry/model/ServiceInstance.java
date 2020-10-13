@@ -6,6 +6,7 @@ import lombok.With;
 import org.kiwiproject.registry.config.ServiceInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Model containing information about a running service
@@ -37,6 +38,12 @@ public class ServiceInstance {
     private final String commitRef;
     private final String description;
     private final String version;
+
+    /**
+     * Used to store extra data in a discovery service for this instance
+     */
+    @With
+    private final Map<String, String> metadata;
 
     /**
      * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}

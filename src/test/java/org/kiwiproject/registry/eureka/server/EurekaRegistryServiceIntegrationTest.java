@@ -82,6 +82,7 @@ class EurekaRegistryServiceIntegrationTest {
             softly.assertThat(serviceInstance.getPaths()).isEqualTo(serviceInfo.getPaths());
             softly.assertThat(serviceInstance.getIp()).isEqualTo(serviceInfo.getIp());
             softly.assertThat(serviceInstance.getStatus()).isEqualTo(ServiceInstance.Status.STARTING);
+            softly.assertThat(serviceInstance.getMetadata()).isNullOrEmpty();
         }
 
     }

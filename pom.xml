@@ -264,6 +264,7 @@
       <groupId>org.kiwiproject</groupId>
       <artifactId>kiwi-test</artifactId>
       <version>${kiwi-test.version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

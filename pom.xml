@@ -302,16 +302,6 @@
       <artifactId>embedded-eureka</artifactId>
       <version>${embedded-eureka.version}</version>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.kiwiproject</groupId>
-          <artifactId>kiwi</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.kiwiproject</groupId>
-          <artifactId>kiwi-test</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>

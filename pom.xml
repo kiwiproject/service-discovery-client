@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.kiwiproject</groupId>
         <artifactId>kiwi-parent</artifactId>
-        <version>0.1.0</version>
+        <version>0.2.0</version>
     </parent>
 
     <artifactId>service-discovery-client</artifactId>
@@ -290,6 +290,17 @@
             <artifactId>embedded-eureka</artifactId>
             <version>${embedded-eureka.version}</version>
             <scope>test</scope>
+            <!-- TODO Temporary exclusions -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

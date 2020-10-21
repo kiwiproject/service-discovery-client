@@ -290,6 +290,17 @@
             <artifactId>embedded-eureka</artifactId>
             <version>${embedded-eureka.version}</version>
             <scope>test</scope>
+            <!-- TODO Temporary exclusions -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-engine</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

@@ -6,6 +6,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import lombok.AllArgsConstructor;
+import org.glassfish.jersey.client.ClientProperties;
 import org.kiwiproject.registry.model.ServiceInstance;
 
 import javax.ws.rs.client.Client;
@@ -21,11 +22,19 @@ public class EurekaRestClient {
 
     private static final String APP_ID = "appId";
     private static final String INSTANCE_ID = "instanceId";
+    private static final int DEFAULT_CONNECT_TIMEOUT_MILLIS = 1_000;
+    private static final int DEFAULT_READ_TIMEOUT_MILLIS = 5_000;
 
     private final Client client;
 
     public EurekaRestClient() {
-        this(ClientBuilder.newClient());
+        this(newClient());
+    }
+
+    private static Client newClient() {
+        return ClientBuilder.newClient()
+                .property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_CONNECT_TIMEOUT_MILLIS)
+                .property(ClientProperties.READ_TIMEOUT, DEFAULT_READ_TIMEOUT_MILLIS);
     }
 
     public Response register(String eurekaUrl, String appId, EurekaInstance instanceToRegister) {

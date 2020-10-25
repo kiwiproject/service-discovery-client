@@ -46,7 +46,7 @@
         <!-- Versions for test dependencies -->
         <ant.version>1.10.8</ant.version>
         <embedded-consul.version>2.2.0</embedded-consul.version>
-        <embedded-eureka.version>0.3.0</embedded-eureka.version>
+        <embedded-eureka.version>0.3.1</embedded-eureka.version>
         <groovy.version>2.5.13</groovy.version>
         <kiwi-test.version>0.8.0</kiwi-test.version>
 
@@ -290,45 +290,6 @@
             <artifactId>embedded-eureka</artifactId>
             <version>${embedded-eureka.version}</version>
             <scope>test</scope>
-            <!-- TODO Temporary exclusions -->
-            <exclusions>
-                <exclusion>
-                    <groupId>io.dropwizard</groupId>
-                    <artifactId>dropwizard-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.dropwizard</groupId>
-                    <artifactId>dropwizard-jackson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.hibernate.validator</groupId>
-                    <artifactId>hibernate-validator</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.glassfish.jersey.inject</groupId>
-                    <artifactId>jersey-hk2</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.junit.jupiter</groupId>
-                    <artifactId>junit-jupiter-engine</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.kiwiproject</groupId>
-                    <artifactId>kiwi</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.kiwiproject</groupId>
-                    <artifactId>kiwi-test</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.dropwizard.metrics</groupId>
-                    <artifactId>metrics-servlets</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

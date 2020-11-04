@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
+import org.kiwiproject.registry.consul.util.ConsulStarterHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ class ConsulRegistryClientTest {
     // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
     //       something with the extension or with the Nested test classes
     @RegisterExtension
-    final ConsulExtension consulExtension = new ConsulExtension();
+    final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
 
     private ConsulRegistryClient client;
     private ConsulConfig config;

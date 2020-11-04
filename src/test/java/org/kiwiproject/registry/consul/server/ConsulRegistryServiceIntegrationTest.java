@@ -21,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.registry.consul.config.ConsulRegistrationConfig;
+import org.kiwiproject.registry.consul.util.ConsulStarterHelper;
 import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
@@ -36,7 +37,7 @@ class ConsulRegistryServiceIntegrationTest {
     // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
     //       something with the extension or with the Nested test classes
     @RegisterExtension
-    ConsulExtension CONSUL = new ConsulExtension();
+    ConsulExtension CONSUL = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
 
     private ConsulRegistryService service;
     private KiwiEnvironment environment;
@@ -165,7 +166,9 @@ class ConsulRegistryServiceIntegrationTest {
         void shouldReturnRegisteredInstanceUntouchedWhenRegistered() {
             var serviceInstance = ServiceInstance.builder().build();
             service.registeredService.set(serviceInstance);
-            assertThat(service.updateStatus(ServiceInstance.Status.UP)).isEqualToComparingFieldByField(serviceInstance);
+            assertThat(service.updateStatus(ServiceInstance.Status.UP))
+                    .usingRecursiveComparison()
+                    .isEqualTo(serviceInstance);
         }
     }
 

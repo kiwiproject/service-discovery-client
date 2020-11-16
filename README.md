@@ -1,5 +1,5 @@
 ### Service Discovery Client
-[![Build Status](https://travis-ci.com/kiwiproject/service-discovery-client.svg?branch=master)](https://travis-ci.com/kiwiproject/service-discovery-client)
+[![Build](https://github.com/kiwiproject/service-discovery-client/workflows/build/badge.svg)](https://github.com/kiwiproject/service-discovery-client/actions?query=workflow%3Abuild)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_service-discovery-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=kiwiproject_service-discovery-client)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=kiwiproject_service-discovery-client&metric=coverage)](https://sonarcloud.io/dashboard?id=kiwiproject_service-discovery-client)
 [![javadoc](https://javadoc.io/badge2/org.kiwiproject/service-discovery-client/javadoc.svg)](https://javadoc.io/doc/org.kiwiproject/service-discovery-client)
@@ -15,6 +15,6 @@ An abstract service discovery API that provides methods for registration and loo
 <dependency>
     <groupId>org.kiwiproject</groupId>
     <artifactId>service-discovery-client</artifactId>
-    <version>0.1.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```

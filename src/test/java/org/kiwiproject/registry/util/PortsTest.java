@@ -73,7 +73,7 @@ class PortsTest {
 
         @Test
         void shouldReturnDefaultPortIfCriteriaDoesNotFindOne() {
-            var port = Ports.findPort(List.of(), Security.SECURE, PortType.APPLICATION);
+            var port = Ports.findPort(List.of(), PortType.APPLICATION, Security.SECURE);
 
             assertThat(port.getNumber()).isZero();
             assertThat(port.getSecure()).isEqualTo(Security.SECURE);

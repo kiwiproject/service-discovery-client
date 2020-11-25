@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 
 import java.util.List;
 
@@ -17,52 +19,52 @@ class PortsTest {
 
         @Test
         void shouldReturnSecurePortWhenSecurePortIsFound() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.SECURE));
 
-            var port = Ports.findFirstPortPreferSecure(ports, Port.PortType.APPLICATION);
+            var port = Ports.findFirstPortPreferSecure(ports, PortType.APPLICATION);
 
             assertThat(port.getNumber()).isEqualTo(8080);
-            assertThat(port.getSecure()).isEqualTo(Port.Security.SECURE);
-            assertThat(port.getType()).isEqualTo(Port.PortType.APPLICATION);
+            assertThat(port.getSecure()).isEqualTo(Security.SECURE);
+            assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
 
         @Test
         void shouldReturnNonSecureWhenNonSecurePortIsFound() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.NOT_SECURE));
 
-            var port = Ports.findFirstPortPreferSecure(ports, Port.PortType.APPLICATION);
+            var port = Ports.findFirstPortPreferSecure(ports, PortType.APPLICATION);
 
             assertThat(port.getNumber()).isEqualTo(8080);
-            assertThat(port.getSecure()).isEqualTo(Port.Security.NOT_SECURE);
-            assertThat(port.getType()).isEqualTo(Port.PortType.APPLICATION);
+            assertThat(port.getSecure()).isEqualTo(Security.NOT_SECURE);
+            assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
 
         @Test
         void shouldReturnSecureWhenBothSecureAndNonSecurePortIsFound() {
             var ports = List.of(
-                    Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build(),
-                    Port.builder().number(8081).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build()
+                    Port.of(8080, PortType.APPLICATION, Security.SECURE),
+                    Port.of(8081, PortType.APPLICATION, Security.NOT_SECURE)
             );
 
-            var port = Ports.findFirstPortPreferSecure(ports, Port.PortType.APPLICATION);
+            var port = Ports.findFirstPortPreferSecure(ports, PortType.APPLICATION);
 
             assertThat(port.getNumber()).isEqualTo(8080);
-            assertThat(port.getSecure()).isEqualTo(Port.Security.SECURE);
-            assertThat(port.getType()).isEqualTo(Port.PortType.APPLICATION);
+            assertThat(port.getSecure()).isEqualTo(Security.SECURE);
+            assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
 
         @Test
         void shouldReturnFirstSecureWhenMultiplePortsAreFound() {
             var ports = List.of(
-                    Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build(),
-                    Port.builder().number(8081).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build()
+                    Port.of(8080, PortType.APPLICATION, Security.SECURE),
+                    Port.of(8081, PortType.APPLICATION, Security.SECURE)
             );
 
-            var port = Ports.findFirstPortPreferSecure(ports, Port.PortType.APPLICATION);
+            var port = Ports.findFirstPortPreferSecure(ports, PortType.APPLICATION);
 
             assertThat(port.getNumber()).isEqualTo(8080);
-            assertThat(port.getSecure()).isEqualTo(Port.Security.SECURE);
-            assertThat(port.getType()).isEqualTo(Port.PortType.APPLICATION);
+            assertThat(port.getSecure()).isEqualTo(Security.SECURE);
+            assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
     }
 
@@ -71,11 +73,11 @@ class PortsTest {
 
         @Test
         void shouldReturnDefaultPortIfCriteriaDoesNotFindOne() {
-            var port = Ports.findPort(List.of(), Port.Security.SECURE, Port.PortType.APPLICATION);
+            var port = Ports.findPort(List.of(), Security.SECURE, PortType.APPLICATION);
 
             assertThat(port.getNumber()).isZero();
-            assertThat(port.getSecure()).isEqualTo(Port.Security.SECURE);
-            assertThat(port.getType()).isEqualTo(Port.PortType.APPLICATION);
+            assertThat(port.getSecure()).isEqualTo(Security.SECURE);
+            assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
     }
 
@@ -84,18 +86,18 @@ class PortsTest {
 
         @Test
         void shouldReturnHttpsIfPortIsSecure() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.SECURE));
 
-            var scheme = Ports.determineScheme(ports, Port.PortType.APPLICATION);
+            var scheme = Ports.determineScheme(ports, PortType.APPLICATION);
 
             assertThat(scheme).isEqualTo("https");
         }
 
         @Test
         void shouldReturnHttpIfPortIsNotSecure() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.NOT_SECURE));
 
-            var scheme = Ports.determineScheme(ports, Port.PortType.APPLICATION);
+            var scheme = Ports.determineScheme(ports, PortType.APPLICATION);
 
             assertThat(scheme).isEqualTo("http");
         }

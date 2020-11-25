@@ -1,9 +1,9 @@
 package org.kiwiproject.registry.util;
 
-import static org.kiwiproject.registry.model.Port.Security.NOT_SECURE;
-
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 
 import java.util.List;
 
@@ -20,31 +20,33 @@ public class Ports {
      *
      * @param ports The list of ports to traverse
      * @param type  The type of port that is being requested
-     * @return  The port definition that was found based on the given criteria
+     * @return The port definition that was found based on the given criteria
      */
-    public static Port findFirstPortPreferSecure(List<Port> ports, Port.PortType type) {
-        var securePort = findPort(ports, Port.Security.SECURE, type);
+    public static Port findFirstPortPreferSecure(List<Port> ports, PortType type) {
+        var securePort = findPort(ports, Security.SECURE, type);
         if (securePort.getNumber() > 0) {
             return securePort;
         }
 
-        return findPort(ports, NOT_SECURE, type);
+        return findPort(ports, Security.NOT_SECURE, type);
     }
 
     /**
-     * Finds a desired port given a security and type criteria
+     * Finds a desired port given a security and type criteria.
+     * <p>
+     * If not found, returns a new Port with number 0 and the given values for {@link Security} and {@link PortType}.
      *
-     * @param ports     The list of ports to traverse
-     * @param security  The security of the port that is desired (Secure or Non-Secure)
-     * @param type      The type of port that is desired (Application or Admin)
+     * @param ports    The list of ports to traverse
+     * @param security The security of the port that is desired (Secure or Non-Secure)
+     * @param type     The type of port that is desired (Application or Admin)
      * @return The port definition that was found based on the given criteria
      */
-    public static Port findPort(List<Port> ports, Port.Security security, Port.PortType type) {
+    public static Port findPort(List<Port> ports, Security security, PortType type) {
         return ports.stream()
                 .filter(p -> p.getSecure() == security)
                 .filter(p -> p.getType() == type)
                 .findFirst()
-                .orElseGet(() -> Port.builder().number(0).secure(security).type(type).build());
+                .orElseGet(() -> Port.of(0, type, security));
     }
 
     /**
@@ -52,10 +54,10 @@ public class Ports {
      *
      * @param ports The list of ports to traverse to determine the scheme
      * @param type  The type of port that is desired (Application or Admin)
-     * @return  The scheme (https or http) based on the port definitions
-     * @see #findFirstPortPreferSecure(List, Port.PortType)
+     * @return The scheme (https or http) based on the port definitions
+     * @see #findFirstPortPreferSecure(List, PortType)
      */
-    public static String determineScheme(List<Port> ports, Port.PortType type) {
+    public static String determineScheme(List<Port> ports, PortType type) {
         var firstPort = findFirstPortPreferSecure(ports, type);
         return firstPort.getSecure().getScheme();
     }

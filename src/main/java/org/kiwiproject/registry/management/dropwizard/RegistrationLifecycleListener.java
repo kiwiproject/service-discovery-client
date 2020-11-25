@@ -11,6 +11,7 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.management.RegistrationManager;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.server.RegistryService;
 
 import java.util.List;
@@ -89,11 +90,7 @@ public class RegistrationLifecycleListener extends AbstractLifeCycle.AbstractLif
                 .map(PortDescriptor::getProtocol)
                 .findFirst();
 
-        return portProtocol.map(protocol -> Port.builder()
-                .type(portType)
-                .secure(Port.Security.fromScheme(protocol))
-                .number(port)
-                .build());
+        return portProtocol.map(protocol -> Port.of(port, portType, Security.fromScheme(protocol)));
     }
 
     // This method comes from AbstractLifeCycle.AbstractLifeCycleListener

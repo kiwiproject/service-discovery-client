@@ -15,6 +15,8 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.With;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 
@@ -80,12 +82,12 @@ public class EurekaInstance {
                 .vipAddress(serviceInstance.getServiceName())
                 .secureVipAddress(serviceInstance.getServiceName())
                 .status(serviceInstance.getStatus().name())
-                .port(portToEurekaPortMap(findPort(ports, NOT_SECURE, Port.PortType.APPLICATION)))
-                .securePort(portToEurekaPortMap(findPort(ports, Port.Security.SECURE, Port.PortType.APPLICATION)))
+                .port(portToEurekaPortMap(findPort(ports, NOT_SECURE, PortType.APPLICATION)))
+                .securePort(portToEurekaPortMap(findPort(ports, Security.SECURE, PortType.APPLICATION)))
                 .adminPort(findFirstAdminPortNumberPreferSecure(ports))
-                .homePageUrl(urlForPath(hostName, ports, Port.PortType.APPLICATION, paths.getHomePagePath()))
-                .statusPageUrl(urlForPath(hostName, ports, Port.PortType.ADMIN, paths.getStatusPath()))
-                .healthCheckUrl(urlForPath(hostName, ports, Port.PortType.ADMIN, paths.getHealthCheckPath()))
+                .homePageUrl(urlForPath(hostName, ports, PortType.APPLICATION, paths.getHomePagePath()))
+                .statusPageUrl(urlForPath(hostName, ports, PortType.ADMIN, paths.getStatusPath()))
+                .healthCheckUrl(urlForPath(hostName, ports, PortType.ADMIN, paths.getHealthCheckPath()))
                 .metadata(mergeMetadata(serviceInstance))
                 .build();
 
@@ -118,7 +120,7 @@ public class EurekaInstance {
     }
 
     private static int findFirstAdminPortNumberPreferSecure(List<Port> ports) {
-        var firstAdminPort = findFirstPortPreferSecure(ports, Port.PortType.ADMIN);
+        var firstAdminPort = findFirstPortPreferSecure(ports, PortType.ADMIN);
 
         return firstAdminPort.getNumber();
     }
@@ -148,7 +150,7 @@ public class EurekaInstance {
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private List<Port> portListFromPortsIgnoringNulls(Port...ports) {
+    private List<Port> portListFromPortsIgnoringNulls(Port... ports) {
         return Arrays.stream(ports)
                 .filter(Objects::nonNull)
                 .collect(toUnmodifiableList());
@@ -159,25 +161,18 @@ public class EurekaInstance {
             return null;
         }
 
-        var secure = isNull(statusPageUrl) || statusPageUrl.startsWith("https") ? Port.Security.SECURE : NOT_SECURE;
+        var secure = isNull(statusPageUrl) || statusPageUrl.startsWith("https") ? Security.SECURE : NOT_SECURE;
 
-        return Port.builder()
-                .number(adminPort)
-                .secure(secure)
-                .type(Port.PortType.ADMIN)
-                .build();
+        return Port.of(adminPort, PortType.ADMIN, secure);
     }
 
-    private Port buildApplicationPort(Map<String, Object> portDef, Port.Security secure) {
+    private Port buildApplicationPort(Map<String, Object> portDef, Security secure) {
         if (!isEnabled(portDef.get("@enabled"))) {
             return null;
         }
 
-        return Port.builder()
-                .number((int) portDef.get("$"))
-                .type(Port.PortType.APPLICATION)
-                .secure(secure)
-                .build();
+        var portNumber = (int) portDef.get("$");
+        return Port.of(portNumber, PortType.APPLICATION, secure);
     }
 
     private boolean isEnabled(Object enabledFlag) {

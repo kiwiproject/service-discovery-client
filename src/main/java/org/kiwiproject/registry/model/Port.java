@@ -1,13 +1,19 @@
 package org.kiwiproject.registry.model;
 
+import static java.util.Objects.isNull;
+import static org.kiwiproject.base.KiwiPreconditions.checkValidPort;
+
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.annotation.Nullable;
+
 /**
- * Model that defines a port being used by a service, including the port number, the purpose of the port, and whether the port is secure or not.
+ * Model that defines a port being used by a service, including the port number, the purpose of the port, and whether
+ * the port is secure or not.
  * <p>
- * For the type/purpose of the port, we are assuming that a service has a separate ports for the main application and the administrative endpoints
- * (e.g. status and health checks)
+ * For the type/purpose of the port, we are assuming that a service has a separate ports for the main application and
+ * the administrative endpoints (e.g. status and health checks)
  */
 @Builder
 @Getter
@@ -21,10 +27,19 @@ public class Port {
     }
 
     /**
-     * Enum defining whether the port is secure or not
+     * Enum defining whether the port is secure or not.
      */
     public enum Security {
-        SECURE("https"), NOT_SECURE("http");
+
+        /**
+         * Secure; HTTPS.
+         */
+        SECURE("https"),
+
+        /**
+         * Not secure; HTTP.
+         */
+        NOT_SECURE("http");
 
         @Getter
         private final String scheme;
@@ -33,6 +48,13 @@ public class Port {
             this.scheme = scheme;
         }
 
+        /**
+         * Return {@link Security} value for the given scheme, using a case-insensitive comparison. If given some
+         * value other than HTTP or HTTPS, returns NOT_SECURE.
+         *
+         * @param schemeToCheck either HTTP or HTTPS, case-insensitive
+         * @return the {@link Security} value
+         */
         public static Security fromScheme(String schemeToCheck) {
             return SECURE.scheme.equalsIgnoreCase(schemeToCheck) ? SECURE : NOT_SECURE;
         }
@@ -41,5 +63,28 @@ public class Port {
     private final int number;
     private final PortType type;
     private final Security secure;
+
+    /**
+     * Convenience factory method to create a new {@link Port}.
+     * <p>
+     * Default values are assigned to the port type and security if null arguments are supplied.
+     *
+     * @param number   the port number, must be in range 0 to 65535
+     * @param portType the type of port (defaults to APPLICATION if null)
+     * @param security is the port secure? (defaults to SECURE if null)
+     * @return a new instance
+     */
+    public static Port of(int number, @Nullable PortType portType, @Nullable Security security) {
+        checkValidPort(number);
+
+        var nonNullPortType = isNull(portType) ? PortType.APPLICATION : portType;
+        var nonNullSecurity = isNull(security) ? Security.SECURE : security;
+
+        return Port.builder()
+                .number(number)
+                .type(nonNullPortType)
+                .secure(nonNullSecurity)
+                .build();
+    }
 
 }

@@ -50,13 +50,13 @@ public class Port {
 
         /**
          * Return {@link Security} value for the given scheme, using a case-insensitive comparison. If given some
-         * value other than HTTP or HTTPS, returns NOT_SECURE.
+         * value other than HTTP or HTTPS, returns SECURE.
          *
          * @param schemeToCheck either HTTP or HTTPS, case-insensitive
          * @return the {@link Security} value
          */
         public static Security fromScheme(String schemeToCheck) {
-            return SECURE.scheme.equalsIgnoreCase(schemeToCheck) ? SECURE : NOT_SECURE;
+            return NOT_SECURE.scheme.equalsIgnoreCase(schemeToCheck) ? NOT_SECURE : SECURE;
         }
     }
 

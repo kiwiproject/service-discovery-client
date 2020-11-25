@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
@@ -58,6 +59,39 @@ class PortTest {
         void shouldSetDefaultValueForSecurity() {
             var port = Port.of(9001, PortType.APPLICATION, null);
             assertThat(port.getSecure()).isEqualTo(Security.SECURE);
+        }
+    }
+
+    @Nested
+    class SecurityEnum {
+
+        @Nested
+        class FromScheme {
+
+            @ParameterizedTest
+            @CsvSource({
+                    "HTTP, NOT_SECURE",
+                    "http, NOT_SECURE",
+                    "HttP, NOT_SECURE",
+                    "HTTPS, SECURE",
+                    "https, SECURE",
+                    "HttPS, SECURE",
+            })
+            void shouldResolveFromStringValuesIgnoringCase(String value, Security expectedSecurity) {
+                assertThat(Security.fromScheme(value)).isEqualTo(expectedSecurity);
+            }
+
+            @ParameterizedTest
+            @NullAndEmptySource
+            void shouldDefaultToSecureWhenGivenNullOrEmptyValue(String value) {
+                assertThat(Security.fromScheme(value)).isEqualTo(Security.SECURE);
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = {" ", "foo", "secure", "not-secure", "bar"})
+            void shouldDefaultToSecureWhenGivenInvalidValue(String value) {
+                assertThat(Security.fromScheme(value)).isEqualTo(Security.SECURE);
+            }
         }
     }
 

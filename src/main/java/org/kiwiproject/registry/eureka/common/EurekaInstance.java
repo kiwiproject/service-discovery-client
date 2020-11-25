@@ -4,7 +4,6 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
-import static org.kiwiproject.registry.model.Port.Security.NOT_SECURE;
 import static org.kiwiproject.registry.model.Port.Security.SECURE;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.Ports.findPort;
@@ -82,8 +81,8 @@ public class EurekaInstance {
                 .vipAddress(serviceInstance.getServiceName())
                 .secureVipAddress(serviceInstance.getServiceName())
                 .status(serviceInstance.getStatus().name())
-                .port(portToEurekaPortMap(findPort(ports, NOT_SECURE, PortType.APPLICATION)))
-                .securePort(portToEurekaPortMap(findPort(ports, Security.SECURE, PortType.APPLICATION)))
+                .port(portToEurekaPortMap(findPort(ports, PortType.APPLICATION, Security.NOT_SECURE)))
+                .securePort(portToEurekaPortMap(findPort(ports, PortType.APPLICATION, Security.SECURE)))
                 .adminPort(findFirstAdminPortNumberPreferSecure(ports))
                 .homePageUrl(urlForPath(hostName, ports, PortType.APPLICATION, paths.getHomePagePath()))
                 .statusPageUrl(urlForPath(hostName, ports, PortType.ADMIN, paths.getStatusPath()))
@@ -126,7 +125,7 @@ public class EurekaInstance {
     }
 
     public ServiceInstance toServiceInstance() {
-        var ports = portListFromPortsIgnoringNulls(buildAdminPort(), buildApplicationPort(port, NOT_SECURE),
+        var ports = portListFromPortsIgnoringNulls(buildAdminPort(), buildApplicationPort(port, Security.NOT_SECURE),
                 buildApplicationPort(securePort, SECURE));
 
         return ServiceInstance.builder()
@@ -161,7 +160,7 @@ public class EurekaInstance {
             return null;
         }
 
-        var secure = isNull(statusPageUrl) || statusPageUrl.startsWith("https") ? Security.SECURE : NOT_SECURE;
+        var secure = isNull(statusPageUrl) || statusPageUrl.startsWith("https") ? Security.SECURE : Security.NOT_SECURE;
 
         return Port.of(adminPort, PortType.ADMIN, secure);
     }

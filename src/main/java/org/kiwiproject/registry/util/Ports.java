@@ -23,12 +23,12 @@ public class Ports {
      * @return The port definition that was found based on the given criteria
      */
     public static Port findFirstPortPreferSecure(List<Port> ports, PortType type) {
-        var securePort = findPort(ports, Security.SECURE, type);
+        var securePort = findPort(ports, type, Security.SECURE);
         if (securePort.getNumber() > 0) {
             return securePort;
         }
 
-        return findPort(ports, Security.NOT_SECURE, type);
+        return findPort(ports, type, Security.NOT_SECURE);
     }
 
     /**
@@ -37,14 +37,14 @@ public class Ports {
      * If not found, returns a new Port with number 0 and the given values for {@link Security} and {@link PortType}.
      *
      * @param ports    The list of ports to traverse
-     * @param security The security of the port that is desired (Secure or Non-Secure)
      * @param type     The type of port that is desired (Application or Admin)
+     * @param security The security of the port that is desired (Secure or Non-Secure)
      * @return The port definition that was found based on the given criteria
      */
-    public static Port findPort(List<Port> ports, Security security, PortType type) {
+    public static Port findPort(List<Port> ports, PortType type, Security security) {
         return ports.stream()
-                .filter(p -> p.getSecure() == security)
                 .filter(p -> p.getType() == type)
+                .filter(p -> p.getSecure() == security)
                 .findFirst()
                 .orElseGet(() -> Port.of(0, type, security));
     }

@@ -5,6 +5,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServicePaths;
 
 import java.util.List;
@@ -28,11 +30,7 @@ public class ServiceInfoHelper {
         return new ServiceInfo() {
 
             private final List<Port> ports = newArrayList(
-                    Port.builder()
-                            .number(80)
-                            .secure(Port.Security.NOT_SECURE)
-                            .type(Port.PortType.APPLICATION)
-                            .build()
+                    Port.of(80, PortType.APPLICATION, Security.NOT_SECURE)
             );
 
             private final ServicePaths paths = ServicePaths.builder().build();

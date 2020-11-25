@@ -16,6 +16,8 @@ import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.client.ServiceInstanceFilter;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 
@@ -69,19 +71,12 @@ public class ConsulRegistryClient implements RegistryClient {
         var scheme = metadata.get("scheme");
 
         var ports = new ArrayList<Port>();
-        var port = Port.builder()
-                .number(catalogService.getServicePort())
-                .secure(Port.Security.fromScheme(scheme))
-                .type(Port.PortType.APPLICATION)
-                .build();
+        var port = Port.of(catalogService.getServicePort(), PortType.APPLICATION, Security.fromScheme(scheme));
         ports.add(port);
 
         if (isNotBlank(metadata.get(ADMIN_PORT_FIELD))) {
-            var adminPort = Port.builder()
-                    .number(Integer.parseInt(metadata.get(ADMIN_PORT_FIELD)))
-                    .secure(Port.Security.fromScheme(scheme))
-                    .type(Port.PortType.ADMIN)
-                    .build();
+            var adminPortNumber = Integer.parseInt(metadata.get(ADMIN_PORT_FIELD));
+            var adminPort = Port.of(adminPortNumber, PortType.ADMIN, Security.fromScheme(scheme));
             ports.add(adminPort);
         }
 

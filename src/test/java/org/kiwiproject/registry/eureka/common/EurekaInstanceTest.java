@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
@@ -60,10 +62,10 @@ class EurekaInstanceTest {
         void shouldPreferSecurePortOverNotSecure() {
             var serviceInfo = ServiceInfoHelper.buildTestServiceInfo();
             serviceInfo.getPorts().clear();
-            serviceInfo.getPorts().add(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build());
-            serviceInfo.getPorts().add(Port.builder().number(8081).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build());
-            serviceInfo.getPorts().add(Port.builder().number(8082).type(Port.PortType.ADMIN).secure(Port.Security.NOT_SECURE).build());
-            serviceInfo.getPorts().add(Port.builder().number(8083).type(Port.PortType.ADMIN).secure(Port.Security.SECURE).build());
+            serviceInfo.getPorts().add(Port.of(8080, PortType.APPLICATION, Security.NOT_SECURE));
+            serviceInfo.getPorts().add(Port.of(8081, PortType.APPLICATION, Security.SECURE));
+            serviceInfo.getPorts().add(Port.of(8082, PortType.ADMIN, Security.NOT_SECURE));
+            serviceInfo.getPorts().add(Port.of(8083, PortType.ADMIN, Security.SECURE));
 
             var service = ServiceInstance.fromServiceInfo(serviceInfo).withStatus(ServiceInstance.Status.STARTING);
             var instance = EurekaInstance.fromServiceInstance(service);
@@ -149,12 +151,13 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getPorts())
                     .extracting("number", "secure", "type")
                     .containsExactlyInAnyOrder(
-                            tuple(8080, Port.Security.NOT_SECURE, Port.PortType.APPLICATION),
-                            tuple(8081, Port.Security.NOT_SECURE, Port.PortType.ADMIN)
+                            tuple(8080, Security.NOT_SECURE, PortType.APPLICATION),
+                            tuple(8081, Security.NOT_SECURE, PortType.ADMIN)
                     );
 
             assertThat(serviceInstance.getPaths())
-                    .isEqualToComparingFieldByField(ServicePaths.builder()
+                    .usingRecursiveComparison()
+                    .isEqualTo(ServicePaths.builder()
                             .homePagePath("/api")
                             .statusPath("/status")
                             .healthCheckPath("/health")
@@ -187,7 +190,8 @@ class EurekaInstanceTest {
             var serviceInstance = eurekaInstance.toServiceInstance();
 
             assertThat(serviceInstance.getPaths())
-                    .isEqualToComparingFieldByField(ServicePaths.builder()
+                    .usingRecursiveComparison()
+                    .isEqualTo(ServicePaths.builder()
                             .homePagePath(ServicePaths.DEFAULT_HOMEPAGE_PATH)
                             .statusPath(ServicePaths.DEFAULT_STATUS_PATH)
                             .healthCheckPath(ServicePaths.DEFAULT_HEALTHCHECK_PATH)
@@ -217,7 +221,7 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getPorts())
                     .extracting("number", "secure", "type")
                     .containsExactlyInAnyOrder(
-                            tuple(8080, Port.Security.NOT_SECURE, Port.PortType.APPLICATION)
+                            tuple(8080, Security.NOT_SECURE, PortType.APPLICATION)
                     );
         }
 

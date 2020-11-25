@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.management.RegistrationManager;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
 
@@ -30,7 +32,7 @@ class RegistrationLifecycleListenerTest {
         @Test
         void shouldCallStartOnAProvidedRegistrationManager() {
             var serviceInfo = mock(ServiceInfo.class);
-            when(serviceInfo.getPorts()).thenReturn(List.of(Port.builder().build()));
+            when(serviceInfo.getPorts()).thenReturn(List.of(Port.of(8080, PortType.APPLICATION, Security.SECURE)));
 
             var manager = mock(RegistrationManager.class);
             when(manager.getServiceInfo()).thenReturn(serviceInfo);
@@ -45,7 +47,7 @@ class RegistrationLifecycleListenerTest {
         @Test
         void shouldCallStartOnARegistrationManagerCreatedFromServiceInfoAndRegistryService() {
             var info = mock(ServiceInfo.class);
-            when(info.getPorts()).thenReturn(List.of(Port.builder().build()));
+            when(info.getPorts()).thenReturn(List.of(Port.of(9100, PortType.ADMIN, Security.NOT_SECURE)));
 
             var registryService = mock(RegistryService.class);
 
@@ -76,18 +78,14 @@ class RegistrationLifecycleListenerTest {
             when(connector.getProtocols()).thenReturn(List.of("HTTPS"));
 
             var server = mock(Server.class);
-            when(server.getConnectors()).thenReturn(new Connector[]{ connector });
-            when(server.getConnectors()).thenReturn(new Connector[]{ connector });
+            when(server.getConnectors()).thenReturn(new Connector[]{connector});
+            when(server.getConnectors()).thenReturn(new Connector[]{connector});
 
             listener.serverStarted(server);
 
             assertThat(info.getPorts())
                     .usingRecursiveFieldByFieldElementComparator()
-                    .contains(Port.builder()
-                            .number(8080)
-                            .secure(Port.Security.SECURE)
-                            .type(Port.PortType.APPLICATION)
-                            .build());
+                    .contains(Port.of(8080, PortType.APPLICATION, Security.SECURE));
         }
 
         @Test
@@ -106,18 +104,14 @@ class RegistrationLifecycleListenerTest {
             when(connector.getProtocols()).thenReturn(List.of("HTTP"));
 
             var server = mock(Server.class);
-            when(server.getConnectors()).thenReturn(new Connector[]{ connector });
-            when(server.getConnectors()).thenReturn(new Connector[]{ connector });
+            when(server.getConnectors()).thenReturn(new Connector[]{connector});
+            when(server.getConnectors()).thenReturn(new Connector[]{connector});
 
             listener.serverStarted(server);
 
             assertThat(info.getPorts())
                     .usingRecursiveFieldByFieldElementComparator()
-                    .contains(Port.builder()
-                            .number(8080)
-                            .secure(Port.Security.NOT_SECURE)
-                            .type(Port.PortType.APPLICATION)
-                            .build());
+                    .contains(Port.of(8080, PortType.APPLICATION, Security.NOT_SECURE));
         }
 
         private ServiceInfo createServiceInfoWithEmptyPorts() {

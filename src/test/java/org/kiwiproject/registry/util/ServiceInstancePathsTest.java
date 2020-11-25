@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 
 import java.util.List;
 
@@ -17,18 +19,18 @@ class ServiceInstancePathsTest {
 
         @Test
         void shouldBuildPathWithHttpsWhenSecurePortIsFound() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.SECURE));
 
-            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("https://localhost:8080/foo");
         }
 
         @Test
         void shouldBuildPathWithHttpWhenNonSecurePortIsFound() {
-            var ports = List.of(Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build());
+            var ports = List.of(Port.of(8080, PortType.APPLICATION, Security.NOT_SECURE));
 
-            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("http://localhost:8080/foo");
         }
@@ -36,11 +38,11 @@ class ServiceInstancePathsTest {
         @Test
         void shouldBuildPathWithHttpsWhenBothSecureAndNonSecurePortIsFound() {
             var ports = List.of(
-                    Port.builder().number(8080).type(Port.PortType.APPLICATION).secure(Port.Security.SECURE).build(),
-                    Port.builder().number(8081).type(Port.PortType.APPLICATION).secure(Port.Security.NOT_SECURE).build()
+                    Port.of(8080, PortType.APPLICATION, Security.SECURE),
+                    Port.of(8081, PortType.APPLICATION, Security.NOT_SECURE)
             );
 
-            var path = ServiceInstancePaths.urlForPath("localhost", ports, Port.PortType.APPLICATION, "/foo");
+            var path = ServiceInstancePaths.urlForPath("localhost", ports, PortType.APPLICATION, "/foo");
 
             assertThat(path).isEqualTo("https://localhost:8080/foo");
         }

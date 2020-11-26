@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Utility class that provides version filtering of lists of {@link ServiceInstance} objects.
- *
+ * <p>
  * NOTE: For all {@link List} of {@link ServiceInstance} being passed into the utility methods, the assumption is that
  * all instances are for the same service name.
  */
@@ -24,6 +24,8 @@ public class ServiceInstanceFilter {
     /**
      * Filter the given service instances using the {@code query}, by minimum and/or preferred versions if specified.
      *
+     * @param serviceInstances list of service instances to filter
+     * @param query            service instance query object
      * @return an immutable list containing instances meeting the version criteria
      */
     public static List<ServiceInstance> filterInstancesByVersion(List<ServiceInstance> serviceInstances,
@@ -64,6 +66,9 @@ public class ServiceInstanceFilter {
     /**
      * Is the version of the {@link ServiceInstance} the same or higher than {@code version}?
      *
+     * @param instance the service instance to check
+     * @param version  the version to compare
+     * @return true if the {@code instance} version is equal to or greater than the given {@code version}, else false
      * @implNote Compares versions using Kiwi's {@link Versions#isHigherOrSameVersion(String, String)}
      */
     public static boolean versionIsAtLeast(ServiceInstance instance, String version) {
@@ -75,6 +80,9 @@ public class ServiceInstanceFilter {
     /**
      * Is the version of the {@link ServiceInstance} the same as {@code version}?
      *
+     * @param instance the service instance to check
+     * @param version  the version to compare
+     * @return true if the {@code instance} version is equal to the given {@code version}, else false
      * @implNote Compares versions using Kiwi's {@link Versions#isSameVersion(String, String)}
      */
     public static boolean versionIsExactly(ServiceInstance instance, String version) {
@@ -92,6 +100,8 @@ public class ServiceInstanceFilter {
      * Finds the latest version in the given list of service instances, then returns a new list containing only
      * instances having that latest version.
      *
+     * @param serviceInstances list of service instances to filter
+     * @return a list containing service instances having the latest version seen in {@code serviceInstances}
      * @implNote Compares versions using Kiwi's {@link Versions#versionCompare(String, String)}
      */
     public static List<ServiceInstance> findInstancesWithLatestVersion(List<ServiceInstance> serviceInstances) {

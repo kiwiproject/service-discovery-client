@@ -23,7 +23,6 @@ import java.util.Optional;
  * Note: This class implements the {@link ServerLifecycleListener} which is part of Dropwizard to provide access once Dropwizard has finished starting
  * the server.  This class also extends {@link AbstractLifeCycle.AbstractLifeCycleListener} from Jetty (which Dropwizard uses under the covers) to provide
  * access when the server is starting to shutdown.  To use this class you may have to register this listener in the following ways to get both actions:
- * <p>
  * <pre>
  *  var listener = new RegistrationLifecycleListener(manager);
  *

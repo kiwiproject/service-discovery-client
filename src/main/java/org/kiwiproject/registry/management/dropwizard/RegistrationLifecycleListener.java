@@ -11,6 +11,7 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.management.RegistrationManager;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.server.RegistryService;
 
@@ -78,12 +79,12 @@ public class RegistrationLifecycleListener extends AbstractLifeCycle.AbstractLif
 
             var descriptors = getPortDescriptorList(server);
 
-            findPort(port, Port.PortType.APPLICATION, descriptors).ifPresent(ports::add);
-            findPort(adminPort, Port.PortType.ADMIN, descriptors).ifPresent(ports::add);
+            findPort(port, PortType.APPLICATION, descriptors).ifPresent(ports::add);
+            findPort(adminPort, PortType.ADMIN, descriptors).ifPresent(ports::add);
         }
     }
 
-    private Optional<Port> findPort(int port, Port.PortType portType, List<PortDescriptor> descriptors) {
+    private Optional<Port> findPort(int port, PortType portType, List<PortDescriptor> descriptors) {
         var portProtocol = descriptors.stream()
                 .filter(descriptor -> descriptor.getPort() == port)
                 .map(PortDescriptor::getProtocol)

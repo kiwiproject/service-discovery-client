@@ -28,6 +28,7 @@ import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.consul.config.ConsulRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.Port;
+import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
 import org.kiwiproject.registry.util.ServiceInstancePaths;
@@ -186,7 +187,7 @@ public class ConsulRegistryService implements RegistryService {
     private Registration fromServiceInstance(ServiceInstance serviceInstance) {
 
         var check = ImmutableRegCheck.builder()
-                .http(urlForPath(serviceInstance.getHostName(), serviceInstance.getPorts(), Port.PortType.ADMIN,
+                .http(urlForPath(serviceInstance.getHostName(), serviceInstance.getPorts(), PortType.ADMIN,
                         serviceInstance.getPaths().getStatusPath()))
                 .interval(format("{}s", config.getCheckIntervalInSeconds()))
                 .deregisterCriticalServiceAfter(
@@ -194,10 +195,10 @@ public class ConsulRegistryService implements RegistryService {
                 .build();
 
         var address = adjustAddressIfNeeded(serviceInstance);
-        var adminPort = findFirstPortPreferSecure(serviceInstance.getPorts(), Port.PortType.ADMIN);
+        var adminPort = findFirstPortPreferSecure(serviceInstance.getPorts(), PortType.ADMIN);
 
         return ImmutableRegistration.builder()
-                .port(findFirstPortPreferSecure(serviceInstance.getPorts(), Port.PortType.APPLICATION).getNumber())
+                .port(findFirstPortPreferSecure(serviceInstance.getPorts(), PortType.APPLICATION).getNumber())
                 .check(check)
                 .id(UUIDs.randomUUIDString())
                 .name(serviceInstance.getServiceName())
@@ -231,7 +232,7 @@ public class ConsulRegistryService implements RegistryService {
                 "homePagePath", serviceInstance.getPaths().getHomePagePath(),
                 "healthCheckPath", serviceInstance.getPaths().getHealthCheckPath(),
                 "statusPath", serviceInstance.getPaths().getStatusPath(),
-                "scheme", determineScheme(serviceInstance.getPorts(), Port.PortType.APPLICATION),
+                "scheme", determineScheme(serviceInstance.getPorts(), PortType.APPLICATION),
                 "adminPort", Integer.toString(adminPort.getNumber()),
                 "ipAddress", serviceInstance.getIp()
         );
@@ -253,7 +254,7 @@ public class ConsulRegistryService implements RegistryService {
             return instance.getHostName();
         }
 
-        var urlString = ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), Port.PortType.APPLICATION, instance.getPaths().getHomePagePath());
+        var urlString = ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), PortType.APPLICATION, instance.getPaths().getHomePagePath());
         try {
             var url = new URL(replaceDomainsIn(urlString, config.getDomainOverride()));
             return url.getHost();

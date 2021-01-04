@@ -11,7 +11,7 @@
             "ipAddr": "127.0.0.1",
             "status": "UP",
             "homePageUrl": "http://localhost",
-            "healthCheckUrl": "http://localhost/healthCheck",
+            "healthCheckUrl": "http://localhost/healthcheck",
             "statusUrl": "http://localhost/ping",
             "port": {
               "$": 8080,

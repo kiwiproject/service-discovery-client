@@ -3,15 +3,19 @@ package org.kiwiproject.registry.eureka.client;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.kiwiproject.collect.KiwiLists.first;
 import static org.kiwiproject.collect.KiwiMaps.newHashMap;
 import static org.kiwiproject.test.constants.KiwiTestConstants.JSON_HELPER;
 
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.test.util.Fixtures;
@@ -77,7 +81,7 @@ class EurekaParserTest {
 
         assertThat(parsedDataList).hasSize(1);
 
-        var parsedData = parsedDataList.get(0);
+        var parsedData = first(parsedDataList);
 
         assertEurekaInstance(parsedData, softly);
     }
@@ -90,7 +94,7 @@ class EurekaParserTest {
         softly.assertThat(instance.getIpAddr()).isEqualTo("127.0.0.1");
         softly.assertThat(instance.getStatus()).isEqualTo("UP");
         softly.assertThat(instance.getHomePageUrl()).isEqualTo("http://localhost");
-        softly.assertThat(instance.getHealthCheckUrl()).isEqualTo("http://localhost/healthCheck");
+        softly.assertThat(instance.getHealthCheckUrl()).isEqualTo("http://localhost/healthcheck");
         softly.assertThat(instance.getStatusPageUrl()).isEqualTo("http://localhost/ping");
 
         softly.assertThat(instance.getPort()).contains(
@@ -102,6 +106,8 @@ class EurekaParserTest {
                 entry("$", 0),
                 entry("@enabled", false)
         );
+
+        softly.assertThat(instance.getAdminPort()).isEqualTo(80);
 
         softly.assertThat(instance.getMetadata()).contains(
                 entry("description", "A simple service"),
@@ -124,6 +130,39 @@ class EurekaParserTest {
 
         var dataList = EurekaParser.parseEurekaResponse(data);
 
-        assertThat(dataList.get(0).getLeaseInfo()).isNotNull().isEmpty();
+        assertThat(first(dataList).getLeaseInfo()).isEmpty();
+    }
+
+    @Nested
+    class GetAdminPort {
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        void shouldReturnZero_GivenEmptyOrNull(String url) {
+            assertThat(EurekaParser.getAdminPort(url)).isZero();
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "http://localhost:8081/ping, 8081",
+                "http://localhost:9042/healthcheck, 9042",
+                "https://localhost:45321/healthcheck, 45321",
+                "https://localhost:12345/ping, 12345",
+                "https://localhost:65535/healthcheck, 65535",
+        })
+        void shouldReturnExplicitPorts(String url, int expectedAdminPort) {
+            assertThat(EurekaParser.getAdminPort(url)).isEqualTo(expectedAdminPort);
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "http://localhost/ping, 80",
+                "http://localhost/healthcheck, 80",
+                "https://localhost/ping, 443",
+                "https://localhost/healthcheck, 443",
+        })
+        void shouldReturnDefaultHttpPorts(String url, int expectedAdminPort) {
+            assertThat(EurekaParser.getAdminPort(url)).isEqualTo(expectedAdminPort);
+        }
     }
 }

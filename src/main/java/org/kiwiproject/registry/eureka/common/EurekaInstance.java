@@ -4,7 +4,6 @@ import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
-import static org.kiwiproject.registry.model.Port.Security.SECURE;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.Ports.findPort;
 import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
@@ -125,8 +124,10 @@ public class EurekaInstance {
     }
 
     public ServiceInstance toServiceInstance() {
-        var ports = portListFromPortsIgnoringNulls(buildAdminPort(), buildApplicationPort(port, Security.NOT_SECURE),
-                buildApplicationPort(securePort, SECURE));
+        var ports = portListFromPortsIgnoringNulls(
+                buildAdminPortOrNull(),
+                buildApplicationPortOrNull(port, Security.NOT_SECURE),
+                buildApplicationPortOrNull(securePort, Security.SECURE));
 
         return ServiceInstance.builder()
                 .instanceId(getInstanceId())
@@ -155,7 +156,7 @@ public class EurekaInstance {
                 .collect(toUnmodifiableList());
     }
 
-    private Port buildAdminPort() {
+    private Port buildAdminPortOrNull() {
         if (adminPort == 0) {
             return null;
         }
@@ -165,7 +166,7 @@ public class EurekaInstance {
         return Port.of(adminPort, PortType.ADMIN, secure);
     }
 
-    private Port buildApplicationPort(Map<String, Object> portDef, Security secure) {
+    private Port buildApplicationPortOrNull(Map<String, Object> portDef, Security secure) {
         if (!isEnabled(portDef.get("@enabled"))) {
             return null;
         }

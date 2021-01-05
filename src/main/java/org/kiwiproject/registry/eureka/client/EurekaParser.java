@@ -6,11 +6,16 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.kiwiproject.base.KiwiObjects.firstNonNullOrNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.experimental.UtilityClass;
+import org.kiwiproject.net.KiwiInternetAddresses;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,38 +72,47 @@ class EurekaParser {
         var metadataMap = (Map<String, String>) instanceData.get("metadata");
         var leaseInfoMap = (Map<String, Object>) instanceData.get("leaseInfo");
 
-        Map<String, Object> leaseInfo;
+        Map<String, Object> leaseInfo = extractLeaseInfo(leaseInfoMap);
+
+        var statusUrl = getStringOrNull(instanceData, "statusUrl");
+        var healthCheckUrl = getStringOrNull(instanceData, "healthCheckUrl");
+        var url = firstNonNullOrNull(statusUrl, healthCheckUrl);
+        var adminPort = getAdminPort(url);
+
+        return EurekaInstance.builder()
+                .vipAddress(getStringOrNull(instanceData, "vipAddress"))
+                .secureVipAddress(getStringOrNull(instanceData, "vipAddress"))
+                .app(getStringOrNull(instanceData, "app"))
+                .hostName(getStringOrNull(instanceData, "hostName"))
+                .ipAddr(getStringOrNull(instanceData, "ipAddr"))
+                .status(getStringOrNull(instanceData, "status"))
+                .homePageUrl(getStringOrNull(instanceData, "homePageUrl"))
+                .healthCheckUrl(healthCheckUrl)
+                .statusPageUrl(statusUrl)
+                .port(portMap)
+                .securePort(securePortMap)
+                .adminPort(adminPort)
+                .leaseInfo(leaseInfo)
+                .metadata(metadataMap)
+                .build();
+    }
+
+    private static Map<String, Object> extractLeaseInfo(Map<String, Object> leaseInfoMap) {
         if (nonNull(leaseInfoMap)) {
-            leaseInfo = Map.of(
+            return Map.of(
                     "renewalIntervalInSecs", leaseInfoMap.getOrDefault("renewalIntervalInSecs", 0),
                     "durationInSecs", leaseInfoMap.getOrDefault("durationInSecs", 0),
                     "registrationTimestamp", leaseInfoMap.getOrDefault("registrationTimestamp", 0L),
                     "lastRenewalTimestamp", leaseInfoMap.getOrDefault("lastRenewalTimestamp", 0L),
                     "evictionTimestamp", leaseInfoMap.getOrDefault("evictionTimestamp", 0L),
                     "serviceUpTimestamp", leaseInfoMap.getOrDefault("serviceUpTimestamp", 0L));
-        } else {
-            leaseInfo = Map.of();
         }
 
-        return EurekaInstance.builder()
-                .vipAddress(getString(instanceData, "vipAddress"))
-                .secureVipAddress(getString(instanceData, "vipAddress"))
-                .app(getString(instanceData, "app"))
-                .hostName(getString(instanceData, "hostName"))
-                .ipAddr(getString(instanceData, "ipAddr"))
-                .status(getString(instanceData, "status"))
-                .homePageUrl(getString(instanceData, "homePageUrl"))
-                .healthCheckUrl(getString(instanceData, "healthCheckUrl"))
-                .statusPageUrl(getString(instanceData, "statusUrl"))
-                .port(portMap)
-                .securePort(securePortMap)
-                .leaseInfo(leaseInfo)
-                .metadata(metadataMap)
-                .build();
+        return Map.of();
     }
 
     @SuppressWarnings("ConstantConditions")
-    private static <K> String getString(final Map<? super K, ?> map, final K key) {
+    private static <K> String getStringOrNull(final Map<? super K, ?> map, final K key) {
         var value = map.getOrDefault(key, null);
 
         verify(isNull(value) || value instanceof String, "Value from Map must be a string or null");
@@ -106,4 +120,16 @@ class EurekaParser {
         return (String) value;
     }
 
+    @VisibleForTesting
+    static int getAdminPort(@Nullable String url) {
+        if (isBlank(url)) {
+            return 0;
+        }
+
+        return KiwiInternetAddresses.portFrom(url).orElseGet(() -> defaultPortForScheme(url));
+    }
+
+    private static int defaultPortForScheme(String url) {
+        return url.startsWith("https") ? 443 : 80;
+    }
 }

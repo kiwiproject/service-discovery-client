@@ -154,4 +154,16 @@ class ConsulRegistryClientTest {
         }
     }
 
+    @Nested
+    class RetrieveAllRegisteredInstances {
+
+        @Test
+        void shouldReturnListOfAllServiceInstancesWhenFound() {
+            var instances = client.retrieveAllRegisteredInstances();
+
+            assertThat(instances)
+                    .extracting("serviceName")
+                    .contains("APPID", "consul");
+        }
+    }
 }

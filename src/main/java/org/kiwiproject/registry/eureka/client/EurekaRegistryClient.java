@@ -157,4 +157,8 @@ public class EurekaRegistryClient implements RegistryClient {
         });
     }
 
+    @Override
+    public List<ServiceInstance> retrieveAllRegisteredInstances() {
+        return null;
+    }
 }

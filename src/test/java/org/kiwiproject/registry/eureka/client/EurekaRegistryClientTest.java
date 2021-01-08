@@ -215,4 +215,14 @@ class EurekaRegistryClientTest {
             verify(restClient).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
         }
     }
+
+    @Nested
+    class RetrieveAllRegisteredInstances {
+        @Test
+        void shouldReturnListOfServiceInstancesWhenFound() {
+            var instances = client.retrieveAllRegisteredInstances();
+
+            assertThat(instances).hasSize(1);
+        }
+    }
 }

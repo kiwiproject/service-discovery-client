@@ -159,6 +159,34 @@ public class EurekaRegistryClient implements RegistryClient {
 
     @Override
     public List<ServiceInstance> retrieveAllRegisteredInstances() {
-        return null;
+        var response = getAllRegisteredServicesFromEureka();
+
+        if (isNull(response)) {
+            return List.of();
+        }
+
+        var eurekaInstances =  EurekaParser.parseEurekaResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
+                .stream()
+                .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
+                .collect(toList());
+
+        return eurekaInstances.stream()
+                .map(EurekaInstance::toServiceInstance)
+                .collect(toList());
+    }
+
+    private Response getAllRegisteredServicesFromEureka() {
+        return clientRetryer.call(() -> {
+            var targetUrl = urlProvider.getCurrentEurekaUrl();
+
+            LOG.debug("Attempting to lookup all service instances using {}", targetUrl);
+
+            try {
+                return client.findAllInstances(targetUrl);
+            } catch (Exception e) {
+                urlProvider.getNextEurekaUrl();
+                throw e;
+            }
+        });
     }
 }

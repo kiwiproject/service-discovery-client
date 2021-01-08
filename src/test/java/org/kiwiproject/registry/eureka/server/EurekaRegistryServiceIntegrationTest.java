@@ -4,8 +4,13 @@ import static java.util.Objects.nonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
+import static org.kiwiproject.jaxrs.KiwiStandardResponses.standardBadRequestResponse;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.APP_TIMESTAMP_FORMATTER;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.netflix.appinfo.InstanceInfo;
@@ -40,6 +45,7 @@ class EurekaRegistryServiceIntegrationTest {
 
     private KiwiEnvironment environment;
     private EurekaRegistryService service;
+    private EurekaRegistrationConfig config;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +53,7 @@ class EurekaRegistryServiceIntegrationTest {
 
         var client = new EurekaRestClient();
 
-        var config = new EurekaRegistrationConfig();
+        config = new EurekaRegistrationConfig();
         config.setHeartbeatIntervalInSeconds(1);
         config.setRegistryUrls("http://localhost:" + EUREKA.getPort() + "/eureka/v2");
 
@@ -56,7 +62,7 @@ class EurekaRegistryServiceIntegrationTest {
 
     @AfterEach
     void cleanupEureka() {
-        EUREKA.getEurekaServer().cleanupApps();
+        EUREKA.getEurekaServer().getRegistry().cleanupApps();
 
         if (nonNull(service.heartbeatExecutor.get())) {
             service.heartbeatExecutor.get().shutdownNow();
@@ -117,14 +123,15 @@ class EurekaRegistryServiceIntegrationTest {
             var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
                     + "-" + APP_TIMESTAMP_FORMATTER.format(now);
 
+            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
+
             assertThat(eurekaInstance.getApp()).isEqualTo(expectedAppId);
             assertThat(service.heartbeatExecutor.get()).isNotNull();
-            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+            assertThat(eurekaRegistry.registeredApplications()).extracting("name").contains(expectedAppId);
 
-            await().atMost(5, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 1);
+            await().atMost(5, TimeUnit.SECONDS).until(() -> eurekaRegistry.getHeartbeatCount() > 1);
 
-            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
-            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(0);
+            assertThat(eurekaRegistry.getHeartbeatCount()).isGreaterThan(1);
         }
 
         @Test
@@ -132,7 +139,9 @@ class EurekaRegistryServiceIntegrationTest {
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfoWithName("FailRegistrationFirstNTimes-61"))
+            var serviceInfo = ServiceInfoHelper.buildTestServiceInfo("FailRegistrationFirstNTimes-61", null);
+
+            var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
                     .withStatus(ServiceInstance.Status.STARTING);
 
             assertThatThrownBy(() -> service.register(serviceInstance))
@@ -142,16 +151,22 @@ class EurekaRegistryServiceIntegrationTest {
             assertThat(service.registeredInstance.get()).isNull();
 
             var appId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault()) + "-" + APP_TIMESTAMP_FORMATTER.format(now);
-            assertThat(EUREKA.getEurekaServer().getApplicationByName(appId)).isEmpty();
+            assertThat(EUREKA.getEurekaServer().getRegistry().isApplicationRegistered(appId)).isFalse();
         }
 
         @Test
         void shouldRetryLookupAfterRegistrationAndThrowExceptionIfAllTriesExpire() {
+            // Going to spy the EurekaClient so I can fake a bad response from the registry lookup
+            var eurekaClientSpy = spy(new EurekaRestClient());
+            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
             var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("FailAwaitRegistrationFirstNTimes-11"))
                     .withStatus(ServiceInstance.Status.STARTING);
+
+            doReturn(standardBadRequestResponse("Fake bad request")).when(eurekaClientSpy).findInstance(anyString(), anyString(), anyString());
 
             var appId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault()) + "-" + APP_TIMESTAMP_FORMATTER.format(now);
             assertThatThrownBy(() -> service.register(serviceInstance))
@@ -159,11 +174,16 @@ class EurekaRegistryServiceIntegrationTest {
                     .hasMessage("Unable to obtain app " + appId + ", instance " + serviceInstance.getHostName() + " from Eureka during registration after 10 attempts");
 
             assertThat(service.registeredInstance.get()).isNull();
-            assertThat(EUREKA.getEurekaServer().getApplicationByName(appId)).isPresent();
+            assertThat(EUREKA.getEurekaServer().getRegistry().isApplicationRegistered(appId)).isTrue();
         }
 
         @Test
         void shouldRetryHeartbeatsIfFailureOccurs() {
+
+            // Going to spy the EurekaClient so I can fake a bad response from the heartbeat sender
+            var eurekaClientSpy = spy(new EurekaRestClient());
+            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
@@ -171,18 +191,23 @@ class EurekaRegistryServiceIntegrationTest {
                     .buildTestServiceinfoWithHostName("FailHeartbeat-1"))
                     .withStatus(ServiceInstance.Status.STARTING);
 
-            var registeredInstance = service.register(serviceInstance);
+            doReturn(standardBadRequestResponse("Bad heartbeat request"))
+                    .doCallRealMethod()
+                    .when(eurekaClientSpy)
+                    .sendHeartbeat(anyString(), anyString(), anyString());
+
+            service.register(serviceInstance);
 
             var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
                     + "-" + APP_TIMESTAMP_FORMATTER.format(now);
 
-            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
 
-            await().atMost(5, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 1);
+            assertThat(eurekaRegistry.registeredApplications()).extracting("name").contains(expectedAppId);
 
-            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
-            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(1);
-            assertThat(EUREKA.getEurekaServer().getHeartbeatCount()).hasValue(2);
+            await().atMost(5, TimeUnit.SECONDS).until(() -> eurekaRegistry.getHeartbeatCount() > 1);
+
+            assertThat(eurekaRegistry.getHeartbeatCount()).isGreaterThan(1);
         }
 
         @Test
@@ -194,20 +219,24 @@ class EurekaRegistryServiceIntegrationTest {
                     .buildTestServiceinfoWithHostName("FailHeartbeat-6"))
                     .withStatus(ServiceInstance.Status.STARTING);
 
-            var registeredInstance = service.register(serviceInstance);
+            service.register(serviceInstance);
             var eurekaInstance = service.registeredInstance.get();
             var heartbeatExecutor = service.heartbeatExecutor.get();
 
             var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
                     + "-" + APP_TIMESTAMP_FORMATTER.format(now);
 
-            assertThat(EUREKA.getEurekaServer().getApplications()).containsKey(expectedAppId);
+            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
 
-            await().atMost(10, TimeUnit.SECONDS).until(() -> EUREKA.getEurekaServer().getHeartbeatCount().get() > 6);
+            assertThat(eurekaRegistry.registeredApplications()).extracting("name").contains(expectedAppId);
 
-            assertThat(EUREKA.getEurekaServer().getHeartbeatApps()).containsKey(expectedAppId + "|" + serviceInstance.getHostName());
-            assertThat(EUREKA.getEurekaServer().getHeartbeatFailureCount()).hasValue(6);
-            assertThat(EUREKA.getEurekaServer().getHeartbeatCount()).hasValue(7);
+            await().atMost(10, TimeUnit.SECONDS).until(() -> eurekaRegistry.getHeartbeatCount() > 1);
+
+            eurekaRegistry.cleanupApps();
+
+            await().atMost(10, TimeUnit.SECONDS).until(() -> eurekaRegistry.getHeartbeatCount() > 3);
+
+            assertThat(eurekaRegistry.getHeartbeatCount()).isEqualTo(4);
 
             assertThat(eurekaInstance).isNotSameAs(service.registeredInstance.get());
             assertThat(heartbeatExecutor).isNotSameAs(service.heartbeatExecutor.get());
@@ -223,11 +252,9 @@ class EurekaRegistryServiceIntegrationTest {
             var initialEurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("APPID").withStatus("STARTING");
             service.registeredInstance.set(initialEurekaInstance);
 
-            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
-                    .setAppName(initialEurekaInstance.getApp())
-                    .setInstanceId(initialEurekaInstance.getInstanceId())
-                    .setStatus(InstanceInfo.InstanceStatus.STARTING)
-                    .build());
+            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
+
+            eurekaRegistry.registerApplication(initialEurekaInstance.getApp(), initialEurekaInstance.getInstanceId(), "VIP-SERVICE", "STARTING");
 
             service.updateStatus(ServiceInstance.Status.UP);
 
@@ -235,38 +262,33 @@ class EurekaRegistryServiceIntegrationTest {
             assertThat(updatedEurekaInstance).isNotSameAs(initialEurekaInstance);
             assertThat(updatedEurekaInstance.getStatus()).isEqualTo(ServiceInstance.Status.UP.name());
 
-            var storedEurekaApplication = EUREKA.getEurekaServer().getApplicationByName("APPID");
-            assertThat(storedEurekaApplication).isPresent();
+            assertThat(eurekaRegistry.isApplicationRegistered("APPID")).isTrue();
 
-            var instances = storedEurekaApplication.get().getInstances();
+            var instances = eurekaRegistry.getRegisteredApplication("APPID").getInstances();
             assertThat(instances).extracting("status").contains(InstanceInfo.InstanceStatus.UP);
         }
 
         @Test
         void shouldRetryUpdateStatusAndThrowExceptionIfAllTriesExpire() {
-            // FailStatusChange
+
+            // Going to spy the EurekaClient so I can fake a bad response from the status update sender
+            var eurekaClientSpy = spy(new EurekaRestClient());
+            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+
             var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("FailStatusChange"))
                     .withStatus(ServiceInstance.Status.STARTING);
             var initialEurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("APPID").withStatus("STARTING");
             service.registeredInstance.set(initialEurekaInstance);
 
-            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
-                    .setAppName(initialEurekaInstance.getApp())
-                    .setInstanceId(initialEurekaInstance.getInstanceId())
-                    .setHostName("FailStatusChange")
-                    .setStatus(InstanceInfo.InstanceStatus.STARTING)
-                    .build());
+            doReturn(standardBadRequestResponse("Fail status update"))
+                    .when(eurekaClientSpy)
+                    .updateStatus(anyString(), anyString(), anyString(), any());
 
             assertThatThrownBy(() -> service.updateStatus(ServiceInstance.Status.DOWN))
                     .isInstanceOf(RegistrationException.class)
                     .hasMessage("Error updating status for app APPID, instance FailStatusChange");
 
             assertThat(service.registeredInstance.get()).isSameAs(initialEurekaInstance);
-            var storedEurekaApplication = EUREKA.getEurekaServer().getApplicationByName("APPID");
-            assertThat(storedEurekaApplication).isPresent();
-
-            var instances = storedEurekaApplication.get().getInstances();
-            assertThat(instances).extracting("status").contains(InstanceInfo.InstanceStatus.STARTING);
         }
     }
 
@@ -276,27 +298,33 @@ class EurekaRegistryServiceIntegrationTest {
         @Test
         void shouldUnRegister() {
             service.registeredInstance.set(EurekaInstance.builder().app("APPID").hostName("INSTANCEID").build());
-            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
-                    .setAppName("APPID").setInstanceId("INSTANCEID").build());
+
+            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
+            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "VIP-SERVICE", "UP");
 
             service.unregister();
 
             assertThat(service.registeredInstance.get()).isNull();
-            assertThat(EUREKA.getEurekaServer().getApplicationByName("APPID")).isEmpty();
+            assertThat(eurekaRegistry.isApplicationRegistered("APPID")).isFalse();
         }
 
         @Test
         void shouldRetryUnregisterAndThrowExceptionIfAllTriesExpire() {
-            service.registeredInstance.set(EurekaInstance.builder().app("APPID").hostName("FailUnregister").build());
-            EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
-                    .setAppName("APPID").setInstanceId("FailUnregister").setHostName("FailUnregister").build());
+            // Going to spy the EurekaClient so I can fake a bad response from the unregister sender
+            var eurekaClientSpy = spy(new EurekaRestClient());
+            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
-            assertThatThrownBy(() -> service.unregister())
+            service.registeredInstance.set(EurekaInstance.builder().app("APPID").hostName("FailUnregister").build());
+
+            doReturn(standardBadRequestResponse("Fail unregister"))
+                    .when(eurekaClientSpy)
+                    .unregister(anyString(), anyString(), anyString());
+
+            assertThatThrownBy(service::unregister)
                     .isInstanceOf(RegistrationException.class)
                     .hasMessage("Error un-registering app APPID, instance FailUnregister");
 
             assertThat(service.registeredInstance.get()).isNotNull();
-            assertThat(EUREKA.getEurekaServer().getApplicationByName("APPID")).isPresent();
         }
     }
 }

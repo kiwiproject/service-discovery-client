@@ -11,8 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.github.rholder.retry.RetryException;
 import com.github.rholder.retry.WaitStrategies;
-import com.netflix.appinfo.InstanceInfo;
-import com.netflix.appinfo.LeaseInfo;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -46,14 +45,14 @@ class EurekaRegistryClientTest {
         var realClient = new EurekaRegistryClient(config, new EurekaRestClient());
         client = spy(realClient);
 
-        EUREKA.getEurekaServer().registerApplication(InstanceInfo.Builder.newBuilder()
-                .setAppName("TEST-APP")
-                .setVIPAddress("TEST-APP")
-                .setHostName("localhost")
-                .setInstanceId("localhost")
-                .setStatus(InstanceInfo.InstanceStatus.UP)
-                .setLeaseInfo(LeaseInfo.Builder.newBuilder().build())
-                .build());
+        EUREKA.getEurekaServer()
+                .getRegistry()
+                .registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
+    }
+
+    @AfterEach
+    void cleanupEureka() {
+        EUREKA.getEurekaServer().getRegistry().cleanupApps();
     }
 
     @Nested
@@ -214,6 +213,16 @@ class EurekaRegistryClientTest {
                     .hasCauseInstanceOf(ExecutionException.class);
 
             verify(restClient).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
+        }
+    }
+
+    @Nested
+    class RetrieveAllRegisteredInstances {
+        @Test
+        void shouldReturnListOfServiceInstancesWhenFound() {
+            var instances = client.retrieveAllRegisteredInstances();
+
+            assertThat(instances).hasSize(1);
         }
     }
 }

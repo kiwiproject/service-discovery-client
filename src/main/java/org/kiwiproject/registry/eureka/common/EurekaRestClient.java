@@ -57,6 +57,14 @@ public class EurekaRestClient {
                 .get();
     }
 
+    public Response findAllInstances(String eurekaUrl) {
+        return client.target(eurekaUrl)
+                .path("/apps")
+                .request()
+                .accept(APPLICATION_JSON_TYPE)
+                .get();
+    }
+
     public Response findInstancesByVipAddress(String eurekaUrl, String vipAddress) {
         return client.target(eurekaUrl)
                 .path("/vips/{vipAddress}")

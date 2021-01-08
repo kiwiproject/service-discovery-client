@@ -64,19 +64,19 @@ public class EurekaRegistryService implements RegistryService {
      * See com.netflix.discovery.converters.jackson.DataCenterTypeInfoResolver for details.
      * (NOTE: javadoc annotation not used to avoid unnecessary errors.)
      */
-    private static final String DEFAULT_DATA_CENTER_INFO_CLASS = "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo";
+    public static final String DEFAULT_DATA_CENTER_INFO_CLASS = "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo";
 
-    private static final String DEFAULT_DATA_CENTER_NAME = "MyOwn";
+    public static final String DEFAULT_DATA_CENTER_NAME = "MyOwn";
 
     /**
      * Key for lease info representing lease duration in seconds.
      */
-    private static final String LEASE_DURATION_IN_SECONDS = "durationInSecs";
+    public static final String LEASE_DURATION_IN_SECONDS = "durationInSecs";
 
     /**
      * Key for lease info representing renewal interval in seconds.
      */
-    private static final String LEASE_RENEWAL_INTERVAL_IN_SECONDS = "renewalIntervalInSecs";
+    public static final String LEASE_RENEWAL_INTERVAL_IN_SECONDS = "renewalIntervalInSecs";
 
     /**
      * Maximum number of attempts we will make to await confirmation that we're registered with Eureka.

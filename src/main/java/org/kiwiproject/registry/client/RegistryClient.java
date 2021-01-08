@@ -108,4 +108,11 @@ public interface RegistryClient {
     private static <T> int selectRandomIndex(List<T> items) {
         return ThreadLocalRandom.current().nextInt(items.size());
     }
+
+    /**
+     * Retrieves all registered service instances from the registry.
+     *
+     * @return a {@link List} containing all registered service instances
+     */
+    List<ServiceInstance> retrieveAllRegisteredInstances();
 }

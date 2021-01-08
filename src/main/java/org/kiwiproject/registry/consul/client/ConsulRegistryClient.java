@@ -138,4 +138,18 @@ public class ConsulRegistryClient implements RegistryClient {
         }
     }
 
+    /**
+     * Returns all registered services in Consul.
+     *
+     * @return a {@link List} containing all registered service instances
+     * @implNote This will return ALL services in Consul (including Consul itself) and attempt to map it into a
+     *           {@link ServiceInstance} object
+     */
+    @Override
+    public List<ServiceInstance> retrieveAllRegisteredInstances() {
+        return consul.catalogClient().getServices().getResponse().keySet().stream()
+                .map(this::findAllServiceInstancesBy)
+                .flatMap(List::stream)
+                .collect(toList());
+    }
 }

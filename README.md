@@ -15,6 +15,6 @@ An abstract service discovery API that provides methods for registration and loo
 <dependency>
     <groupId>org.kiwiproject</groupId>
     <artifactId>service-discovery-client</artifactId>
-    <version>0.6.0</version>
+    <version>[current-version]</version>
 </dependency>
 ```

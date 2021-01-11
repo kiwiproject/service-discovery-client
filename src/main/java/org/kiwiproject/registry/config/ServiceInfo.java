@@ -3,7 +3,9 @@ package org.kiwiproject.registry.config;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServicePaths;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to assist in providing information about a service for registering.
@@ -75,13 +77,23 @@ public interface ServiceInfo {
     String getVersion();
 
     /**
-     * Returns the commit reference of the service. This can be used to know exactly what point in the source control a running service is
-     * running.
+     * Returns the commit reference of the service. This can be used to know exactly what point in the source control
+     * a running service is running.
      *
      * @return The commit point of the running service
      */
     default String getCommitRef() {
         return "Unknown";
+    }
+
+    /**
+     * Returns metadata for the service. This is generally used to supply custom information about a service to a
+     * service registry.
+     *
+     * @return a map containing custom metadata. This default implementation returns an empty map.
+     */
+    default Map<String, String> getMetadata() {
+        return new HashMap<>();
     }
 
 }

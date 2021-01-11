@@ -51,5 +51,6 @@ class ServiceInfoTest {
 
         assertThat(info.getDescription()).isBlank();
         assertThat(info.getCommitRef()).isEqualTo("Unknown");
+        assertThat(info.getMetadata()).isEmpty();
     }
 }

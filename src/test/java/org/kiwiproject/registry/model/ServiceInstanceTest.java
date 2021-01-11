@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,10 @@ class ServiceInstanceTest {
         var instance = ServiceInstance.fromServiceInfo(serviceInfo);
 
         assertThat(instance.getMetadata()).isEqualTo(metadata);
+
+        assertThatThrownBy(() -> instance.getMetadata().put("newKey", "newValue"))
+                .describedAs("metadata should be unmodifiable")
+                .isExactlyInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

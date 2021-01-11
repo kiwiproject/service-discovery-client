@@ -61,6 +61,7 @@ public class ServiceInstance {
                 .commitRef(serviceInfo.getCommitRef())
                 .description(serviceInfo.getDescription())
                 .version(serviceInfo.getVersion())
+                .metadata(serviceInfo.getMetadata())
                 .build();
     }
 

@@ -9,7 +9,9 @@ import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServicePaths;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @UtilityClass
 public class ServiceInfoHelper {
@@ -23,10 +25,18 @@ public class ServiceInfoHelper {
     }
 
     public static ServiceInfo buildTestServiceInfo() {
-        return buildTestServiceInfo("test-service", "localhost");
+        return buildTestServiceInfo(new HashMap<>());
     }
 
     public static ServiceInfo buildTestServiceInfo(String name, String hostname) {
+        return buildTestServiceInfo(name, hostname, new HashMap<>());
+    }
+
+    public static ServiceInfo buildTestServiceInfo(Map<String, String> metadata) {
+        return buildTestServiceInfo("test-service", "localhost", metadata);
+    }
+
+    public static ServiceInfo buildTestServiceInfo(String name, String hostname, Map<String, String> metadata) {
         return new ServiceInfo() {
 
             private final List<Port> ports = newArrayList(
@@ -63,6 +73,11 @@ public class ServiceInfoHelper {
             @Override
             public ServicePaths getPaths() {
                 return paths;
+            }
+
+            @Override
+            public Map<String, String> getMetadata() {
+                return metadata;
             }
         };
     }

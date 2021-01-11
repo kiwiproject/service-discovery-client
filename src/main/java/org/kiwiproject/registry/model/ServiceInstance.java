@@ -46,7 +46,10 @@ public class ServiceInstance {
     private final Map<String, String> metadata;
 
     /**
-     * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}
+     * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}.
+     * <p>
+     * Note that a copy of {@link ServiceInfo#getMetadata()} is made using {@link Map#copyOf(Map)}, so the metadata
+     * is unmodifiable.
      *
      * @param serviceInfo The information about the service used to initialize the {@code ServiceInstanceBuilder}
      * @return a {@code ServiceInstanceBuilder} with values copied from the given {@link ServiceInfo}
@@ -61,6 +64,7 @@ public class ServiceInstance {
                 .commitRef(serviceInfo.getCommitRef())
                 .description(serviceInfo.getDescription())
                 .version(serviceInfo.getVersion())
+                .metadata(Map.copyOf(serviceInfo.getMetadata()))
                 .build();
     }
 

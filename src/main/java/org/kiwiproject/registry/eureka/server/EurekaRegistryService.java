@@ -200,7 +200,7 @@ public class EurekaRegistryService implements RegistryService {
 
         startHeartbeat();
 
-        return registeredInstanceFromEureka.toServiceInstance();
+        return registeredInstanceFromEureka.toServiceInstance(config.isIncludeNativeData());
 
     }
 
@@ -339,7 +339,7 @@ public class EurekaRegistryService implements RegistryService {
                     return new RegistrationException(msg);
                 });
 
-        return registeredInstance.get().toServiceInstance();
+        return registeredInstance.get().toServiceInstance(config.isIncludeNativeData());
     }
 
     private Function<String, Response> updateStatusSender(String appId, String instanceId, ServiceInstance.Status newStatus) {

@@ -52,6 +52,7 @@ public class EurekaRegistryClient implements RegistryClient {
     private final EurekaRestClient client;
     private final EurekaUrlProvider urlProvider;
     private final KiwiRetryer<Response> clientRetryer;
+    private final EurekaConfig config;
 
     public EurekaRegistryClient(EurekaConfig config, EurekaRestClient client) {
         this.client = client;
@@ -64,6 +65,7 @@ public class EurekaRegistryClient implements RegistryClient {
                 .maxAttempts(maxAttempts)
                 .waitStrategy(getWaitStrategy())
                 .build();
+        this.config = config;
     }
 
     @SuppressWarnings({"Guava"}) // the KiwiRetryer uses guava-retrying under the hood
@@ -123,7 +125,7 @@ public class EurekaRegistryClient implements RegistryClient {
 
         var eurekaInstances = getRunningServiceInstancesFromEureka(query.getServiceName());
         var serviceInstances = eurekaInstances.stream()
-                .map(EurekaInstance::toServiceInstance)
+                .map(eurekaInstance -> eurekaInstance.toServiceInstance(config.isIncludeNativeData()))
                 .collect(toList());
 
         return ServiceInstanceFilter.filterInstancesByVersion(serviceInstances, query);
@@ -171,7 +173,7 @@ public class EurekaRegistryClient implements RegistryClient {
                 .collect(toList());
 
         return eurekaInstances.stream()
-                .map(EurekaInstance::toServiceInstance)
+                .map(eurekaInstance -> eurekaInstance.toServiceInstance(config.isIncludeNativeData()))
                 .collect(toList());
     }
 

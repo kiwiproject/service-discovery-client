@@ -94,6 +94,7 @@ class EurekaParser {
                 .adminPort(adminPort)
                 .leaseInfo(leaseInfo)
                 .metadata(metadataMap)
+                .rawResponse(instanceData)
                 .build();
     }
 

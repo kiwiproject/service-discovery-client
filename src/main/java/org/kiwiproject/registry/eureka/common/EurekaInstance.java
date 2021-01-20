@@ -52,6 +52,9 @@ public class EurekaInstance {
     @With
     Map<String, Object> leaseInfo;
 
+    @With
+    Map<String, Object> rawResponse;
+
     String hostName;
     String ipAddr;
     String vipAddress;
@@ -124,12 +127,16 @@ public class EurekaInstance {
     }
 
     public ServiceInstance toServiceInstance() {
+        return toServiceInstance(false);
+    }
+
+    public ServiceInstance toServiceInstance(boolean includeNativeData) {
         var ports = portListFromPortsIgnoringNulls(
                 buildAdminPortOrNull(),
                 buildApplicationPortOrNull(port, Security.NOT_SECURE),
                 buildApplicationPortOrNull(securePort, Security.SECURE));
 
-        return ServiceInstance.builder()
+        var instance = ServiceInstance.builder()
                 .instanceId(getInstanceId())
                 .status(ServiceInstance.Status.valueOf(status))
                 .serviceName(vipAddress)
@@ -142,6 +149,12 @@ public class EurekaInstance {
                 .paths(buildPaths())
                 .ports(ports)
                 .build();
+
+        if (includeNativeData) {
+            return instance.withNativeRegistryData(rawResponse);
+        }
+
+        return instance;
     }
 
     private Map<String, String> filterMetadata() {

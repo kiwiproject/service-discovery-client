@@ -73,7 +73,7 @@ public class ServiceInstance {
     }
 
     public Long getUpSinceMillis() {
-        return isNull(upSince) ? null : upSince.toEpochMilli();
+        return isNull(upSince) ? Instant.EPOCH.toEpochMilli() : upSince.toEpochMilli();
     }
 
 }

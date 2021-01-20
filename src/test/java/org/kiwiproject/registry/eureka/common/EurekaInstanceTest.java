@@ -17,6 +17,7 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 
+import java.time.Instant;
 import java.util.Map;
 
 @DisplayName("EurekaInstance")
@@ -120,6 +121,8 @@ class EurekaInstanceTest {
 
         @Test
         void shouldCreateAServiceInstanceWithEurekaInstanceData() {
+            var now = System.currentTimeMillis();
+
             var eurekaInstance = EurekaInstance.builder()
                     .app("appId")
                     .status("UP")
@@ -138,6 +141,9 @@ class EurekaInstanceTest {
                             "description", "some cool service",
                             "version", "0.1.0"
                     ))
+                    .leaseInfo(Map.of(
+                            "serviceUpTimestamp", now
+                    ))
                     .build();
 
             var serviceInstance = eurekaInstance.toServiceInstance();
@@ -147,6 +153,8 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getServiceName()).isEqualTo(eurekaInstance.getVipAddress());
             assertThat(serviceInstance.getHostName()).isEqualTo(eurekaInstance.getHostName());
             assertThat(serviceInstance.getIp()).isEqualTo(eurekaInstance.getIpAddr());
+            assertThat(serviceInstance.getUpSince()).isEqualTo(Instant.ofEpochMilli(now));
+            assertThat(serviceInstance.getUpSinceMillis()).isEqualTo(now);
 
             assertThat(serviceInstance.getPorts())
                     .extracting("number", "secure", "type")

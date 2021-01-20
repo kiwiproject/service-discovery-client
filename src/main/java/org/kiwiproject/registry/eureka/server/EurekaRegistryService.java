@@ -24,6 +24,7 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.ServiceInstance;
+import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.server.RegistryService;
 import org.kiwiproject.retry.SimpleRetryer;
 
@@ -174,7 +175,7 @@ public class EurekaRegistryService implements RegistryService {
     @Override
     public ServiceInstance createCandidateFrom(ServiceInfo serviceInfo) {
         return ServiceInstance.fromServiceInfo(serviceInfo)
-                .withStatus(ServiceInstance.Status.STARTING);
+                .withStatus(Status.STARTING);
     }
 
     @Override
@@ -254,14 +255,15 @@ public class EurekaRegistryService implements RegistryService {
     private void registerWithEureka(String appId, ServiceInstance serviceToRegister) {
         var eurekaInstance = EurekaInstance.fromServiceInstance(serviceToRegister)
                 .withApp(appId)
-                .withStatus(serviceToRegister.getStatus().name())
+                .withStatus(Status.UP.name())
                 .withDataCenterInfo(Map.of(
                         "name", DEFAULT_DATA_CENTER_NAME,
                         "@class", DEFAULT_DATA_CENTER_INFO_CLASS
                 ))
                 .withLeaseInfo(Map.of(
                         LEASE_DURATION_IN_SECONDS, config.getExpirationIntervalInSeconds(),
-                        LEASE_RENEWAL_INTERVAL_IN_SECONDS, config.getHeartbeatIntervalInSeconds()
+                        LEASE_RENEWAL_INTERVAL_IN_SECONDS, config.getHeartbeatIntervalInSeconds(),
+                        "serviceUpTimestamp", System.currentTimeMillis()
                 ));
 
         var registrationFunction = registrationSender(appId, eurekaInstance);
@@ -317,7 +319,7 @@ public class EurekaRegistryService implements RegistryService {
     }
 
     @Override
-    public ServiceInstance updateStatus(ServiceInstance.Status newStatus) {
+    public ServiceInstance updateStatus(Status newStatus) {
         checkState(isRegistered(), "Can not update status before calling register");
 
         var instanceToUnregister = registeredInstance.get();
@@ -342,7 +344,7 @@ public class EurekaRegistryService implements RegistryService {
         return registeredInstance.get().toServiceInstance();
     }
 
-    private Function<String, Response> updateStatusSender(String appId, String instanceId, ServiceInstance.Status newStatus) {
+    private Function<String, Response> updateStatusSender(String appId, String instanceId, Status newStatus) {
         return eurekaUrl -> {
             try {
                 return client.updateStatus(eurekaUrl, appId, instanceId, newStatus);

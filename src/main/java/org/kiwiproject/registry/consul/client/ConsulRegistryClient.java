@@ -22,6 +22,7 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,9 @@ public class ConsulRegistryClient implements RegistryClient {
         var serviceMetadata = filterMetadata(metadata);
         addTagsToMetadata(serviceMetadata, catalogService.getServiceTags());
 
+        var upSince = metadata.containsKey("serviceUpTimestamp")
+                ? Instant.ofEpochMilli(Long.parseLong(metadata.get("serviceUpTimestamp"))) : null;
+
         return ServiceInstance.builder()
                 .instanceId(catalogService.getServiceId())
                 .serviceName(catalogService.getServiceName())
@@ -99,6 +103,7 @@ public class ConsulRegistryClient implements RegistryClient {
                 .status(ServiceInstance.Status.UP)
                 .ip(metadata.get("ipAddress"))
                 .metadata(serviceMetadata)
+                .upSince(upSince)
                 .build();
     }
 

@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.eureka.common;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
@@ -20,6 +21,7 @@ import org.kiwiproject.registry.model.ServicePaths;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -129,6 +131,9 @@ public class EurekaInstance {
                 buildApplicationPortOrNull(port, Security.NOT_SECURE),
                 buildApplicationPortOrNull(securePort, Security.SECURE));
 
+        var upSince = nonNull(leaseInfo) && leaseInfo.containsKey("serviceUpTimestamp")
+                ? Instant.ofEpochMilli((long) leaseInfo.get("serviceUpTimestamp")) : null;
+
         return ServiceInstance.builder()
                 .instanceId(getInstanceId())
                 .status(ServiceInstance.Status.valueOf(status))
@@ -141,6 +146,7 @@ public class EurekaInstance {
                 .metadata(filterMetadata())
                 .paths(buildPaths())
                 .ports(ports)
+                .upSince(upSince)
                 .build();
     }
 

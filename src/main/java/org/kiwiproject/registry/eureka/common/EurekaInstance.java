@@ -132,7 +132,7 @@ public class EurekaInstance {
                 buildApplicationPortOrNull(securePort, Security.SECURE));
 
         var upSince = nonNull(leaseInfo) && leaseInfo.containsKey("serviceUpTimestamp")
-                ? Instant.ofEpochMilli((long) leaseInfo.get("serviceUpTimestamp")) : null;
+                ? Instant.ofEpochMilli((long) leaseInfo.get("serviceUpTimestamp")) : Instant.EPOCH;
 
         return ServiceInstance.builder()
                 .instanceId(getInstanceId())

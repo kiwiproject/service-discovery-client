@@ -79,6 +79,8 @@ public class EurekaRegistryService implements RegistryService {
      */
     public static final String LEASE_RENEWAL_INTERVAL_IN_SECONDS = "renewalIntervalInSecs";
 
+    private static final String SERVICE_UP_TIMESTAMP_FIELD = "serviceUpTimestamp";
+
     /**
      * Maximum number of attempts we will make to await confirmation that we're registered with Eureka.
      */
@@ -263,7 +265,7 @@ public class EurekaRegistryService implements RegistryService {
                 .withLeaseInfo(Map.of(
                         LEASE_DURATION_IN_SECONDS, config.getExpirationIntervalInSeconds(),
                         LEASE_RENEWAL_INTERVAL_IN_SECONDS, config.getHeartbeatIntervalInSeconds(),
-                        "serviceUpTimestamp", System.currentTimeMillis()
+                        SERVICE_UP_TIMESTAMP_FIELD, System.currentTimeMillis()
                 ));
 
         var registrationFunction = registrationSender(appId, eurekaInstance);

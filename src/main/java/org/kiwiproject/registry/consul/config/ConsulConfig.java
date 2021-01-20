@@ -23,4 +23,9 @@ public class ConsulConfig {
      * List of keys from the {@link ServiceInstance} metadata that should become tags, otherwise they will be in metadata
      */
     private List<String> metadataTags = new ArrayList<>();
+
+    /**
+     * If true, enables the addition of Consul specific data to ServiceInstance.
+     */
+    private boolean includeNativeData;
 }

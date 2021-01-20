@@ -26,6 +26,11 @@ public class EurekaConfig {
      */
     private String domainOverride;
 
+    /**
+     * If true, enables the addition of Eureka specific data to ServiceInstance.
+     */
+    private boolean includeNativeData;
+
     @NotBlank
     public String getRegistryUrls() {
         var adjustedUrls = isBlank(domainOverride) ? registryUrls : replaceDomainsIn(registryUrls, domainOverride);

@@ -36,4 +36,10 @@ class EurekaConfigTest {
 
         assertThat(config.getDomainOverride()).isNull();
     }
+
+    @Test
+    void shouldDefaultIncludeNativeDataToFalse() {
+        var config = new EurekaConfig();
+        assertThat(config.isIncludeNativeData()).isFalse();
+    }
 }

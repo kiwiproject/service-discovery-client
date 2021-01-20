@@ -14,6 +14,7 @@ class ConsulRegistrationConfigTest {
 
         assertThat(config.getCheckIntervalInSeconds()).isEqualTo(ConsulRegistrationConfig.DEFAULT_CHECK_INTERVAL_IN_SECONDS);
         assertThat(config.getDeregisterIntervalInMinutes()).isEqualTo(ConsulRegistrationConfig.DEFAULT_DEREGISTER_INTERVAL_IN_MINUTES);
+        assertThat(config.isIncludeNativeData()).isFalse();
     }
 
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -95,4 +96,31 @@ class PortTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(Security.class)
+    void shouldCheckIsSecure(Security security) {
+        var port = Port.of(12345, PortType.APPLICATION, security);
+        assertThat(port.isSecure()).isEqualTo(security == Security.SECURE);
+    }
+
+    @ParameterizedTest
+    @EnumSource(Security.class)
+    void shouldReturnScheme(Security security) {
+        var port = Port.of(23456, PortType.ADMIN, security);
+        assertThat(port.getScheme()).isEqualTo(port.getSecure().getScheme());
+    }
+
+    @Test
+    void shouldCheckIsApplication() {
+        var port = Port.of(7890, PortType.APPLICATION, Security.SECURE);
+        assertThat(port.isApplication()).isTrue();
+        assertThat(port.isAdmin()).isFalse();
+    }
+
+    @Test
+    void shouldCheckIsAdmin() {
+        var port = Port.of(9876, PortType.ADMIN, Security.SECURE);
+        assertThat(port.isAdmin()).isTrue();
+        assertThat(port.isApplication()).isFalse();
+    }
 }

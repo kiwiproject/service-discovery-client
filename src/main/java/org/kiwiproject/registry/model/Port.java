@@ -87,4 +87,39 @@ public class Port {
                 .build();
     }
 
+    /**
+     * Is this port secure?
+     *
+     * @return true if this port is {@link Security#SECURE}
+     */
+    public boolean isSecure() {
+        return secure == Security.SECURE;
+    }
+
+    /**
+     * Return the scheme used by the {@link Security} of this port.
+     *
+     * @return the scheme (e.g. "https") for connecting to this port
+     */
+    public String getScheme() {
+        return secure.getScheme();
+    }
+
+    /**
+     * Is this an application port?
+     *
+     * @return true if port type is {@link PortType#APPLICATION}
+     */
+    public boolean isApplication() {
+        return type == PortType.APPLICATION;
+    }
+
+    /**
+     * Is this an admin port?
+     *
+     * @return true if port type is {@link PortType#ADMIN}
+     */
+    public boolean isAdmin() {
+        return type == PortType.ADMIN;
+    }
 }

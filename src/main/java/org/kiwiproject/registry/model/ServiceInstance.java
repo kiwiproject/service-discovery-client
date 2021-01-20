@@ -49,6 +49,9 @@ public class ServiceInstance {
     @With
     private final Map<String, String> metadata;
 
+    @With
+    private final Map<String, Object> nativeRegistryData;
+
     /**
      * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}.
      * <p>

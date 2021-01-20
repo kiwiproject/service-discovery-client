@@ -24,6 +24,7 @@ import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
+import org.kiwiproject.registry.model.NativeRegistryData;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryer;
 
@@ -52,6 +53,7 @@ public class EurekaRegistryClient implements RegistryClient {
     private final EurekaRestClient client;
     private final EurekaUrlProvider urlProvider;
     private final KiwiRetryer<Response> clientRetryer;
+    private final EurekaConfig config;
 
     public EurekaRegistryClient(EurekaConfig config, EurekaRestClient client) {
         this.client = client;
@@ -64,6 +66,7 @@ public class EurekaRegistryClient implements RegistryClient {
                 .maxAttempts(maxAttempts)
                 .waitStrategy(getWaitStrategy())
                 .build();
+        this.config = config;
     }
 
     @SuppressWarnings({"Guava"}) // the KiwiRetryer uses guava-retrying under the hood
@@ -122,8 +125,12 @@ public class EurekaRegistryClient implements RegistryClient {
         checkArgumentNotBlank(query.getServiceName(), "The service name cannot be blank");
 
         var eurekaInstances = getRunningServiceInstancesFromEureka(query.getServiceName());
+
+        var includeNativeData = config.isIncludeNativeData()
+                ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
+
         var serviceInstances = eurekaInstances.stream()
-                .map(EurekaInstance::toServiceInstance)
+                .map(eurekaInstance -> eurekaInstance.toServiceInstance(includeNativeData))
                 .collect(toList());
 
         return ServiceInstanceFilter.filterInstancesByVersion(serviceInstances, query);
@@ -170,8 +177,11 @@ public class EurekaRegistryClient implements RegistryClient {
                 .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
                 .collect(toList());
 
+        var includeNativeData = config.isIncludeNativeData()
+                ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
+
         return eurekaInstances.stream()
-                .map(EurekaInstance::toServiceInstance)
+                .map(eurekaInstance -> eurekaInstance.toServiceInstance(includeNativeData))
                 .collect(toList());
     }
 

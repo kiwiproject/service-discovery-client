@@ -23,6 +23,7 @@ import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
+import org.kiwiproject.registry.model.NativeRegistryData;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.server.RegistryService;
@@ -203,7 +204,10 @@ public class EurekaRegistryService implements RegistryService {
 
         startHeartbeat();
 
-        return registeredInstanceFromEureka.toServiceInstance();
+        var includeNativeData = config.isIncludeNativeData()
+                ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
+
+        return registeredInstanceFromEureka.toServiceInstance(includeNativeData);
 
     }
 
@@ -343,7 +347,10 @@ public class EurekaRegistryService implements RegistryService {
                     return new RegistrationException(msg);
                 });
 
-        return registeredInstance.get().toServiceInstance();
+        var includeNativeData = config.isIncludeNativeData()
+                ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
+
+        return registeredInstance.get().toServiceInstance(includeNativeData);
     }
 
     private Function<String, Response> updateStatusSender(String appId, String instanceId, Status newStatus) {

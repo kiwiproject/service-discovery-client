@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import org.kiwiproject.registry.model.NativeRegistryData;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
@@ -53,6 +54,9 @@ public class EurekaInstance {
 
     @With
     Map<String, Object> leaseInfo;
+
+    @With
+    Map<String, Object> rawResponse;
 
     String hostName;
     String ipAddr;
@@ -126,6 +130,10 @@ public class EurekaInstance {
     }
 
     public ServiceInstance toServiceInstance() {
+        return toServiceInstance(NativeRegistryData.IGNORE_NATIVE_DATA);
+    }
+
+    public ServiceInstance toServiceInstance(NativeRegistryData nativeRegistryData) {
         var ports = portListFromPortsIgnoringNulls(
                 buildAdminPortOrNull(),
                 buildApplicationPortOrNull(port, Security.NOT_SECURE),
@@ -134,7 +142,7 @@ public class EurekaInstance {
         var upSince = nonNull(leaseInfo) && leaseInfo.containsKey("serviceUpTimestamp")
                 ? Instant.ofEpochMilli((long) leaseInfo.get("serviceUpTimestamp")) : Instant.EPOCH;
 
-        return ServiceInstance.builder()
+        var instance = ServiceInstance.builder()
                 .instanceId(getInstanceId())
                 .status(ServiceInstance.Status.valueOf(status))
                 .serviceName(vipAddress)
@@ -148,6 +156,12 @@ public class EurekaInstance {
                 .ports(ports)
                 .upSince(upSince)
                 .build();
+
+        if (nativeRegistryData == NativeRegistryData.INCLUDE_NATIVE_DATA) {
+            return instance.withNativeRegistryData(rawResponse);
+        }
+
+        return instance;
     }
 
     private Map<String, String> filterMetadata() {

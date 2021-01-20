@@ -72,8 +72,12 @@ public class ServiceInstance {
                 .build();
     }
 
-    public Long getUpSinceMillis() {
-        return isNull(upSince) ? Instant.EPOCH.toEpochMilli() : upSince.toEpochMilli();
+    public Instant getUpSince() {
+        return isNull(upSince) ? Instant.EPOCH : upSince;
+    }
+
+    public long getUpSinceMillis() {
+        return getUpSince().toEpochMilli();
     }
 
 }

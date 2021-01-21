@@ -30,13 +30,13 @@ public class ConsulHelpers {
      * @param serviceInfo the information about the service to pull data from.
      * @return a map that is prepopulated with defaults.
      */
-    public static Map<String, String> buildDefaultMetadataMap(ServiceInfo serviceInfo) {
-        return buildDefaultMetadataMap(ServiceInstance.fromServiceInfo(serviceInfo), new DefaultEnvironment());
+    public static Map<String, String> newDefaultMetadataMap(ServiceInfo serviceInfo) {
+        return newDefaultMetadataMap(ServiceInstance.fromServiceInfo(serviceInfo), new DefaultEnvironment());
     }
 
     @VisibleForTesting
-    static Map<String, String> buildDefaultMetadataMap(ServiceInfo serviceInfo, KiwiEnvironment kiwiEnvironment) {
-        return buildDefaultMetadataMap(ServiceInstance.fromServiceInfo(serviceInfo), kiwiEnvironment);
+    static Map<String, String> newDefaultMetadataMap(ServiceInfo serviceInfo, KiwiEnvironment kiwiEnvironment) {
+        return newDefaultMetadataMap(ServiceInstance.fromServiceInfo(serviceInfo), kiwiEnvironment);
     }
 
     /**
@@ -49,12 +49,12 @@ public class ConsulHelpers {
      * @param serviceInstance the information about the service to pull data from.
      * @return a map that is prepopulated with defaults.
      */
-    public static Map<String, String> buildDefaultMetadataMap(ServiceInstance serviceInstance) {
-        return buildDefaultMetadataMap(serviceInstance, new DefaultEnvironment());
+    public static Map<String, String> newDefaultMetadataMap(ServiceInstance serviceInstance) {
+        return newDefaultMetadataMap(serviceInstance, new DefaultEnvironment());
     }
 
     @VisibleForTesting
-    static Map<String, String> buildDefaultMetadataMap(ServiceInstance serviceInstance, KiwiEnvironment kiwiEnvironment) {
+    static Map<String, String> newDefaultMetadataMap(ServiceInstance serviceInstance, KiwiEnvironment kiwiEnvironment) {
         checkArgumentNotNull(serviceInstance);
 
         var metadata = new HashMap<String, String>();

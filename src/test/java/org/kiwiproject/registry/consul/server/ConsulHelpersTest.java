@@ -22,7 +22,7 @@ class ConsulHelpersTest {
         var now = System.currentTimeMillis();
         when(kiwiEnv.currentTimeMillis()).thenReturn(now);
 
-        var metadata = ConsulHelpers.buildDefaultMetadataMap(info, kiwiEnv);
+        var metadata = ConsulHelpers.newDefaultMetadataMap(info, kiwiEnv);
 
         assertThat(metadata).containsOnly(
                 entry("scheme", "http"),

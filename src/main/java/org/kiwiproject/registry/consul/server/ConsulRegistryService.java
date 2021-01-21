@@ -222,7 +222,7 @@ public class ConsulRegistryService implements RegistryService {
     }
 
     private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance) {
-        var defaultMetadataMap = ConsulHelpers.newDefaultMetadataMap(serviceInstance);
+        var defaultMetadataMap = ConsulHelpers.newDefaultMetadata(serviceInstance);
 
         if (isNullOrEmpty(serviceInstance.getMetadata())) {
             return defaultMetadataMap;

@@ -139,6 +139,9 @@ public class EurekaInstance {
                 buildApplicationPortOrNull(port, Security.NOT_SECURE),
                 buildApplicationPortOrNull(securePort, Security.SECURE));
 
+        var serviceMetadata = filterMetadata();
+        serviceMetadata.put("registryType", "EUREKA");
+
         var upSince = nonNull(leaseInfo) && leaseInfo.containsKey("serviceUpTimestamp")
                 ? Instant.ofEpochMilli((long) leaseInfo.get("serviceUpTimestamp")) : Instant.EPOCH;
 
@@ -151,7 +154,7 @@ public class EurekaInstance {
                 .commitRef(metadata.get(COMMIT_REF_FIELD))
                 .description(metadata.get(DESCRIPTION_FIELD))
                 .version(metadata.get(VERSION_FIELD))
-                .metadata(filterMetadata())
+                .metadata(serviceMetadata)
                 .paths(buildPaths())
                 .ports(ports)
                 .upSince(upSince)

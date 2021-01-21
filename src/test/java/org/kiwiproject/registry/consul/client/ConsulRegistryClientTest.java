@@ -109,6 +109,7 @@ class ConsulRegistryClientTest {
                                 .build());
 
                 softly.assertThat(instance.getNativeRegistryData()).isEmpty();
+                softly.assertThat(instance.getMetadata()).containsEntry("registryType", "CONSUL");
             }
 
             @Test

@@ -176,6 +176,7 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
             assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
             assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+            assertThat(serviceInstance.getMetadata()).containsEntry("registryType", "EUREKA");
             assertThat(serviceInstance.getNativeRegistryData()).isEmpty();
         }
 
@@ -292,7 +293,7 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
             assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
             assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
-            assertThat(serviceInstance.getMetadata()).isEmpty();
+            assertThat(serviceInstance.getMetadata()).containsOnly(entry("registryType", "EUREKA"));
         }
 
         @Test
@@ -323,7 +324,9 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
             assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
             assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
-            assertThat(serviceInstance.getMetadata()).containsOnly(entry("category", "CORE"));
+            assertThat(serviceInstance.getMetadata()).containsOnly(
+                    entry("category", "CORE"),
+                    entry("registryType", "EUREKA"));
         }
     }
 }

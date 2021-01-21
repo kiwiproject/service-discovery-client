@@ -4,10 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @DisplayName("ServiceInstance")
 class ServiceInstanceTest {
@@ -59,5 +62,25 @@ class ServiceInstanceTest {
 
         assertThat(instance.getInstanceId()).isEqualTo("instance");
         assertThat(instance.getStatus()).isEqualTo(ServiceInstance.Status.DOWN);
+    }
+
+    @RepeatedTest(10)
+    void shouldConvertUpSinceToMillis() {
+        var startInstant = Instant.now().minusSeconds(ThreadLocalRandom.current().nextInt(60));
+
+        var instance = ServiceInstance.builder()
+                .upSince(startInstant)
+                .build();
+
+        assertThat(instance.getUpSinceMillis())
+                .isEqualTo(instance.getUpSince().toEpochMilli());
+    }
+
+    @Test
+    void shouldNotReturnNullUpSince() {
+        var instance = ServiceInstance.builder().build();
+
+        assertThat(instance.getUpSince()).isEqualTo(Instant.EPOCH);
+        assertThat(instance.getUpSinceMillis()).isZero();
     }
 }

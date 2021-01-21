@@ -9,7 +9,6 @@ import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
-import static org.kiwiproject.registry.util.Ports.determineScheme;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
@@ -27,7 +26,6 @@ import org.kiwiproject.collect.KiwiMaps;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.consul.config.ConsulRegistrationConfig;
 import org.kiwiproject.registry.exception.RegistrationException;
-import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
@@ -195,7 +193,6 @@ public class ConsulRegistryService implements RegistryService {
                 .build();
 
         var address = adjustAddressIfNeeded(serviceInstance);
-        var adminPort = findFirstPortPreferSecure(serviceInstance.getPorts(), PortType.ADMIN);
 
         return ImmutableRegistration.builder()
                 .port(findFirstPortPreferSecure(serviceInstance.getPorts(), PortType.APPLICATION).getNumber())
@@ -204,12 +201,12 @@ public class ConsulRegistryService implements RegistryService {
                 .name(serviceInstance.getServiceName())
                 .address(address)
                 .tags(buildTags(serviceInstance))
-                .meta(mergeMetadata(serviceInstance, adminPort))
+                .meta(mergeMetadata(serviceInstance))
                 .build();
     }
 
     private List<String> buildTags(ServiceInstance serviceInstance) {
-        var tags = new ArrayList<String>(List.of("service-type:default"));
+        var tags = new ArrayList<>(List.of("service-type:default"));
 
         if (KiwiMaps.isNullOrEmpty(serviceInstance.getMetadata()) || KiwiLists.isNullOrEmpty(metadataTags)) {
             return tags;
@@ -224,18 +221,8 @@ public class ConsulRegistryService implements RegistryService {
         return tags;
     }
 
-    private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance, Port adminPort) {
-        var defaultMetadataMap = Map.of(
-                "version", serviceInstance.getVersion(),
-                "commitRef", serviceInstance.getCommitRef(),
-                "description", serviceInstance.getDescription(),
-                "homePagePath", serviceInstance.getPaths().getHomePagePath(),
-                "healthCheckPath", serviceInstance.getPaths().getHealthCheckPath(),
-                "statusPath", serviceInstance.getPaths().getStatusPath(),
-                "scheme", determineScheme(serviceInstance.getPorts(), PortType.APPLICATION),
-                "adminPort", Integer.toString(adminPort.getNumber()),
-                "ipAddress", serviceInstance.getIp()
-        );
+    private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance) {
+        var defaultMetadataMap = ConsulHelpers.newDefaultMetadata(serviceInstance);
 
         if (isNullOrEmpty(serviceInstance.getMetadata())) {
             return defaultMetadataMap;

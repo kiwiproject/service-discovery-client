@@ -1,10 +1,13 @@
 package org.kiwiproject.registry.model;
 
+import static java.util.Objects.isNull;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.With;
 import org.kiwiproject.registry.config.ServiceInfo;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +41,7 @@ public class ServiceInstance {
     private final String commitRef;
     private final String description;
     private final String version;
+    private final Instant upSince;
 
     /**
      * Used to store extra data in a discovery service for this instance
@@ -66,6 +70,26 @@ public class ServiceInstance {
                 .version(serviceInfo.getVersion())
                 .metadata(Map.copyOf(serviceInfo.getMetadata()))
                 .build();
+    }
+
+    /**
+     * Returns the Instant this service has been up since, or {@link Instant#EPOCH} if no value was provided
+     * when this instance was created.
+     *
+     * @return a non-null Instant representing the instant this service was started, or the epoch if no value provided
+     */
+    public Instant getUpSince() {
+        return isNull(upSince) ? Instant.EPOCH : upSince;
+    }
+
+    /**
+     * Returns the time since the epoch this service has been up since, or <em>zero</em> (the epoch), if no value
+     * was provided when this instance was created.
+     *
+     * @return the number of milliseconds since the epoch that this service was started, or zero if no value provided
+     */
+    public long getUpSinceMillis() {
+        return getUpSince().toEpochMilli();
     }
 
 }

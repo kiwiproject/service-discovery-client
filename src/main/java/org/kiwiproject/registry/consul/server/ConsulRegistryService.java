@@ -9,7 +9,6 @@ import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
-import static org.kiwiproject.registry.consul.server.ConsulHelpers.buildDefaultMetaDataMap;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
@@ -223,7 +222,7 @@ public class ConsulRegistryService implements RegistryService {
     }
 
     private static Map<String, String> mergeMetadata(ServiceInstance serviceInstance) {
-        var defaultMetadataMap = buildDefaultMetaDataMap(serviceInstance);
+        var defaultMetadataMap = ConsulHelpers.buildDefaultMetadataMap(serviceInstance);
 
         if (isNullOrEmpty(serviceInstance.getMetadata())) {
             return defaultMetadataMap;

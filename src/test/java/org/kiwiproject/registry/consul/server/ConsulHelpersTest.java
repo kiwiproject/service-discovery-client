@@ -22,9 +22,9 @@ class ConsulHelpersTest {
         var now = System.currentTimeMillis();
         when(kiwiEnv.currentTimeMillis()).thenReturn(now);
 
-        var metadata = ConsulHelpers.buildDefaultMetaDataMap(info, kiwiEnv);
+        var metadata = ConsulHelpers.buildDefaultMetadataMap(info, kiwiEnv);
 
-        assertThat(metadata).contains(
+        assertThat(metadata).containsOnly(
                 entry("scheme", "http"),
                 entry("adminPort", "0"),
                 entry("serviceUpTimestamp", String.valueOf(now)),

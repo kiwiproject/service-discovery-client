@@ -3,6 +3,7 @@ package org.kiwiproject.registry.eureka.common;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.kiwiproject.test.constants.KiwiTestConstants.JSON_HELPER;
 
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kiwiproject.registry.model.NativeRegistryData;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
@@ -174,6 +176,36 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
             assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
             assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+            assertThat(serviceInstance.getNativeRegistryData()).isEmpty();
+        }
+
+        @Test
+        void shouldCreateAServiceInstanceWithEurekaInstanceRawData() {
+            var eurekaInstance = EurekaInstance.builder()
+                    .app("appId")
+                    .status("UP")
+                    .hostName("localhost")
+                    .ipAddr("127.0.0.1")
+                    .vipAddress("test-service")
+                    .secureVipAddress("test-service")
+                    .port(Map.of("$", 8080, "@enabled", true))
+                    .securePort(Map.of("$", 0, "@enabled", false))
+                    .adminPort(8081)
+                    .homePageUrl("http://localhost:8080/api")
+                    .statusPageUrl("http://localhost:8081/status")
+                    .healthCheckUrl("http://localhost:8081/health")
+                    .metadata(Map.of(
+                            "commitRef", "abcdef",
+                            "description", "some cool service",
+                            "version", "0.1.0"
+                    ))
+                    .build();
+
+            eurekaInstance = eurekaInstance.withRawResponse(JSON_HELPER.convertToMap(eurekaInstance));
+
+            var serviceInstance = eurekaInstance.toServiceInstance(NativeRegistryData.INCLUDE_NATIVE_DATA);
+
+            assertThat(serviceInstance.getNativeRegistryData()).isEqualTo(eurekaInstance.getRawResponse());
         }
 
         @Test

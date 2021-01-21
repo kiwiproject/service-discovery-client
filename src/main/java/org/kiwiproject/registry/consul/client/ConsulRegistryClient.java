@@ -12,6 +12,7 @@ import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.model.catalog.CatalogService;
+import org.kiwiproject.json.JsonHelper;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.client.ServiceInstanceFilter;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
@@ -36,6 +37,7 @@ public class ConsulRegistryClient implements RegistryClient {
             "scheme", ADMIN_PORT_FIELD, "ipAddress");
 
     private static final Set<String> TAGS_EXCLUDED = Set.of("service-type:default");
+    private static final JsonHelper JSON_HELPER = new JsonHelper();
 
     private final Consul consul;
     private final ConsulConfig config;
@@ -87,7 +89,7 @@ public class ConsulRegistryClient implements RegistryClient {
         var upSince = metadata.containsKey("serviceUpTimestamp")
                 ? Instant.ofEpochMilli(Long.parseLong(metadata.get("serviceUpTimestamp"))) : Instant.EPOCH;
 
-        return ServiceInstance.builder()
+        var instance = ServiceInstance.builder()
                 .instanceId(catalogService.getServiceId())
                 .serviceName(catalogService.getServiceName())
                 .hostName(adjustAddressIfNeeded(catalogService.getServiceAddress(), scheme))
@@ -105,7 +107,13 @@ public class ConsulRegistryClient implements RegistryClient {
                 .metadata(serviceMetadata)
                 .upSince(upSince)
                 .build();
-    }
+
+        if (config.isIncludeNativeData()) {
+            return instance.withNativeRegistryData(JSON_HELPER.convertToMap(catalogService));
+        }
+
+        return instance.withNativeRegistryData(Map.of());
+     }
 
     private Map<String, String> filterMetadata(Map<String, String> metadata) {
         return metadata.entrySet().stream()

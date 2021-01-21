@@ -49,6 +49,11 @@ public class ServiceInstance {
     @With
     private final Map<String, String> metadata;
 
+    /**
+     * Used to store native registry data that includes data mapped into {@link ServiceInstance} as well as any
+     * additional information that is not mapped. This will only be populated if the registry configuration
+     * specifies to include native data.
+     */
     @With
     private final Map<String, Object> nativeRegistryData;
 

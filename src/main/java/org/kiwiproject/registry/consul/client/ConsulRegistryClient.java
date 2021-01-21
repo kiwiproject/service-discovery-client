@@ -112,7 +112,7 @@ public class ConsulRegistryClient implements RegistryClient {
             return instance.withNativeRegistryData(JSON_HELPER.convertToMap(catalogService));
         }
 
-        return instance;
+        return instance.withNativeRegistryData(Map.of());
      }
 
     private Map<String, String> filterMetadata(Map<String, String> metadata) {

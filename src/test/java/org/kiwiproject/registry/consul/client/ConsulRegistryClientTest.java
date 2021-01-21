@@ -107,6 +107,8 @@ class ConsulRegistryClientTest {
                                 .statusPath("/status")
                                 .healthCheckPath("/health")
                                 .build());
+
+                softly.assertThat(instance.getNativeRegistryData()).isEmpty();
             }
 
             @Test

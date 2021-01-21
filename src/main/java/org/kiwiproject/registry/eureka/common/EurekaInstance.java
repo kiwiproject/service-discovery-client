@@ -161,7 +161,7 @@ public class EurekaInstance {
             return instance.withNativeRegistryData(rawResponse);
         }
 
-        return instance;
+        return instance.withNativeRegistryData(Map.of());
     }
 
     private Map<String, String> filterMetadata() {

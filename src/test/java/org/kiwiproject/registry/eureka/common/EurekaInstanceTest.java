@@ -176,6 +176,7 @@ class EurekaInstanceTest {
             assertThat(serviceInstance.getCommitRef()).isEqualTo("abcdef");
             assertThat(serviceInstance.getDescription()).isEqualTo("some cool service");
             assertThat(serviceInstance.getVersion()).isEqualTo("0.1.0");
+            assertThat(serviceInstance.getNativeRegistryData()).isEmpty();
         }
 
         @Test

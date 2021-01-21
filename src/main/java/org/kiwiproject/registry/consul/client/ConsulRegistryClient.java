@@ -85,6 +85,7 @@ public class ConsulRegistryClient implements RegistryClient {
 
         var serviceMetadata = filterMetadata(metadata);
         addTagsToMetadata(serviceMetadata, catalogService.getServiceTags());
+        serviceMetadata.put("registryType", "CONSUL");
 
         var upSince = metadata.containsKey("serviceUpTimestamp")
                 ? Instant.ofEpochMilli(Long.parseLong(metadata.get("serviceUpTimestamp"))) : Instant.EPOCH;

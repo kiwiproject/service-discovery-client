@@ -8,7 +8,7 @@ public enum NativeRegistryData {
 
     /**
      * Include all data from the registry, regardless of whether it is mapped into {@link ServiceInstance}. The
-     * native data can then be retrieved via {@link ServiceInstance#getNativeRegistryData()}.
+     * native data can then be retrieved via {@code ServiceInstance#getNativeRegistryData()}.
      */
     INCLUDE_NATIVE_DATA,
 

@@ -45,7 +45,7 @@
         <!-- Versions for optional dependencies -->
 
         <!-- Versions for test dependencies -->
-        <ant.version>1.10.8</ant.version>
+        <ant.version>1.10.9</ant.version>
         <embedded-consul.version>2.2.0</embedded-consul.version>
         <embedded-eureka.version>0.8.1</embedded-eureka.version>
         <groovy.version>2.5.13</groovy.version>

@@ -5,6 +5,7 @@ import static org.kiwiproject.base.KiwiPreconditions.checkValidPort;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import javax.annotation.Nullable;
 
@@ -17,6 +18,7 @@ import javax.annotation.Nullable;
  */
 @Builder
 @Getter
+@ToString
 public class Port {
 
     /**

@@ -123,4 +123,13 @@ class PortTest {
         assertThat(port.isAdmin()).isTrue();
         assertThat(port.isApplication()).isFalse();
     }
+
+    @Test
+    void shouldHaveToString() {
+        var port = Port.of(9876, PortType.ADMIN, Security.SECURE);
+        assertThat(port.toString())
+                .contains("9876")
+                .contains("ADMIN")
+                .contains("SECURE");
+    }
 }

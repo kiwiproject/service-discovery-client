@@ -3,12 +3,17 @@ package org.kiwiproject.registry.model;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -83,4 +88,35 @@ class ServiceInstanceTest {
         assertThat(instance.getUpSince()).isEqualTo(Instant.EPOCH);
         assertThat(instance.getUpSinceMillis()).isZero();
     }
+
+    @Nested
+    class Ports {
+
+        private ServiceInstance instance;
+
+        @BeforeEach
+        void setUp() {
+            instance = ServiceInstance.builder()
+                    .ports(List.of(
+                            Port.of(9090, PortType.APPLICATION, Security.NOT_SECURE),
+                            Port.of(9091, PortType.APPLICATION, Security.SECURE),
+                            Port.of(9190, PortType.ADMIN, Security.NOT_SECURE),
+                            Port.of(9191, PortType.ADMIN, Security.SECURE)
+                    ))
+                    .build();
+        }
+
+        @Test
+        void shouldGetApplicationPort_PreferringSecure() {
+            assertThat(instance.getApplicationPort())
+                    .isEqualTo(Port.of(9091, PortType.APPLICATION, Security.SECURE));
+        }
+
+        @Test
+        void shouldGetAdminPort_PreferringSecure() {
+            assertThat(instance.getAdminPort())
+                    .isEqualTo(Port.of(9191, PortType.ADMIN, Security.SECURE));
+        }
+    }
+
 }

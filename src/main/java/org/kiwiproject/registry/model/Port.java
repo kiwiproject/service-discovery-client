@@ -5,7 +5,7 @@ import static org.kiwiproject.base.KiwiPreconditions.checkValidPort;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
 
 import javax.annotation.Nullable;
 
@@ -17,8 +17,7 @@ import javax.annotation.Nullable;
  * the administrative endpoints (e.g. status and health checks)
  */
 @Builder
-@Getter
-@ToString
+@Value
 public class Port {
 
     /**
@@ -62,9 +61,9 @@ public class Port {
         }
     }
 
-    private final int number;
-    private final PortType type;
-    private final Security secure;
+    int number;
+    PortType type;
+    Security secure;
 
     /**
      * Convenience factory method to create a new {@link Port}.

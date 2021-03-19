@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.With;
 import org.kiwiproject.registry.config.ServiceInfo;
+import org.kiwiproject.registry.model.Port.PortType;
+import org.kiwiproject.registry.util.Ports;
 
 import java.time.Instant;
 import java.util.List;
@@ -100,4 +102,23 @@ public class ServiceInstance {
         return getUpSince().toEpochMilli();
     }
 
+    /**
+     * Returns the application port of this instance, preferring the secure port (if both secure and insecure exist).
+     *
+     * @return the application port
+     * @see Ports#findFirstPortPreferSecure(List, PortType)
+     */
+    public Port getApplicationPort() {
+        return Ports.findFirstPortPreferSecure(ports, PortType.APPLICATION);
+    }
+
+    /**
+     * Returns the admin port of this instance, preferring the secure port (if both secure and insecure exist).
+     *
+     * @return the admin port
+     * @see Ports#findFirstPortPreferSecure(List, PortType)
+     */
+    public Port getAdminPort() {
+        return Ports.findFirstPortPreferSecure(ports, PortType.ADMIN);
+    }
 }

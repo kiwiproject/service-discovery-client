@@ -41,7 +41,7 @@
         <metrics-jetty9.version>4.1.18</metrics-jetty9.version>
         <metrics-servlet.version>4.1.18</metrics-servlet.version>
         <okhttp.version>3.12.2</okhttp.version>
-        <re-retrying.version>3.0.0</re-retrying.version>
+        <retrying-again.version>0.5.0</retrying-again.version>
 
         <!-- Versions for optional dependencies -->
 
@@ -69,6 +69,12 @@
             <groupId>org.kiwiproject</groupId>
             <artifactId>kiwi</artifactId>
             <version>${kiwi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.kiwiproject</groupId>
+            <artifactId>retrying-again</artifactId>
+            <version>${retrying-again.version}</version>
         </dependency>
 
         <!-- Provided dependencies -->
@@ -201,19 +207,6 @@
                 <exclusion>
                     <groupId>org.glassfish.jersey.core</groupId>
                     <artifactId>jersey-server</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>tech.huffman.re-retrying</groupId>
-            <artifactId>re-retrying</artifactId>
-            <version>${re-retrying.version}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

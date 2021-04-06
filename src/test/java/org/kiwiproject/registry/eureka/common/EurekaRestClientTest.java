@@ -41,7 +41,7 @@ class EurekaRestClientTest {
 
     @AfterEach
     void cleanupEureka() {
-        EUREKA.getEurekaServer().getRegistry().cleanupApps();
+        EUREKA.clearRegisteredApps();
     }
 
     @Nested
@@ -75,8 +75,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO-SERVICE", "UP");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO-SERVICE", "UP");
 
             var response = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
 
@@ -96,8 +95,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
 
             var response = client.findInstancesByVipAddress(eurekaBaseUrl, "FOO");
 
@@ -111,14 +109,13 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO", "DOWN");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "DOWN");
 
             var response = client.updateStatus(eurekaBaseUrl, "APPID", "INSTANCEID", ServiceInstance.Status.UP);
 
             assertOkResponse(response);
 
-            var instance = eurekaRegistry.getRegisteredApplication("APPID").getByInstanceId("INSTANCEID");
+            var instance = EUREKA.getRegisteredApplication("APPID").getByInstanceId("INSTANCEID");
             assertThat(instance.getStatus()).isEqualTo(InstanceInfo.InstanceStatus.UP);
         }
 
@@ -129,13 +126,12 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
 
             var response = client.unregister(eurekaBaseUrl, "APPID", "INSTANCEID");
 
             assertOkResponse(response);
-            assertThat(eurekaRegistry.isApplicationRegistered("APPID")).isFalse();
+            assertThat(EUREKA.isApplicationRegistered("APPID")).isFalse();
         }
 
     }
@@ -145,14 +141,13 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
 
             var response = client.sendHeartbeat(eurekaBaseUrl, "APPID", "INSTANCEID");
 
             assertOkResponse(response);
 
-            assertThat(eurekaRegistry.getHeartbeatCount()).isOne();
+            assertThat(EUREKA.getHeartbeatCount()).isOne();
         }
 
     }
@@ -162,8 +157,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            var eurekaRegistry = EUREKA.getEurekaServer().getRegistry();
-            eurekaRegistry.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
 
             var response = client.findAllInstances(eurekaBaseUrl);
 

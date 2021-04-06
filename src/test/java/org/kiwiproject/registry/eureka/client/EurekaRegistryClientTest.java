@@ -9,8 +9,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.rholder.retry.RetryException;
-import com.github.rholder.retry.WaitStrategies;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,10 +20,11 @@ import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
 import org.kiwiproject.retry.KiwiRetryerException;
+import org.kiwiproject.retry.RetryException;
+import org.kiwiproject.retry.WaitStrategies;
 
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @DisplayName("EurekaRegistryClient")
@@ -45,14 +44,12 @@ class EurekaRegistryClientTest {
         var realClient = new EurekaRegistryClient(config, new EurekaRestClient());
         client = spy(realClient);
 
-        EUREKA.getEurekaServer()
-                .getRegistry()
-                .registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
+        EUREKA.registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
     }
 
     @AfterEach
     void cleanupEureka() {
-        EUREKA.getEurekaServer().getRegistry().cleanupApps();
+        EUREKA.clearRegisteredApps();
     }
 
     @Nested
@@ -210,7 +207,7 @@ class EurekaRegistryClientTest {
 
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)
-                    .hasCauseInstanceOf(ExecutionException.class);
+                    .hasCauseInstanceOf(RetryException.class);
 
             verify(restClient).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
         }

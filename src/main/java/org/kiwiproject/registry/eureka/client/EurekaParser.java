@@ -74,7 +74,7 @@ class EurekaParser {
 
         Map<String, Object> leaseInfo = extractLeaseInfo(leaseInfoMap);
 
-        var statusUrl = getStringOrNull(instanceData, "statusUrl");
+        var statusUrl = getStringOrNull(instanceData, "statusPageUrl");
         var healthCheckUrl = getStringOrNull(instanceData, "healthCheckUrl");
         var url = firstNonNullOrNull(statusUrl, healthCheckUrl);
         var adminPort = getAdminPort(url);

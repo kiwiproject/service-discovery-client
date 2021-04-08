@@ -15,10 +15,10 @@ import lombok.experimental.UtilityClass;
 import org.kiwiproject.net.KiwiInternetAddresses;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 @UtilityClass
 class EurekaParser {
@@ -74,7 +74,7 @@ class EurekaParser {
 
         Map<String, Object> leaseInfo = extractLeaseInfo(leaseInfoMap);
 
-        var statusUrl = getStringOrNull(instanceData, "statusUrl");
+        var statusUrl = getStringOrNull(instanceData, "statusPageUrl");
         var healthCheckUrl = getStringOrNull(instanceData, "healthCheckUrl");
         var url = firstNonNullOrNull(statusUrl, healthCheckUrl);
         var adminPort = getAdminPort(url);

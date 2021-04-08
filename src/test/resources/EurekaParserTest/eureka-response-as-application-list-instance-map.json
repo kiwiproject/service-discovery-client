@@ -11,7 +11,7 @@
           "status": "UP",
           "homePageUrl": "http://localhost",
           "healthCheckUrl": "http://localhost/healthcheck",
-          "statusUrl": "http://localhost/ping",
+          "statusPageUrl": "http://localhost/ping",
           "port": {
             "$": 8080,
             "@enabled": true

@@ -15,10 +15,10 @@ import lombok.experimental.UtilityClass;
 import org.kiwiproject.net.KiwiInternetAddresses;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 @UtilityClass
 class EurekaParser {

@@ -20,9 +20,9 @@ public interface ServiceInfo {
     String getName();
 
     /**
-     * Returns a human readable version of the service name. Defaults to {@link #getName()}.
+     * Returns a human-readable version of the service name. Defaults to {@link #getName()}.
      *
-     * @return A human readable version of the name or the name itself by default
+     * @return A human-readable version of the name or the name itself by default
      */
     default String humanReadableName() {
         return getName();
@@ -63,7 +63,7 @@ public interface ServiceInfo {
     /**
      * Returns the description of the service. Defaults to empty string.
      *
-     * @return A human readable description of the service
+     * @return A human-readable description of the service
      */
     default String getDescription() {
         return "";

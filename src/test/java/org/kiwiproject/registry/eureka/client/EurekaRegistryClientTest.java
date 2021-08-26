@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 class EurekaRegistryClientTest {
 
     @RegisterExtension
-    public static EurekaServerExtension EUREKA = new EurekaServerExtension();
+    public static final EurekaServerExtension EUREKA = new EurekaServerExtension();
 
     private EurekaRegistryClient client;
     private EurekaConfig config;

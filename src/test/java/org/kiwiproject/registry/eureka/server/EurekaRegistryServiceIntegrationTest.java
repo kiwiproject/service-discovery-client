@@ -154,7 +154,7 @@ class EurekaRegistryServiceIntegrationTest {
 
         @Test
         void shouldRetryLookupAfterRegistrationAndThrowExceptionIfAllTriesExpire() {
-            // Going to spy the EurekaClient so I can fake a bad response from the registry lookup
+            // Going to spy the EurekaClient, so I can fake a bad response from the registry lookup
             var eurekaClientSpy = spy(new EurekaRestClient());
             var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
@@ -178,7 +178,7 @@ class EurekaRegistryServiceIntegrationTest {
         @Test
         void shouldRetryHeartbeatsIfFailureOccurs() {
 
-            // Going to spy the EurekaClient so I can fake a bad response from the heartbeat sender
+            // Going to spy the EurekaClient, so I can fake a bad response from the heartbeat sender
             var eurekaClientSpy = spy(new EurekaRestClient());
             var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
@@ -263,7 +263,7 @@ class EurekaRegistryServiceIntegrationTest {
         @Test
         void shouldRetryUpdateStatusAndThrowExceptionIfAllTriesExpire() {
 
-            // Going to spy the EurekaClient so I can fake a bad response from the status update sender
+            // Going to spy the EurekaClient, so I can fake a bad response from the status update sender
             var eurekaClientSpy = spy(new EurekaRestClient());
             var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
@@ -301,7 +301,7 @@ class EurekaRegistryServiceIntegrationTest {
 
         @Test
         void shouldRetryUnregisterAndThrowExceptionIfAllTriesExpire() {
-            // Going to spy the EurekaClient so I can fake a bad response from the unregister sender
+            // Going to spy the EurekaClient, so I can fake a bad response from the unregistering sender
             var eurekaClientSpy = spy(new EurekaRestClient());
             var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 

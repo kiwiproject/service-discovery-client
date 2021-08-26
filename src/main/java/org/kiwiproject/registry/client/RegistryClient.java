@@ -45,7 +45,7 @@ public interface RegistryClient {
      * Attempts to find a service instance with the given service name.
      * <p>
      * If there are more than one instance, the implementation should decide the order in which the service is returned
-     * (e.g. round robin, random, LIFO, FIFO, etc)
+     * (e.g. round-robin, random, LIFO, FIFO, etc.)
      *
      * @param serviceName The name of the service that is being requested
      * @return an {@link Optional} containing the found service or {@code Optional.empty()}
@@ -67,7 +67,7 @@ public interface RegistryClient {
      * Attempts to find a service instance from the given {@link InstanceQuery}.
      * <p>
      * If there are more than one instance, the implementation should decide the order in which the service is returned
-     * (e.g. round robin, random, LIFO, FIFO, etc)
+     * (e.g. round-robin, random, LIFO, FIFO, etc.)
      *
      * @param query a {@link InstanceQuery} containing the search parameters to find the instance
      * @return an {@link Optional} containing the found service or {@code Optional.empty()}

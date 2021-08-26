@@ -11,7 +11,7 @@ public interface RegistryService {
     /**
      * Creates a new {@link ServiceInstance} instance from a {@link ServiceInfo} that can be registered with the registry server.
      *
-     * @param serviceInfo Service information that will be used to setup a new instance to be registered.
+     * @param serviceInfo Service information that will be used to set up a new instance to be registered.
      * @return The {@link ServiceInstance} object that was created
      */
     ServiceInstance createCandidateFrom(ServiceInfo serviceInfo);

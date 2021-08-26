@@ -29,8 +29,9 @@ import java.util.Map;
 @ExtendWith(SoftAssertionsExtension.class)
 class ConsulRegistryClientTest {
 
-    // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
-    //       something with the extension or with the Nested test classes
+    // NOTE:
+    // Even though this extension uses an AfterAllCallback, it can NOT be static as running all the tests fail.
+    // I'm not sure if this is something with the extension or with the Nested test classes
     @RegisterExtension
     final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
 

@@ -34,10 +34,11 @@ import java.util.Map;
 @ExtendWith(SoftAssertionsExtension.class)
 class ConsulRegistryServiceIntegrationTest {
 
-    // NOTE: Even though this extension uses an AfterAllCallback, it can NOT be static as running all of the tests fail. I'm not sure if this is
-    //       something with the extension or with the Nested test classes
+    // NOTE:
+    // Even though this extension uses an AfterAllCallback, it can NOT be static as running all the tests fail.
+    // I'm not sure if this is something with the extension or with the Nested test classes
     @RegisterExtension
-    ConsulExtension CONSUL = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
+    final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
 
     private ConsulRegistryService service;
     private KiwiEnvironment environment;
@@ -48,7 +49,7 @@ class ConsulRegistryServiceIntegrationTest {
     @BeforeEach
     void setUp() {
         consul = Consul.builder()
-                .withHostAndPort(HostAndPort.fromParts("localhost", CONSUL.getHttpPort()))
+                .withHostAndPort(HostAndPort.fromParts("localhost", consulExtension.getHttpPort()))
                 .build();
         environment = mock(KiwiEnvironment.class);
         config = new ConsulRegistrationConfig();

@@ -112,7 +112,6 @@ class EurekaParser {
         return Map.of();
     }
 
-    @SuppressWarnings("ConstantConditions")
     private static <K> String getStringOrNull(final Map<? super K, ?> map, final K key) {
         var value = map.getOrDefault(key, null);
 

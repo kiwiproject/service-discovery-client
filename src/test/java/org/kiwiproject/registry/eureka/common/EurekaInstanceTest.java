@@ -29,7 +29,6 @@ class EurekaInstanceTest {
     @Nested
     class FromServiceInstance {
 
-        @SuppressWarnings("unchecked")
         @Test
         void shouldReturnNewInstanceWhenOnlyNonSecurePorts(SoftAssertions softly) {
             var service = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo()).withStatus(ServiceInstance.Status.STARTING);

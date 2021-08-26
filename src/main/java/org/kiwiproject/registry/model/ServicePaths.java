@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Builder
 @Getter
-@SuppressWarnings({"java:S1075", "FieldMayBeFinal"})
+@SuppressWarnings({"java:S1075"})  // Sonar S1075: URIs should not be hardcoded
 public class ServicePaths {
 
     /**

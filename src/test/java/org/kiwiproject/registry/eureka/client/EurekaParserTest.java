@@ -86,7 +86,6 @@ class EurekaParserTest {
         assertEurekaInstance(parsedData, softly);
     }
 
-    @SuppressWarnings("unchecked")
     private void assertEurekaInstance(EurekaInstance instance, SoftAssertions softly) {
         softly.assertThat(instance.getInstanceId()).isEqualTo("localhost");
         softly.assertThat(instance.getApp()).isEqualTo("TEST-SERVICE");

@@ -16,4 +16,17 @@ class ServicePathsTest {
         assertThat(paths.getStatusPath()).isEqualTo(ServicePaths.DEFAULT_STATUS_PATH);
         assertThat(paths.getHealthCheckPath()).isEqualTo(ServicePaths.DEFAULT_HEALTHCHECK_PATH);
     }
+
+    @Test
+    void shouldAllowCustomPaths() {
+        var paths = ServicePaths.builder()
+                .homePagePath("/myhome")
+                .statusPath("/mystatus")
+                .healthCheckPath("/myhealth")
+                .build();
+
+        assertThat(paths.getHomePagePath()).isEqualTo("/myhome");
+        assertThat(paths.getStatusPath()).isEqualTo("/mystatus");
+        assertThat(paths.getHealthCheckPath()).isEqualTo("/myhealth");
+    }
 }

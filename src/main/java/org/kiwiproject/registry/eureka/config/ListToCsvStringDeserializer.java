@@ -59,7 +59,6 @@ class ListToCsvStringDeserializer extends JsonDeserializer<String> {
 
     private static TextNode verifyIsTextNode(TreeNode node) {
         verify(node instanceof TextNode, "expected node to be TextNode but was: %s", node.getClass().getName());
-        //noinspection ConstantConditions
         return (TextNode) node;
     }
 }

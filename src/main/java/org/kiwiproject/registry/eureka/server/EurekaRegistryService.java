@@ -61,7 +61,7 @@ public class EurekaRegistryService implements RegistryService {
     static final DateTimeFormatter APP_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss.SSS").withZone(UTC);
 
     /**
-     * Funny story ... this class doesn't actually exist. It's for "backwards compatibility.
+     * Funny story ... this class doesn't actually exist. It's for "backwards compatibility".
      * <p>
      * See com.netflix.discovery.converters.jackson.DataCenterTypeInfoResolver for details.
      * (NOTE: javadoc annotation not used to avoid unnecessary errors.)

@@ -24,11 +24,11 @@ public class ConsulHelpers {
      * Creates a map with default metadata items that the {@link org.kiwiproject.registry.consul.client.ConsulRegistryClient}
      * will be looking for when it converts a registered service back into a {@link org.kiwiproject.registry.model.ServiceInstance}.
      * <p>
-     * This map is intended to be a baseline of metadata to register.  This map is modifiable so it can easily be
+     * This map is intended to be a baseline of metadata to register.  This map is modifiable, so it can easily be
      * changed or added to later in the registration process.
      *
      * @param serviceInfo the information about the service to pull data from.
-     * @return a map that is prepopulated with defaults.
+     * @return a map that is pre-populated with defaults.
      */
     public static Map<String, String> newDefaultMetadata(ServiceInfo serviceInfo) {
         return newDefaultMetadata(ServiceInstance.fromServiceInfo(serviceInfo), new DefaultEnvironment());
@@ -43,11 +43,11 @@ public class ConsulHelpers {
      * Creates a map with default metadata items that the {@link org.kiwiproject.registry.consul.client.ConsulRegistryClient}
      * will be looking for when it converts a registered service back into a {@link org.kiwiproject.registry.model.ServiceInstance}.
      * <p>
-     * This map is intended to be a baseline of metadata to register.  This map is modifiable so it can easily be
+     * This map is intended to be a baseline of metadata to register.  This map is modifiable, so it can easily be
      * changed or added to later in the registration process.
      *
      * @param serviceInstance the information about the service to pull data from.
-     * @return a map that is prepopulated with defaults.
+     * @return a map that is pre-populated with defaults.
      */
     public static Map<String, String> newDefaultMetadata(ServiceInstance serviceInstance) {
         return newDefaultMetadata(serviceInstance, new DefaultEnvironment());

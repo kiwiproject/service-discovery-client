@@ -28,7 +28,7 @@
     <properties>
         <!-- Versions for required dependencies -->
         <dropwizard.version>2.0.25</dropwizard.version>
-        <kiwi.version>0.25.0</kiwi.version>
+        <kiwi.version>1.0.0</kiwi.version>
 
         <!-- Versions for provided dependencies -->
         <commons-text.version>1.9</commons-text.version>
@@ -50,9 +50,9 @@
         <!-- Versions for test dependencies -->
         <ant.version>1.10.11</ant.version>
         <embedded-consul.version>2.2.1</embedded-consul.version>
-        <embedded-eureka.version>0.17.0</embedded-eureka.version>
+        <embedded-eureka.version>1.0.0</embedded-eureka.version>
         <groovy.version>2.5.14</groovy.version>
-        <kiwi-test.version>0.21.0</kiwi-test.version>
+        <kiwi-test.version>1.0.0</kiwi-test.version>
 
         <!-- Versions for plugins -->
 
@@ -353,6 +353,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- We need Ant here because the embedded-consul library uses it -->
         <dependency>
             <groupId>org.apache.ant</groupId>
             <artifactId>ant</artifactId>
@@ -431,6 +432,7 @@
             </exclusions>
         </dependency>
 
+        <!-- We need Groovy here because the embedded-consul library uses it -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-xml</artifactId>

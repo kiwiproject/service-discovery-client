@@ -328,10 +328,10 @@ public class EurekaRegistryService implements RegistryService {
     public ServiceInstance updateStatus(Status newStatus) {
         checkState(isRegistered(), "Can not update status before calling register");
 
-        var instanceToUnregister = registeredInstance.get();
+        var instanceToUpdate = registeredInstance.get();
 
-        var appId = instanceToUnregister.getApp();
-        var instanceId = instanceToUnregister.getInstanceId();
+        var appId = instanceToUpdate.getApp();
+        var instanceId = instanceToUpdate.getInstanceId();
 
         var response = updateStatusRetryer.tryGetObject(eurekaCallRetrySupplier(
                 updateStatusSender(appId, instanceId, newStatus), OK.getStatusCode()));
@@ -339,7 +339,7 @@ public class EurekaRegistryService implements RegistryService {
         Optionals.ifPresentOrElseThrow(response,
                 resp -> {
                     LOG.info("Instance with appId {}, instanceId {} has been updated successfully to status {}", appId, instanceId, newStatus);
-                    registeredInstance.set(instanceToUnregister.withStatus(newStatus.name()));
+                    registeredInstance.set(instanceToUpdate.withStatus(newStatus.name()));
                 },
                 () -> {
                     var msg = format("Error updating status for app {}, instance {}", appId, instanceId);

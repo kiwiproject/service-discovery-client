@@ -1,4 +1,4 @@
-package org.kiwiproject.registry.eureka.client;
+package org.kiwiproject.registry.eureka.common;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
@@ -13,7 +13,6 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.net.KiwiInternetAddresses;
-import org.kiwiproject.registry.eureka.common.EurekaInstance;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -21,13 +20,15 @@ import java.util.List;
 import java.util.Map;
 
 @UtilityClass
-class EurekaParser {
+public class EurekaResponseParser {
+
+    private static final String INSTANCE_KEY = "instance";
 
     @SuppressWarnings("unchecked")
-    public static List<EurekaInstance> parseEurekaResponse(Map<String, Object> response) {
-        checkArgumentNotNull(response, "Eureka response map cannot be null");
+    public static List<EurekaInstance> parseEurekaApplicationsResponse(Map<String, Object> eurekaResponse) {
+        checkArgumentNotNull(eurekaResponse, "Eureka applications response must not be null");
 
-        var applications = (Map<String, Object>) response.get("applications");
+        var applications = (Map<String, Object>) eurekaResponse.get("applications");
 
         checkState(nonNull(applications), "Eureka data must contain a key 'applications' that contains a Map<String, Object>");
 
@@ -38,11 +39,11 @@ class EurekaParser {
         if (nonNull(applicationOrApplicationList)) {
             if (applicationOrApplicationList instanceof List<?>) {
                 for (Map<String, Object> application : (List<Map<String, Object>>) applicationOrApplicationList) {
-                    var instances = application.get("instance");
+                    var instances = application.get(INSTANCE_KEY);
                     eurekaInstances.addAll(parseInstances(instances));
                 }
             } else {
-                eurekaInstances.addAll(parseInstances(((Map<String, Object>) applicationOrApplicationList).get("instance")));
+                eurekaInstances.addAll(parseInstances(((Map<String, Object>) applicationOrApplicationList).get(INSTANCE_KEY)));
             }
         }
 
@@ -56,12 +57,24 @@ class EurekaParser {
         if (instanceOrInstanceList instanceof List<?>) {
             var instanceList = (List<Map<String, Object>>) instanceOrInstanceList;
             return instanceList.stream()
-                    .map(EurekaParser::buildInstance)
+                    .map(EurekaResponseParser::buildInstance)
                     .collect(toList());
         }
 
         var instance = (Map<String, Object>) instanceOrInstanceList;
         return newArrayList(buildInstance(instance));
+    }
+
+    public static EurekaInstance parseEurekaInstanceResponse(Map<String, Object> eurekaResponse) {
+        checkArgumentNotNull(eurekaResponse, "Eureka instance response must not be null");
+
+        var instanceObj = eurekaResponse.get(INSTANCE_KEY);
+        checkState(instanceObj instanceof Map, "Eureka data must contain a key 'instance' that contains a Map<String, Object>");
+
+        //noinspection unchecked
+        var instance = (Map<String, Object>) instanceObj;
+
+        return buildInstance(instance);
     }
 
     @SuppressWarnings("unchecked")

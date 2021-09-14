@@ -18,6 +18,7 @@ import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.client.ServiceInstanceFilter;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
+import org.kiwiproject.registry.eureka.common.EurekaResponseParser;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
@@ -142,7 +143,7 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        return EurekaParser.parseEurekaResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
+        return EurekaResponseParser.parseEurekaApplicationsResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
                 .stream()
                 .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
                 .collect(toList());
@@ -171,7 +172,7 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        var eurekaInstances =  EurekaParser.parseEurekaResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
+        var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
                 .stream()
                 .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
                 .collect(toList());

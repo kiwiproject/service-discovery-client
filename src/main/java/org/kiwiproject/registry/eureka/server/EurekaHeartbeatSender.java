@@ -19,6 +19,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
+import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
 import javax.annotation.Nullable;
@@ -96,7 +97,7 @@ class EurekaHeartbeatSender implements Runnable {
             LOG.error("Exceeded heartbeat failure threshold of {}. Start self-healing.",
                     HEARTBEAT_FAILURE_THRESHOLD);
 
-            handleHeartbeatFailuresExceededMax(registeredInstance.getApp(), response, exception);
+            handleHeartbeatFailuresExceededMax(response, exception);
         }
     }
 
@@ -139,8 +140,8 @@ class EurekaHeartbeatSender implements Runnable {
     }
 
     @VisibleForTesting
-    FailureHandlerResult handleHeartbeatFailuresExceededMax(String appId, Response response, Exception exception) {
-        // To be conservative, if we have failed to heart beat beyond the threshold number of heart beats,
+    FailureHandlerResult handleHeartbeatFailuresExceededMax(Response response, Exception exception) {
+        // To be conservative, if we have failed to heartbeat beyond the threshold number of heartbeats,
         // then consider ourselves as no longer registered.
         LOG.warn("Heartbeat failure threshold exceeded, so marking as no longer registered");
         registryService.clearRegisteredInstance();
@@ -154,11 +155,15 @@ class EurekaHeartbeatSender implements Runnable {
         } else if (receivedNotFound(response)) {
             LOG.error("Eureka reporting 404 Not Found for heartbeat. Eureka probably expired our registration. Will attempt to re-register...");
             try {
-                registryService.register(registeredInstance.toServiceInstance());
-                LOG.info("Self-healing complete. Re-registered app {} with Eureka.", appId);
+                var serviceToRegister = registeredInstance.toServiceInstance().withStatus(ServiceInstance.Status.UP);
+                var registeredService = registryService.register(serviceToRegister);
+                LOG.info("Self-healing complete. Re-registered {} on {} with Eureka as app {}",
+                        registeredService.getServiceName(),
+                        registeredService.getHostName(),
+                        registryService.getRegisteredAppOrNull());
                 return SELF_HEALING_SUCCEEDED;
             } catch (Exception e) {
-                LOG.error("Error re-registering app {}. Self-healing failed.", appId, e);
+                LOG.error("Error re-registering app {}. Self-healing failed.", registeredInstance.getApp(), e);
                 return SELF_HEALING_FAILED;
             }
         }

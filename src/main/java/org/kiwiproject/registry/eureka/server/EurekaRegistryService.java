@@ -17,8 +17,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.base.Optionals;
+import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
+import org.kiwiproject.registry.eureka.common.EurekaResponseParser;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
@@ -29,7 +31,6 @@ import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.server.RegistryService;
 import org.kiwiproject.retry.SimpleRetryer;
 
-import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +38,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -192,6 +194,7 @@ public class EurekaRegistryService implements RegistryService {
         registerWithEureka(appId, serviceToRegister);
 
         var registeredInstanceFromEureka = waitForInstanceToBeRegistered(appId, serviceToRegister.getHostName());
+        LOG.trace("Received instance registered with Eureka: {}", registeredInstanceFromEureka);
 
         // I'm pretty sure this can never happen since waitForInstanceToBeRegistered will throw an exception after the retries run out
         if (isNull(registeredInstanceFromEureka)) {
@@ -237,14 +240,6 @@ public class EurekaRegistryService implements RegistryService {
 
         if (isNotNullOrEmpty(tasks)) {
             LOG.info("There are {} task(s) that never started for heartbeat executor: {}", tasks.size(), executor);
-        }
-
-        try {
-            var terminated = executor.awaitTermination(5, TimeUnit.SECONDS);
-            LOG.info("Heartbeat executor {} terminated before timeout? {}", executor, terminated);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            LOG.warn("Interrupted waiting for termination of heartbeat executor {}", executor);
         }
 
         heartbeatExecutor.set(null);
@@ -304,7 +299,10 @@ public class EurekaRegistryService implements RegistryService {
         var response = awaitRetryer.tryGetObject(eurekaCallRetrySupplier(instanceGetterFunction, OK.getStatusCode()));
 
         return response
-                .map(resp -> resp.readEntity(new GenericType<Map<String, EurekaInstance>>(){}).get("instance"))
+                .map(resp -> {
+                    var eurekaResponse = resp.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+                    return EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
+                })
                 .orElseThrow(() -> {
                     LOG.error("Registration failed, or there is some other problem getting app {}, instance {}", appId, instanceId);
                     var errMsg = format("Unable to obtain app %s, instance %s from Eureka during registration after %s attempts",
@@ -439,6 +437,12 @@ public class EurekaRegistryService implements RegistryService {
                     response.getStatus(), eurekaUrl, response.readEntity(String.class));
             return null;
         };
+    }
+
+    String getRegisteredAppOrNull() {
+        return Optional.ofNullable(registeredInstance.get())
+                .map(EurekaInstance::getApp)
+                .orElse(null);
     }
 
     void clearRegisteredInstance() {

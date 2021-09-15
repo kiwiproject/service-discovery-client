@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.eureka.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.CANNOT_SELF_HEAL;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_FAILED;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_SUCCEEDED;
@@ -23,6 +24,7 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.mockito.ArgumentCaptor;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
@@ -114,6 +116,49 @@ class EurekaHeartbeatSenderTest {
 
             assertThat(sender.getHeartbeatFailures()).isEqualTo(2);
             assertThat(sender.getHeartbeatFailureStartedAt()).isNotNull();
+        }
+    }
+
+    /**
+     * Since we can't (easily) change the log level while performing tests, this tests the logging that occurs on
+     * heartbeat failures when the level is higher than TRACE, which we expect to be the normal case. It doesn't really
+     * make any assertions, just ensures that the logging code executes without throwing exceptions, even when it
+     * receives invalid arguments. Since this is a private method, that "should not" happen, but of course reality can
+     * sometimes be different.
+     */
+    @Nested
+    class LogHeartbeatFailureWithMoreExceptionInfo {
+
+        @Test
+        void shouldLogEvenWhenPassedNullArguments() {
+            assertThatCode(() -> EurekaHeartbeatSender.logHeartbeatFailureWithMoreExceptionInfo(0, null, null, null, null))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void shouldLogWhenHeartbeatExceptionIsNull() {
+            assertThatCode(() ->
+                    EurekaHeartbeatSender.logHeartbeatFailureWithMoreExceptionInfo(2, "30 seconds", "404", "<no exception>", null)
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void shouldLogWhenHeartbeatExceptionIsNotNull_AndHasCause() {
+            var cause = new ConnectException("Connection refused");
+            var heartbeatException = new ProcessingException("java.net.ConnectException: Connection refused", cause);
+
+            assertThatCode(() ->
+                    EurekaHeartbeatSender.logHeartbeatFailureWithMoreExceptionInfo(1, "0 seconds", "<no response>", ProcessingException.class.getCanonicalName(), heartbeatException)
+            ).doesNotThrowAnyException();
+        }
+
+        @Test
+        void shouldLogWhenHeartbeatExceptionIsNotNull_ButHasNoCause() {
+            var heartbeatException = new RuntimeException("Something went really wrong");
+
+            assertThatCode(() ->
+                    EurekaHeartbeatSender.logHeartbeatFailureWithMoreExceptionInfo(3, "60 seconds", "<no response>", RuntimeException.class.getCanonicalName(), heartbeatException)
+            ).doesNotThrowAnyException();
         }
     }
 }

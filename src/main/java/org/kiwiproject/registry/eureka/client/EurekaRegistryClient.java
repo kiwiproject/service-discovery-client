@@ -143,10 +143,7 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        return EurekaResponseParser.parseEurekaApplicationsResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
-                .stream()
-                .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
-                .collect(toList());
+        return parseEurekaInstances(response);
     }
 
     private Response getRegisteredServicesFromEureka(String vipAddress) {
@@ -172,16 +169,21 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE))
-                .stream()
-                .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
-                .collect(toList());
+        var eurekaInstances = parseEurekaInstances(response);
 
         var includeNativeData = config.isIncludeNativeData()
                 ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
 
         return eurekaInstances.stream()
                 .map(eurekaInstance -> eurekaInstance.toServiceInstance(includeNativeData))
+                .collect(toList());
+    }
+
+    private static List<EurekaInstance> parseEurekaInstances(Response response) {
+        var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+        return EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse)
+                .stream()
+                .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
                 .collect(toList());
     }
 

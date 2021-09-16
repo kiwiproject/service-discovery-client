@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.kiwiproject.base.KiwiThrowables;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
@@ -118,12 +119,31 @@ class EurekaHeartbeatSender implements Runnable {
         var exceptionTypeOrNo = isNull(heartbeatException) ? "<no exception>" : heartbeatException.getClass().getCanonicalName();
 
         if (LOG.isTraceEnabled()) {
-            LOG.trace("Heartbeat to Eureka failed. ({} failure(s) in a row, elapsed time {}, response status: {}, exception type: {})",
+            LOG.trace("Heartbeat to Eureka failed. ({} failure(s) in a row, elapsed time {}, response status: {}, exception: {})",
                     heartbeatFailures, duration, statusOrNoResponse, exceptionTypeOrNo, heartbeatException);
         } else {
-            LOG.warn("Heartbeat to Eureka failed ({} failure(s) in a row, elapsed time {}, response status: {}, exception type: {})",
-                    heartbeatFailures, duration, statusOrNoResponse, exceptionTypeOrNo);
+            logHeartbeatFailureWithMoreExceptionInfo(heartbeatFailures, duration, statusOrNoResponse, exceptionTypeOrNo, heartbeatException);
         }
+    }
+
+    @VisibleForTesting
+    static void logHeartbeatFailureWithMoreExceptionInfo(int heartbeatFailures,
+                                                         String duration,
+                                                         String statusOrNoResponse,
+                                                         String exceptionTypeOrNo,
+                                                         @Nullable Exception heartbeatException) {
+
+        var message = KiwiThrowables.messageOfNullable(heartbeatException).orElse(null);
+        var rootCause = KiwiThrowables.rootCauseOfNullable(heartbeatException).orElse(null);
+
+        // Ignore when root cause is original exception
+        var cause = (rootCause == heartbeatException) ? null : rootCause;
+        var causeType = KiwiThrowables.typeOfNullable(cause).orElse(null);
+        var causeMessage = KiwiThrowables.messageOfNullable(cause).orElse(null);
+
+        LOG.warn("Heartbeat to Eureka failed ({} failure(s) in a row, elapsed time {}, response status: {}," +
+                        " [exception: {}, message: {}], [root cause: {}, message: {}])",
+                heartbeatFailures, duration, statusOrNoResponse, exceptionTypeOrNo, message, causeType, causeMessage);
     }
 
     private String durationSinceFirstHeartbeatFailure() {

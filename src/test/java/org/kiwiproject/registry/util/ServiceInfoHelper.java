@@ -16,7 +16,7 @@ import java.util.Map;
 @UtilityClass
 public class ServiceInfoHelper {
 
-    public static ServiceInfo buildTestServiceinfoWithHostName(String hostname) {
+    public static ServiceInfo buildTestServiceInfoWithHostName(String hostname) {
         return buildTestServiceInfo("test-service", hostname);
     }
 

@@ -140,7 +140,7 @@ class ConsulRegistryServiceIntegrationTest {
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("example.com"))
+            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfoWithHostName("example.com"))
                     .withStatus(ServiceInstance.Status.UP);
             config.setDomainOverride("test");
 

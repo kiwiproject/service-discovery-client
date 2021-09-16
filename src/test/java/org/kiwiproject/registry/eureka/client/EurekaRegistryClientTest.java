@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,10 +21,10 @@ import org.kiwiproject.registry.eureka.config.EurekaConfig;
 import org.kiwiproject.retry.KiwiRetryerException;
 import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
+import org.kiwiproject.retry.WaitStrategy;
 
 import javax.ws.rs.ServerErrorException;
 import javax.ws.rs.core.Response;
-import java.util.concurrent.TimeUnit;
 
 @DisplayName("EurekaRegistryClient")
 class EurekaRegistryClientTest {
@@ -41,8 +40,7 @@ class EurekaRegistryClientTest {
         config = new EurekaConfig();
         config.setRegistryUrls("http://localhost:" + EUREKA.getPort() + "/eureka/v2");
 
-        var realClient = new EurekaRegistryClient(config, new EurekaRestClient());
-        client = spy(realClient);
+        client = new EurekaRegistryClient(config, new EurekaRestClient());
 
         EUREKA.registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
     }
@@ -147,7 +145,12 @@ class EurekaRegistryClientTest {
         @BeforeEach
         void setUp() {
             restClient = mock(EurekaRestClient.class);
-            client = spy(new EurekaRegistryClient(config, restClient));
+            client = new EurekaRegistryClient(config, restClient) {
+                @Override
+                WaitStrategy getWaitStrategy() {
+                    return WaitStrategies.noWait();
+                }
+            };
         }
 
         @Test
@@ -156,8 +159,6 @@ class EurekaRegistryClientTest {
                     .thenThrow(new ServerErrorException(Response.Status.BAD_GATEWAY))
                     .thenThrow(new ServerErrorException(Response.Status.BAD_GATEWAY))
                     .thenThrow(new ServerErrorException(Response.Status.BAD_GATEWAY));
-
-            when(client.getWaitStrategy()).thenReturn(WaitStrategies.fixedWait(100, TimeUnit.MILLISECONDS));
 
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)
@@ -173,8 +174,6 @@ class EurekaRegistryClientTest {
                     .thenThrow(new ServerErrorException(Response.Status.SERVICE_UNAVAILABLE))
                     .thenThrow(new ServerErrorException(Response.Status.SERVICE_UNAVAILABLE));
 
-            when(client.getWaitStrategy()).thenReturn(WaitStrategies.fixedWait(100, TimeUnit.MILLISECONDS));
-
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)
                     .hasCauseInstanceOf(RetryException.class);
@@ -189,8 +188,6 @@ class EurekaRegistryClientTest {
                     .thenThrow(new ServerErrorException(Response.Status.GATEWAY_TIMEOUT))
                     .thenThrow(new ServerErrorException(Response.Status.GATEWAY_TIMEOUT));
 
-            when(client.getWaitStrategy()).thenReturn(WaitStrategies.fixedWait(100, TimeUnit.MILLISECONDS));
-
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)
                     .hasCauseInstanceOf(RetryException.class);
@@ -202,8 +199,6 @@ class EurekaRegistryClientTest {
         void shouldNotRetryOnServerErrorException_InternalServerError() {
             when(restClient.findInstancesByVipAddress(isA(String.class), isA(String.class)))
                     .thenThrow(new ServerErrorException(Response.Status.INTERNAL_SERVER_ERROR));
-
-            when(client.getWaitStrategy()).thenReturn(WaitStrategies.fixedWait(100, TimeUnit.MILLISECONDS));
 
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)

@@ -161,7 +161,8 @@ class EurekaRegistryServiceIntegrationTest {
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("FailAwaitRegistrationFirstNTimes-11"))
+            var serviceInfo = ServiceInfoHelper.buildTestServiceInfoWithHostName("FailAwaitRegistrationFirstNTimes-11");
+            var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
                     .withStatus(ServiceInstance.Status.STARTING);
 
             doReturn(standardBadRequestResponse("Fake bad request")).when(eurekaClientSpy).findInstance(anyString(), anyString(), anyString());
@@ -185,8 +186,8 @@ class EurekaRegistryServiceIntegrationTest {
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
 
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper
-                    .buildTestServiceinfoWithHostName("FailHeartbeat-1"))
+            var serviceInfo = ServiceInfoHelper.buildTestServiceInfoWithHostName("FailHeartbeat-1");
+            var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
                     .withStatus(ServiceInstance.Status.STARTING);
 
             doReturn(standardBadRequestResponse("Bad heartbeat request"))
@@ -212,7 +213,7 @@ class EurekaRegistryServiceIntegrationTest {
             when(environment.currentInstant()).thenReturn(now);
 
             var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper
-                    .buildTestServiceinfoWithHostName("FailHeartbeat-6"))
+                            .buildTestServiceInfoWithHostName("FailHeartbeat-6"))
                     .withStatus(ServiceInstance.Status.STARTING);
 
             service.register(serviceInstance);
@@ -267,7 +268,8 @@ class EurekaRegistryServiceIntegrationTest {
             var eurekaClientSpy = spy(new EurekaRestClient());
             var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceinfoWithHostName("FailStatusChange"))
+            var serviceInfo = ServiceInfoHelper.buildTestServiceInfoWithHostName("FailStatusChange");
+            var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
                     .withStatus(ServiceInstance.Status.STARTING);
             var initialEurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("APPID").withStatus("STARTING");
             service.registeredInstance.set(initialEurekaInstance);

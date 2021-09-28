@@ -23,7 +23,9 @@ import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
 import org.kiwiproject.retry.WaitStrategy;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 @DisplayName("EurekaRegistryClient")
@@ -196,9 +198,47 @@ class EurekaRegistryClientTest {
         }
 
         @Test
+        void shouldRetryWhenRootCause_IsServerErrorException_WithTemporaryStatuses() {
+            when(restClient.findInstancesByVipAddress(isA(String.class), isA(String.class)))
+                    .thenThrow(new WebApplicationException(new ServerErrorException(Response.Status.BAD_GATEWAY)))
+                    .thenThrow(new WebApplicationException(new ServerErrorException(Response.Status.SERVICE_UNAVAILABLE)))
+                    .thenThrow(new WebApplicationException(new ServerErrorException(Response.Status.GATEWAY_TIMEOUT)));
+
+            assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
+                    .isInstanceOf(KiwiRetryerException.class)
+                    .hasCauseInstanceOf(RetryException.class);
+
+            verify(restClient, times(3)).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
+        }
+
+        @Test
         void shouldNotRetryOnServerErrorException_InternalServerError() {
             when(restClient.findInstancesByVipAddress(isA(String.class), isA(String.class)))
                     .thenThrow(new ServerErrorException(Response.Status.INTERNAL_SERVER_ERROR));
+
+            assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
+                    .isInstanceOf(KiwiRetryerException.class)
+                    .hasCauseInstanceOf(RetryException.class);
+
+            verify(restClient).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
+        }
+
+        @Test
+        void shouldNotRetryWhenRootCause_IsServerErrorException_WithStatusInternalServerError() {
+            when(restClient.findInstancesByVipAddress(isA(String.class), isA(String.class)))
+                    .thenThrow(new WebApplicationException(new ServerErrorException(Response.Status.INTERNAL_SERVER_ERROR)));
+
+            assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
+                    .isInstanceOf(KiwiRetryerException.class)
+                    .hasCauseInstanceOf(RetryException.class);
+
+            verify(restClient).findInstancesByVipAddress(config.getRegistryUrls(), "my-service");
+        }
+
+        @Test
+        void shouldNotRetryWhenNeitherExceptionNoRootCauseAreServerErrorException() {
+            when(restClient.findInstancesByVipAddress(isA(String.class), isA(String.class)))
+                    .thenThrow(new ProcessingException("Something unexpected happened..."));
 
             assertThatThrownBy(() -> client.findAllServiceInstancesBy("my-service"))
                     .isInstanceOf(KiwiRetryerException.class)

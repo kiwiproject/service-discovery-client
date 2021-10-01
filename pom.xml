@@ -52,7 +52,7 @@
         <embedded-consul.version>2.2.1</embedded-consul.version>
         <embedded-eureka.version>1.0.0</embedded-eureka.version>
         <groovy.version>2.5.14</groovy.version>
-        <kiwi-test.version>1.0.0</kiwi-test.version>
+        <kiwi-test.version>1.1.0</kiwi-test.version>
 
         <!-- Versions for plugins -->
 

@@ -37,7 +37,7 @@ public class EurekaConfig {
      * </pre>
      */
     @JsonDeserialize(using = ListToCsvStringDeserializer.class)
-    protected String registryUrls;
+    private String registryUrls;
 
     /**
      * Allows for adjusting {@code registryUrls} domain at runtime. This is useful if the urls are constant across services

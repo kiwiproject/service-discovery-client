@@ -50,7 +50,7 @@
         <!-- Versions for test dependencies -->
         <ant.version>1.10.11</ant.version>
         <embedded-consul.version>2.2.1</embedded-consul.version>
-        <embedded-eureka.version>1.0.0</embedded-eureka.version>
+        <embedded-eureka.version>1.0.1</embedded-eureka.version>
         <groovy.version>2.5.14</groovy.version>
         <kiwi-test.version>1.1.1</kiwi-test.version>
 

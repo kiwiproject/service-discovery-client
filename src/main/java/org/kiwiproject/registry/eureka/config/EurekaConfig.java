@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.kiwiproject.jackson.ser.ListToCsvStringDeserializer;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;

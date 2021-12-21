@@ -27,15 +27,15 @@
 
     <properties>
         <!-- Versions for required dependencies -->
-        <kiwi.version>1.1.1-SNAPSHOT</kiwi.version>
-        <kiwi-bom.version>0.4.0-SNAPSHOT</kiwi-bom.version>
+        <kiwi.version>1.2.0</kiwi.version>
+        <kiwi-bom.version>0.4.0</kiwi-bom.version>
 
         <!-- Versions for provided dependencies -->
-        <retrying-again.version>1.0.4-SNAPSHOT</retrying-again.version>
+        <retrying-again.version>1.0.4</retrying-again.version>
 
         <!-- Versions for test dependencies -->
-        <embedded-eureka.version>1.0.2-SNAPSHOT</embedded-eureka.version>
-        <kiwi-test.version>1.1.2-SNAPSHOT</kiwi-test.version>
+        <embedded-eureka.version>1.0.2</embedded-eureka.version>
+        <kiwi-test.version>1.1.2</kiwi-test.version>
 
         <!-- Sonar properties -->
         <sonar.projectKey>kiwiproject_service-discovery-client</sonar.projectKey>

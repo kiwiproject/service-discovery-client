@@ -35,7 +35,7 @@
 
         <!-- Versions for test dependencies -->
         <embedded-eureka.version>1.0.4</embedded-eureka.version>
-        <kiwi-test.version>1.1.4</kiwi-test.version>
+        <kiwi-test.version>1.1.5</kiwi-test.version>
 
         <!-- Sonar properties -->
         <sonar.projectKey>kiwiproject_service-discovery-client</sonar.projectKey>

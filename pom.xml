@@ -31,7 +31,7 @@
         <kiwi-bom.version>0.9.1</kiwi-bom.version>
 
         <!-- Versions for provided dependencies -->
-        <retrying-again.version>1.0.7</retrying-again.version>
+        <retrying-again.version>1.0.8</retrying-again.version>
 
         <!-- Versions for test dependencies -->
         <embedded-eureka.version>1.0.5</embedded-eureka.version>

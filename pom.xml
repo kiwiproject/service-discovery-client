@@ -34,7 +34,7 @@
         <retrying-again.version>1.0.9</retrying-again.version>
 
         <!-- Versions for test dependencies -->
-        <embedded-eureka.version>1.0.6</embedded-eureka.version>
+        <embedded-eureka.version>1.0.7</embedded-eureka.version>
         <kiwi-test.version>2.1.0</kiwi-test.version>
 
         <!-- Sonar properties -->

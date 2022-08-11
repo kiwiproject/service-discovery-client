@@ -23,10 +23,10 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import javax.annotation.Nullable;
+import javax.ws.rs.core.Response;
 
 @Slf4j
 class EurekaHeartbeatSender implements Runnable {

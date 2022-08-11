@@ -24,10 +24,10 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.mockito.ArgumentCaptor;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
 
 @DisplayName("EurekaHeartbeatSender")
 class EurekaHeartbeatSenderTest {

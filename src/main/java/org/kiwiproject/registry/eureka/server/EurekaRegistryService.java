@@ -31,7 +31,6 @@ import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.server.RegistryService;
 import org.kiwiproject.retry.SimpleRetryer;
 
-import javax.ws.rs.core.Response;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -46,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.ws.rs.core.Response;
 
 @Slf4j
 public class EurekaRegistryService implements RegistryService {

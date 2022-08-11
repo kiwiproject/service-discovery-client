@@ -34,7 +34,6 @@
         <retrying-again.version>1.0.9</retrying-again.version>
 
         <!-- Versions for test dependencies -->
-        <embedded-eureka.version>1.0.7</embedded-eureka.version>
         <kiwi-test.version>2.1.0</kiwi-test.version>
         <test-containers.version>1.17.3</test-containers.version>
 
@@ -108,13 +107,6 @@
         <dependency>
             <groupId>com.pszymczyk.consul</groupId>
             <artifactId>embedded-consul</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.kiwiproject</groupId>
-            <artifactId>embedded-eureka</artifactId>
-            <version>${embedded-eureka.version}</version>
             <scope>test</scope>
         </dependency>
         

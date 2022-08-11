@@ -7,7 +7,6 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.awaitility.Awaitility.await;
 import static org.kiwiproject.base.KiwiStrings.f;
-import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.jaxrs.KiwiResponses.successful;
 import static org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig.DEFAULT_LEASE_EXPIRATION_DURATION_SECONDS;
 import static org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig.DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS;
@@ -19,13 +18,8 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
-
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.message.GZipEncoder;
 import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
@@ -35,8 +29,11 @@ import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
 
 @UtilityClass
 @Slf4j
@@ -124,7 +121,7 @@ public class EurekaTestDataHelper {
     public static void clearAllInstances(String baseUrl) {
         var client = ClientBuilder.newClient().register(GZipEncoder.class);
 
-        var instances = await().atMost(1, MINUTES).until(() -> findAllInstances(baseUrl), all -> isNotNullOrEmpty(all));
+        var instances = findAllInstances(baseUrl);
 
         LOG.info("Found {} instances to delete", instances.size());
         instances.forEach(instance -> {

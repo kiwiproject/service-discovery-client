@@ -17,10 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +39,9 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 @DisplayName("EurekaRegistryService")
 @ExtendWith(SoftAssertionsExtension.class)
@@ -71,6 +70,8 @@ class EurekaRegistryServiceIntegrationTest {
         config.setShouldTrackHeartbeats(true);
 
         service = new EurekaRegistryService(config, client, environment);
+
+        EurekaTestDataHelper.waitForEurekaToStart(config.getRegistryUrls());
     }
 
     @AfterEach

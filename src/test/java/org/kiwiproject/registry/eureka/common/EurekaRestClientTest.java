@@ -14,7 +14,6 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 
-import com.netflix.appinfo.InstanceInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +48,8 @@ class EurekaRestClientTest {
     void setUp() {
         client = new EurekaRestClient();
         eurekaBaseUrl = EurekaTestDataHelper.eurekaUrl(eureka);
+
+        EurekaTestDataHelper.waitForEurekaToStart(eurekaBaseUrl);
     }
 
     @AfterEach
@@ -130,7 +131,7 @@ class EurekaRestClientTest {
             var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
             var eurekaResponse = instanceResponse.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
             var instance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
-            assertThat(instance.getStatus()).isEqualTo(InstanceInfo.InstanceStatus.UP.name());
+            assertThat(instance.getStatus()).isEqualTo("UP");
         }
 
     }

@@ -1,44 +1,24 @@
 package org.kiwiproject.registry.eureka.client;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static javax.ws.rs.client.Entity.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.awaitility.Awaitility.await;
-import static org.kiwiproject.base.KiwiStrings.f;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.kiwiproject.jaxrs.KiwiEntities;
-import org.kiwiproject.jaxrs.KiwiResponses;
 import org.kiwiproject.registry.client.RegistryClient;
-import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
-import org.kiwiproject.registry.model.Port;
-import org.kiwiproject.registry.model.Port.PortType;
-import org.kiwiproject.registry.model.Port.Security;
-import org.kiwiproject.registry.model.ServiceInstance;
-import org.kiwiproject.registry.model.ServiceInstance.Status;
-import org.kiwiproject.registry.model.ServicePaths;
+import org.kiwiproject.registry.eureka.util.EurekaTestDataHelper;
 import org.kiwiproject.retry.KiwiRetryerException;
 import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
@@ -47,84 +27,39 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-import lombok.extern.slf4j.Slf4j;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 @DisplayName("EurekaRegistryClient")
 @Testcontainers
 @Slf4j
 class EurekaRegistryClientTest {
 
-    // @RegisterExtension
-    // public static final EurekaServerExtension EUREKA = new EurekaServerExtension();
-    
     @Container
-    public GenericContainer eureka = new GenericContainer(DockerImageName.parse("netflixoss/eureka:1.3.1"))
-        .withExposedPorts(8080)
-        .withLogConsumer(new Slf4jLogConsumer(LOG));
+    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+            .withExposedPorts(8080)
+            .withLogConsumer(new Slf4jLogConsumer(LOG));
 
     private EurekaRegistryClient client;
     private EurekaConfig config;
 
     @BeforeEach
     void setUp() {
-        var host = eureka.getHost();
-        var port = eureka.getFirstMappedPort();
-
         config = new EurekaConfig();
-
-        var eurekaUrl = f("http://{}:{}/eureka/v2", host, port);
-        config.setRegistryUrls(eurekaUrl);
+        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
 
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 
-        var tmpClient = ClientBuilder.newClient();
-        await().atMost(1, MINUTES).until(() -> {
-            var response = tmpClient.target(eurekaUrl).path("apps").request().get();
-            LOG.info("Await status: {}", response.getStatus());
-            return KiwiResponses.successful(response);
-        });
-
-        var serviceInstance = ServiceInstance.builder()
-            .hostName("localhost")
-            .instanceId("TEST-APP")
-            .status(Status.UP)
-            .ports(List.of(Port.builder().number(9999).secure(Security.NOT_SECURE).type(PortType.APPLICATION).build()))
-            .paths(ServicePaths.builder().build())
-            .metadata(Map.of())
-            .commitRef("abcdef")
-            .version("42.0.0")
-            .description("")
-            .build();
-
-        var sampleApp = EurekaInstance.fromServiceInstance(serviceInstance);
-            
-        var loadResponse = tmpClient.target(eurekaUrl)
-            .path("apps/{appId}")
-            .resolveTemplate("appId", "TEST-APP")
-            .request(MediaType.APPLICATION_JSON)
-            .post(json(Map.of("instance", sampleApp)));
-
-        LOG.info("Load response: {} - {}", loadResponse, KiwiEntities.safeReadEntity(loadResponse, "boo"));
-
-        await().atMost(1, MINUTES).until(() -> {
-            var response = tmpClient.target(eurekaUrl)
-                .path("apps/{appId}")
-                .resolveTemplate("appId", "TEST-APP")
-                .request()
-                .get();
-
-            LOG.info("Await load status: {}", response.getStatus());
-            return KiwiResponses.successful(response);
-        });
-            
-        // EUREKA.registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
+        EurekaTestDataHelper.waitForEurekaToStart(config.getRegistryUrls());
+        EurekaTestDataHelper.loadInstanceAndWaitForRegistration(config.getRegistryUrls());
     }
 
     @AfterEach
     void cleanupEureka() {
-        // EUREKA.clearRegisteredApps();
+        EurekaTestDataHelper.clearAllInstances(config.getRegistryUrls());
     }
 
     @Nested

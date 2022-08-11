@@ -468,6 +468,9 @@ public class EurekaRegistryService implements RegistryService {
 
     void clearRegisteredInstance() {
         registeredInstance.set(null);
+        if (heartbeatCount.get() >= 0) {
+            heartbeatCount.set(0);
+        }
     }
 
 }

@@ -7,9 +7,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.awaitility.Awaitility.await;
 import static org.kiwiproject.base.KiwiStrings.f;
+import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.jaxrs.KiwiResponses.successful;
-import static org.kiwiproject.registry.eureka.common.EurekaResponseParser.parseEurekaApplicationsResponse;
-import static org.kiwiproject.registry.eureka.common.EurekaResponseParser.parseEurekaInstanceResponse;
 import static org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig.DEFAULT_LEASE_EXPIRATION_DURATION_SECONDS;
 import static org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig.DEFAULT_LEASE_RENEWAL_INTERVAL_SECONDS;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAULT_DATA_CENTER_INFO_CLASS;
@@ -20,24 +19,24 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.message.GZipEncoder;
 import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaResponseParser;
-import org.kiwiproject.registry.eureka.config.EurekaConfig;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 @UtilityClass
 @Slf4j
@@ -125,6 +124,24 @@ public class EurekaTestDataHelper {
     public static void clearAllInstances(String baseUrl) {
         var client = ClientBuilder.newClient().register(GZipEncoder.class);
 
+        var instances = await().atMost(1, MINUTES).until(() -> findAllInstances(baseUrl), all -> isNotNullOrEmpty(all));
+
+        LOG.info("Found {} instances to delete", instances.size());
+        instances.forEach(instance -> {
+            var unregisterResponse = client.target(baseUrl)
+                    .path("apps/{appId}/{instanceId}")
+                    .resolveTemplate("appId", instance.getApp())
+                    .resolveTemplate("instanceId", instance.getInstanceId())
+                    .request()
+                    .accept(APPLICATION_JSON_TYPE)
+                    .delete();
+            LOG.info("Response deleting instance {}/{}: {}", instance.getApp(), instance.getInstanceId(), unregisterResponse.getStatus());
+        });
+    }
+
+    private static List<EurekaInstance> findAllInstances(String baseUrl) {
+        var client = ClientBuilder.newClient().register(GZipEncoder.class);
+
         var response = client.target(baseUrl)
                 .path("apps")
                 .request()
@@ -132,19 +149,14 @@ public class EurekaTestDataHelper {
                 .get();
 
         if (successful(response)) {
+            LOG.info("Successful response finding all instances");
             var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-            var apps = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
-
-            apps.forEach(instance -> {
-                client.target(baseUrl)
-                        .path("apps/{appId}/{instanceId}")
-                        .resolveTemplate("appId", instance.getApp())
-                        .resolveTemplate("instanceId", instance.getInstanceId())
-                        .request()
-                        .accept(APPLICATION_JSON_TYPE)
-                        .delete();
-            });
+            return EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
+        } else {
+            LOG.warn("Call to retrieve all instances returned a non-success code: {}", response.getStatus());
         }
+
+        return List.of();
     }
 
     public static void assertApplicationIsRegistered(String appId, String baseUrl) {

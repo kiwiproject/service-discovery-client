@@ -8,7 +8,6 @@ import static org.kiwiproject.jaxrs.KiwiStandardResponses.standardBadRequestResp
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.APP_TIMESTAMP_FORMATTER;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.assertApplicationIsNotRegistered;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.assertApplicationIsRegistered;
-import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.clearAllInstances;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.loadInstanceAndWaitForRegistration;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,7 +17,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import lombok.extern.slf4j.Slf4j;
+import java.time.Instant;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -40,9 +42,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.time.Instant;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 @DisplayName("EurekaRegistryService")
 @ExtendWith(SoftAssertionsExtension.class)
@@ -68,6 +68,7 @@ class EurekaRegistryServiceIntegrationTest {
         config = new EurekaRegistrationConfig();
         config.setHeartbeatIntervalInSeconds(1);
         config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
+        config.setShouldTrackHeartbeats(true);
 
         service = new EurekaRegistryService(config, client, environment);
     }
@@ -211,34 +212,6 @@ class EurekaRegistryServiceIntegrationTest {
                     + "-" + APP_TIMESTAMP_FORMATTER.format(now);
 
             assertApplicationIsRegistered(expectedAppId, config.getRegistryUrls());
-        }
-
-        @Test
-        void shouldRetryHeartbeatsIfFailureOccursUntilThresholdThenTrySelfHeal() {
-            var now = Instant.now();
-            when(environment.currentInstant()).thenReturn(now);
-
-            var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper
-                            .buildTestServiceInfoWithHostName("FailHeartbeat-6"))
-                    .withStatus(ServiceInstance.Status.STARTING);
-
-            service.register(serviceInstance);
-            var eurekaInstance = service.registeredInstance.get();
-            var heartbeatExecutor = service.heartbeatExecutor.get();
-
-            var expectedAppId = serviceInstance.getServiceName().toUpperCase(Locale.getDefault())
-                    + "-" + APP_TIMESTAMP_FORMATTER.format(now);
-
-            assertApplicationIsRegistered(expectedAppId, config.getRegistryUrls());
-
-            verifyHeartbeats(10, 1);
-
-            clearAllInstances(config.getRegistryUrls());
-
-            verifyHeartbeats(10, 3);
-
-            assertThat(eurekaInstance).isNotSameAs(service.registeredInstance.get());
-            assertThat(heartbeatExecutor).isNotSameAs(service.heartbeatExecutor.get());
         }
     }
 

@@ -7,28 +7,40 @@ import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAU
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAULT_DATA_CENTER_NAME;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_DURATION_IN_SECONDS;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_RENEWAL_INTERVAL_IN_SECONDS;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.loadInstanceAndWaitForRegistration;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.sampleInstance;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 
 import com.netflix.appinfo.InstanceInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.kiwiproject.eureka.junit.EurekaServerExtension;
+import org.kiwiproject.jaxrs.KiwiGenericTypes;
+import org.kiwiproject.registry.eureka.util.EurekaTestDataHelper;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 
 @DisplayName("EurekaRestClient")
+@Testcontainers
+@Slf4j
 class EurekaRestClientTest {
 
-    @RegisterExtension
-    public static final EurekaServerExtension EUREKA = new EurekaServerExtension();
+    @Container
+    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+            .withExposedPorts(8080)
+            .withLogConsumer(new Slf4jLogConsumer(LOG));
 
     private EurekaRestClient client;
     private String eurekaBaseUrl;
@@ -36,12 +48,12 @@ class EurekaRestClientTest {
     @BeforeEach
     void setUp() {
         client = new EurekaRestClient();
-        eurekaBaseUrl = "http://localhost:" + EUREKA.getPort() + "/eureka/v2";
+        eurekaBaseUrl = EurekaTestDataHelper.eurekaUrl(eureka);
     }
 
     @AfterEach
-    void cleanupEureka() {
-        EUREKA.clearRegisteredApps();
+    void cleanUp() {
+        EurekaTestDataHelper.clearAllInstances(eurekaBaseUrl);
     }
 
     @Nested
@@ -75,7 +87,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO-SERVICE", "UP");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO-SERVICE", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
 
@@ -95,7 +107,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.findInstancesByVipAddress(eurekaBaseUrl, "FOO");
 
@@ -109,14 +121,16 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "DOWN");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.DOWN), eurekaBaseUrl);
 
             var response = client.updateStatus(eurekaBaseUrl, "APPID", "INSTANCEID", ServiceInstance.Status.UP);
 
             assertOkResponse(response);
 
-            var instance = EUREKA.getRegisteredApplication("APPID").getByInstanceId("INSTANCEID");
-            assertThat(instance.getStatus()).isEqualTo(InstanceInfo.InstanceStatus.UP);
+            var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var eurekaResponse = instanceResponse.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+            var instance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
+            assertThat(instance.getStatus()).isEqualTo(InstanceInfo.InstanceStatus.UP.name());
         }
 
     }
@@ -126,12 +140,14 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.unregister(eurekaBaseUrl, "APPID", "INSTANCEID");
 
             assertOkResponse(response);
-            assertThat(EUREKA.isApplicationRegistered("APPID")).isFalse();
+
+            var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
+            assertNotFoundResponse(instanceResponse);
         }
 
     }
@@ -141,13 +157,11 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.sendHeartbeat(eurekaBaseUrl, "APPID", "INSTANCEID");
 
             assertOkResponse(response);
-
-            assertThat(EUREKA.getHeartbeatCount()).isOne();
         }
 
     }
@@ -157,7 +171,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            EUREKA.registerApplication("APPID", "INSTANCEID", "FOO", "UP");
+            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.findAllInstances(eurekaBaseUrl);
 

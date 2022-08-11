@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -140,6 +141,9 @@ public class EurekaRegistryService implements RegistryService {
     @VisibleForTesting
     final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
+    @VisibleForTesting
+    final AtomicLong heartbeatCount;
+
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
         this.config = config;
         this.client = client;
@@ -175,6 +179,12 @@ public class EurekaRegistryService implements RegistryService {
                 .retryDelayTime(UNREGISTER_RETRY_DELAY)
                 .retryDelayUnit(UNREGISTER_RETRY_DELAY_UNIT)
                 .build();
+
+        if (config.isShouldTrackHeartbeats()) {
+            heartbeatCount = new AtomicLong(0);
+        } else {
+            heartbeatCount = new AtomicLong(-1);
+        }
     }
 
     @Override
@@ -223,8 +233,15 @@ public class EurekaRegistryService implements RegistryService {
         LOG.debug("Starting heartbeat with interval {} seconds", heartbeatInterval);
 
         heartbeatExecutor.set(newHeartbeatExecutor());
-        heartbeatExecutor.get().scheduleWithFixedDelay(new EurekaHeartbeatSender(client, this, registeredInstance.get(), urlProvider),
+        heartbeatExecutor.get().scheduleWithFixedDelay(
+                new EurekaHeartbeatSender(client, this, registeredInstance.get(), urlProvider, this::updateHeartbeatCount),
                 heartbeatInterval, heartbeatInterval, TimeUnit.SECONDS);
+    }
+
+    private void updateHeartbeatCount() {
+        if (heartbeatCount.get() >= 0) {
+            heartbeatCount.incrementAndGet();
+        }
     }
 
     private void shutdownHeartbeat() {
@@ -243,6 +260,10 @@ public class EurekaRegistryService implements RegistryService {
         }
 
         heartbeatExecutor.set(null);
+
+        if (heartbeatCount.get() >= 0) {
+            heartbeatCount.set(0);
+        }
     }
 
     private static ScheduledExecutorService newHeartbeatExecutor() {

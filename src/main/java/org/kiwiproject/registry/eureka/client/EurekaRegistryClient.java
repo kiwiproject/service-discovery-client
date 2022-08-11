@@ -14,6 +14,7 @@ import static org.kiwiproject.retry.KiwiRetryerPredicates.UNKNOWN_HOST;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.kiwiproject.jaxrs.KiwiEntities;
 import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.client.ServiceInstanceFilter;
@@ -143,6 +144,7 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
+        LOG.info("Headers: {}", response.getHeaders());
         return parseEurekaInstances(response);
     }
 
@@ -169,6 +171,7 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
+        LOG.info("Headers: {}", response.getHeaders());
         var eurekaInstances = parseEurekaInstances(response);
 
         var includeNativeData = config.isIncludeNativeData()

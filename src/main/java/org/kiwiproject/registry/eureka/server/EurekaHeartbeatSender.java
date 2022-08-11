@@ -50,11 +50,14 @@ class EurekaHeartbeatSender implements Runnable {
     @Getter(AccessLevel.PACKAGE)
     private Instant heartbeatFailureStartedAt;
 
-    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance, EurekaUrlProvider urlProvider) {
+    private final Runnable heartbeatSentListener;
+
+    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance, EurekaUrlProvider urlProvider, Runnable heartbeatSentListener) {
         this.client = client;
         this.registeredInstance = registeredInstance;
         this.registryService = registryService;
         this.urlProvider = urlProvider;
+        this.heartbeatSentListener = heartbeatSentListener;
     }
 
     @Override
@@ -75,6 +78,7 @@ class EurekaHeartbeatSender implements Runnable {
         if (nonNull(response) && successful(response)) {
             logRecoveryIfNecessary();
             heartbeatFailures = 0;
+            heartbeatSentListener.run();
             return;
         }
 

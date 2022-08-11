@@ -44,7 +44,7 @@ class EurekaHeartbeatSenderTest {
         var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
                 .withStatus(ServiceInstance.Status.UP);
         var eurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("test-service-app");
-        sender = new EurekaHeartbeatSender(client, service, eurekaInstance, new EurekaUrlProvider("http://localhost:8764"));
+        sender = new EurekaHeartbeatSender(client, service, eurekaInstance, new EurekaUrlProvider("http://localhost:8764"), () -> {});
     }
 
     @Nested

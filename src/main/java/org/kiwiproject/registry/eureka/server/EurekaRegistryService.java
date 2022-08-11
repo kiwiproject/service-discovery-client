@@ -180,7 +180,7 @@ public class EurekaRegistryService implements RegistryService {
                 .retryDelayUnit(UNREGISTER_RETRY_DELAY_UNIT)
                 .build();
 
-        if (config.isShouldTrackHeartbeats()) {
+        if (config.isTrackHeartbeats()) {
             heartbeatCount = new AtomicLong(0);
         } else {
             heartbeatCount = new AtomicLong(-1);

@@ -50,6 +50,6 @@ public class EurekaRegistrationConfig extends EurekaConfig {
     /**
      * Whether the registry service should track the number of heartbeats sent. Mostly used for testing purposes.
      */
-    private boolean shouldTrackHeartbeats;
+    private boolean trackHeartbeats;
 
 }

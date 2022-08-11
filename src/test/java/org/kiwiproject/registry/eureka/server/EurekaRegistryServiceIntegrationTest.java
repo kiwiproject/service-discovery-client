@@ -67,7 +67,7 @@ class EurekaRegistryServiceIntegrationTest {
         config = new EurekaRegistrationConfig();
         config.setHeartbeatIntervalInSeconds(1);
         config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
-        config.setShouldTrackHeartbeats(true);
+        config.setTrackHeartbeats(true);
 
         service = new EurekaRegistryService(config, client, environment);
 

@@ -143,7 +143,6 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        LOG.info("Headers: {}", response.getHeaders());
         return parseEurekaInstances(response);
     }
 
@@ -170,7 +169,6 @@ public class EurekaRegistryClient implements RegistryClient {
             return List.of();
         }
 
-        LOG.info("Headers: {}", response.getHeaders());
         var eurekaInstances = parseEurekaInstances(response);
 
         var includeNativeData = config.isIncludeNativeData()

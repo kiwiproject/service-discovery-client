@@ -142,7 +142,9 @@ public class EurekaRegistryService implements RegistryService {
     final AtomicReference<ScheduledExecutorService> heartbeatExecutor;
 
     @VisibleForTesting
-    final AtomicLong heartbeatCount;
+    AtomicLong heartbeatCount;
+
+    private final boolean trackHeartbeats;
 
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
         this.config = config;
@@ -180,10 +182,10 @@ public class EurekaRegistryService implements RegistryService {
                 .retryDelayUnit(UNREGISTER_RETRY_DELAY_UNIT)
                 .build();
 
-        if (config.isTrackHeartbeats()) {
+        this.trackHeartbeats = config.isTrackHeartbeats();
+
+        if (trackHeartbeats) {
             heartbeatCount = new AtomicLong(0);
-        } else {
-            heartbeatCount = new AtomicLong(-1);
         }
     }
 
@@ -239,7 +241,7 @@ public class EurekaRegistryService implements RegistryService {
     }
 
     private void updateHeartbeatCount() {
-        if (heartbeatCount.get() >= 0) {
+        if (trackHeartbeats) {
             heartbeatCount.incrementAndGet();
         }
     }
@@ -261,7 +263,7 @@ public class EurekaRegistryService implements RegistryService {
 
         heartbeatExecutor.set(null);
 
-        if (heartbeatCount.get() >= 0) {
+        if (trackHeartbeats) {
             heartbeatCount.set(0);
         }
     }
@@ -468,7 +470,7 @@ public class EurekaRegistryService implements RegistryService {
 
     void clearRegisteredInstance() {
         registeredInstance.set(null);
-        if (heartbeatCount.get() >= 0) {
+        if (trackHeartbeats) {
             heartbeatCount.set(0);
         }
     }

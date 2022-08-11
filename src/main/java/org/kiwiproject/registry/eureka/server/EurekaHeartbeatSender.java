@@ -48,6 +48,7 @@ class EurekaHeartbeatSender implements Runnable {
 
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private Instant heartbeatFailureStartedAt;
 
     private final Runnable heartbeatSentListener;
@@ -78,6 +79,7 @@ class EurekaHeartbeatSender implements Runnable {
         if (nonNull(response) && successful(response)) {
             logRecoveryIfNecessary();
             heartbeatFailures = 0;
+            heartbeatFailureStartedAt = null;
             heartbeatSentListener.run();
             return;
         }

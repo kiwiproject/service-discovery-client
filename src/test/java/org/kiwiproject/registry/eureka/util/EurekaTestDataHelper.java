@@ -32,6 +32,7 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 
@@ -55,7 +56,7 @@ public class EurekaTestDataHelper {
     }
 
     public static void waitForEurekaToStart(String baseUrl) {
-        var client = ClientBuilder.newClient().register(GZipEncoder.class);
+        var client = newJerseyClient();
         await().atMost(1, MINUTES).until(() -> {
             var response = client.target(baseUrl)
                     .path("apps")
@@ -88,7 +89,7 @@ public class EurekaTestDataHelper {
     }
 
     public static void loadInstanceAndWaitForRegistration(EurekaInstance instance, String baseUrl) {
-        var client = ClientBuilder.newClient().register(GZipEncoder.class);
+        var client = newJerseyClient();
 
         var loadResponse = client.target(baseUrl)
                 .path("apps/{appId}")
@@ -119,7 +120,7 @@ public class EurekaTestDataHelper {
     }
 
     public static void clearAllInstances(String baseUrl) {
-        var client = ClientBuilder.newClient().register(GZipEncoder.class);
+        var client = newJerseyClient();
 
         var instances = findAllInstances(baseUrl);
 
@@ -137,9 +138,7 @@ public class EurekaTestDataHelper {
     }
 
     private static List<EurekaInstance> findAllInstances(String baseUrl) {
-        var client = ClientBuilder.newClient().register(GZipEncoder.class);
-
-        var response = client.target(baseUrl)
+        var response = newJerseyClient().target(baseUrl)
                 .path("apps")
                 .request()
                 .accept(APPLICATION_JSON_TYPE)
@@ -165,9 +164,7 @@ public class EurekaTestDataHelper {
     }
 
     private static Response findApplication(String appId, String baseUrl) {
-        var client = ClientBuilder.newClient().register(GZipEncoder.class);
-
-        return client.target(baseUrl)
+        return newJerseyClient().target(baseUrl)
                 .path("apps/{appId}")
                 .resolveTemplate("appId", appId)
                 .request()
@@ -175,4 +172,7 @@ public class EurekaTestDataHelper {
                 .get();
     }
 
+    public static Client newJerseyClient() {
+        return ClientBuilder.newClient().register(GZipEncoder.class);
+    }
 }

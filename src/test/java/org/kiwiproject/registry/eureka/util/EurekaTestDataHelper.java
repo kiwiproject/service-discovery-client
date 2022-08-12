@@ -43,7 +43,6 @@ public class EurekaTestDataHelper {
     public static ImageFromDockerfile eurekaImage() {
         return new ImageFromDockerfile()
                 .withFileFromClasspath("Dockerfile", "eureka-server/Dockerfile")
-                .withFileFromClasspath("eureka-server-1.10.17.war", "eureka-server/eureka-server-1.10.17.war")
                 .withFileFromClasspath("config.properties", "eureka-server/config.properties")
                 .withFileFromClasspath("eureka-client-test.properties", "eureka-server/eureka-client-test.properties")
                 .withFileFromClasspath("eureka-server-test.properties", "eureka-server/eureka-server-test.properties");

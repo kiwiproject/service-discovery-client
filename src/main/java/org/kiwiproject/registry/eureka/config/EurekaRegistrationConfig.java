@@ -47,4 +47,9 @@ public class EurekaRegistrationConfig extends EurekaConfig {
     @Max(MAX_LEASE_EXPIRATION_DURATION_SECONDS)
     private int expirationIntervalInSeconds = DEFAULT_LEASE_EXPIRATION_DURATION_SECONDS;
 
+    /**
+     * Whether the registry service should track the number of heartbeats sent. Mostly used for testing purposes.
+     */
+    private boolean trackHeartbeats;
+
 }

@@ -23,10 +23,10 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
+import javax.annotation.Nullable;
+import javax.ws.rs.core.Response;
 
 @Slf4j
 class EurekaHeartbeatSender implements Runnable {
@@ -48,13 +48,17 @@ class EurekaHeartbeatSender implements Runnable {
 
     @VisibleForTesting
     @Getter(AccessLevel.PACKAGE)
+    @Setter(AccessLevel.PACKAGE)
     private Instant heartbeatFailureStartedAt;
 
-    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance, EurekaUrlProvider urlProvider) {
+    private final Runnable heartbeatSentListener;
+
+    EurekaHeartbeatSender(EurekaRestClient client, EurekaRegistryService registryService, EurekaInstance registeredInstance, EurekaUrlProvider urlProvider, Runnable heartbeatSentListener) {
         this.client = client;
         this.registeredInstance = registeredInstance;
         this.registryService = registryService;
         this.urlProvider = urlProvider;
+        this.heartbeatSentListener = heartbeatSentListener;
     }
 
     @Override
@@ -75,6 +79,8 @@ class EurekaHeartbeatSender implements Runnable {
         if (nonNull(response) && successful(response)) {
             logRecoveryIfNecessary();
             heartbeatFailures = 0;
+            heartbeatFailureStartedAt = null;
+            heartbeatSentListener.run();
             return;
         }
 

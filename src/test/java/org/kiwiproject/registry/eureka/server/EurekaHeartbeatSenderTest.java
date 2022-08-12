@@ -2,6 +2,7 @@ package org.kiwiproject.registry.eureka.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.kiwiproject.jaxrs.KiwiStandardResponses.standardGetResponse;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.CANNOT_SELF_HEAL;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_FAILED;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_SUCCEEDED;
@@ -24,10 +25,13 @@ import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.mockito.ArgumentCaptor;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.Response;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
 
 @DisplayName("EurekaHeartbeatSender")
 class EurekaHeartbeatSenderTest {
@@ -35,6 +39,8 @@ class EurekaHeartbeatSenderTest {
     private EurekaRegistryService service;
     private EurekaHeartbeatSender sender;
     private EurekaRestClient client;
+
+    private AtomicInteger heartbeatCount;
 
     @BeforeEach
     void setUp() {
@@ -44,7 +50,9 @@ class EurekaHeartbeatSenderTest {
         var serviceInstance = ServiceInstance.fromServiceInfo(ServiceInfoHelper.buildTestServiceInfo())
                 .withStatus(ServiceInstance.Status.UP);
         var eurekaInstance = EurekaInstance.fromServiceInstance(serviceInstance).withApp("test-service-app");
-        sender = new EurekaHeartbeatSender(client, service, eurekaInstance, new EurekaUrlProvider("http://localhost:8764"));
+
+        heartbeatCount = new AtomicInteger(0);
+        sender = new EurekaHeartbeatSender(client, service, eurekaInstance, new EurekaUrlProvider("http://localhost:8764"), () -> heartbeatCount.incrementAndGet());
     }
 
     @Nested
@@ -105,6 +113,7 @@ class EurekaHeartbeatSenderTest {
 
             assertThat(sender.getHeartbeatFailures()).isEqualTo(1);
             assertThat(sender.getHeartbeatFailureStartedAt()).isNotNull();
+            assertThat(heartbeatCount).hasValue(0);
         }
 
         @Test
@@ -116,6 +125,22 @@ class EurekaHeartbeatSenderTest {
 
             assertThat(sender.getHeartbeatFailures()).isEqualTo(2);
             assertThat(sender.getHeartbeatFailureStartedAt()).isNotNull();
+            assertThat(heartbeatCount).hasValue(0);
+        }
+
+        @Test
+        void whenSendCallSucceedsResetFailuresAndCallListener() {
+            when(client.sendHeartbeat(anyString(), anyString(), anyString())).thenReturn(standardGetResponse(List.of(), "foo"));
+
+            // Setting previous failures to one, so we can see it change
+            sender.setHeartbeatFailures(1);
+            sender.setHeartbeatFailureStartedAt(Instant.now().minusSeconds(30));
+
+            sender.run();
+
+            assertThat(sender.getHeartbeatFailures()).isZero();
+            assertThat(sender.getHeartbeatFailureStartedAt()).isNull();
+            assertThat(heartbeatCount).hasValue(1);
         }
     }
 

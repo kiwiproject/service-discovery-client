@@ -7,12 +7,13 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import lombok.AllArgsConstructor;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.kiwiproject.registry.model.ServiceInstance;
 
+import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
-import java.util.Map;
 
 @AllArgsConstructor
 public class EurekaRestClient {
@@ -33,6 +34,7 @@ public class EurekaRestClient {
 
     private static Client newClient() {
         return ClientBuilder.newClient()
+                .register(GZipEncoder.class)
                 .property(ClientProperties.CONNECT_TIMEOUT, DEFAULT_CONNECT_TIMEOUT_MILLIS)
                 .property(ClientProperties.READ_TIMEOUT, DEFAULT_READ_TIMEOUT_MILLIS);
     }

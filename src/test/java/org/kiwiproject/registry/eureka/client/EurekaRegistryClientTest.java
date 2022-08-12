@@ -2,26 +2,31 @@ package org.kiwiproject.registry.eureka.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.kiwiproject.eureka.junit.EurekaServerExtension;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
+import org.kiwiproject.registry.eureka.util.EurekaTestDataHelper;
 import org.kiwiproject.retry.KiwiRetryerException;
 import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
 import org.kiwiproject.retry.WaitStrategy;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.ServerErrorException;
@@ -29,10 +34,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 @DisplayName("EurekaRegistryClient")
+@Testcontainers
+@Slf4j
 class EurekaRegistryClientTest {
 
-    @RegisterExtension
-    public static final EurekaServerExtension EUREKA = new EurekaServerExtension();
+    @Container
+    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+            .withExposedPorts(8080)
+            .withLogConsumer(new Slf4jLogConsumer(LOG));
 
     private EurekaRegistryClient client;
     private EurekaConfig config;
@@ -40,16 +49,17 @@ class EurekaRegistryClientTest {
     @BeforeEach
     void setUp() {
         config = new EurekaConfig();
-        config.setRegistryUrls("http://localhost:" + EUREKA.getPort() + "/eureka/v2");
+        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
 
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 
-        EUREKA.registerApplication("TEST-APP", "localhost", "TEST-APP", "UP");
+        EurekaTestDataHelper.waitForEurekaToStart(config.getRegistryUrls());
+        EurekaTestDataHelper.loadInstanceAndWaitForRegistration(config.getRegistryUrls());
     }
 
     @AfterEach
     void cleanupEureka() {
-        EUREKA.clearRegisteredApps();
+        EurekaTestDataHelper.clearAllInstances(config.getRegistryUrls());
     }
 
     @Nested

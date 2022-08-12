@@ -28,12 +28,12 @@ import org.kiwiproject.retry.KiwiRetryer;
 import org.kiwiproject.retry.WaitStrategies;
 import org.kiwiproject.retry.WaitStrategy;
 
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Response;
 
 /**
  * {@link RegistryClient} implementation for looking up services from Eureka registry server.

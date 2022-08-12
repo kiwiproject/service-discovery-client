@@ -147,6 +147,41 @@ public class EurekaRegistryService implements RegistryService {
     private final boolean trackHeartbeats;
 
     public EurekaRegistryService(EurekaRegistrationConfig config, EurekaRestClient client, KiwiEnvironment environment) {
+        this(config,
+                client,
+                environment,
+                SimpleRetryer.builder()
+                    .environment(environment)
+                    .maxAttempts(MAX_REGISTRATION_ATTEMPTS)
+                    .retryDelayTime(RETRY_DELAY)
+                    .retryDelayUnit(RETRY_DELAY_UNIT)
+                    .build(),
+                SimpleRetryer.builder()
+                    .environment(environment)
+                    .maxAttempts(MAX_AWAIT_REGISTRATION_CONFIRMATION_TRIES)
+                    .retryDelayTime(RETRY_DELAY)
+                    .retryDelayUnit(RETRY_DELAY_UNIT)
+                    .build(),
+                SimpleRetryer.builder()
+                    .environment(environment)
+                    .maxAttempts(MAX_UPDATE_STATUS_ATTEMPTS)
+                    .retryDelayTime(RETRY_DELAY)
+                    .retryDelayUnit(RETRY_DELAY_UNIT)
+                    .build(),
+                SimpleRetryer.builder()
+                    .environment(environment)
+                    .maxAttempts(MAX_UNREGISTER_ATTEMPTS)
+                    .retryDelayTime(UNREGISTER_RETRY_DELAY)
+                    .retryDelayUnit(UNREGISTER_RETRY_DELAY_UNIT)
+                    .build());
+    }
+    public EurekaRegistryService(EurekaRegistrationConfig config,
+                                 EurekaRestClient client,
+                                 KiwiEnvironment environment,
+                                 SimpleRetryer registerRetryer,
+                                 SimpleRetryer awaitRetryer,
+                                 SimpleRetryer updateStatusRetryer,
+                                 SimpleRetryer unregisterRetryer) {
         this.config = config;
         this.client = client;
         this.environment = environment;
@@ -154,33 +189,10 @@ public class EurekaRegistryService implements RegistryService {
         this.registeredInstance = new AtomicReference<>();
         this.heartbeatExecutor = new AtomicReference<>();
 
-        this.registerRetryer = SimpleRetryer.builder()
-                .environment(environment)
-                .maxAttempts(MAX_REGISTRATION_ATTEMPTS)
-                .retryDelayTime(RETRY_DELAY)
-                .retryDelayUnit(RETRY_DELAY_UNIT)
-                .build();
-
-        this.awaitRetryer = SimpleRetryer.builder()
-                .environment(environment)
-                .maxAttempts(MAX_AWAIT_REGISTRATION_CONFIRMATION_TRIES)
-                .retryDelayTime(RETRY_DELAY)
-                .retryDelayUnit(RETRY_DELAY_UNIT)
-                .build();
-
-        this.updateStatusRetryer = SimpleRetryer.builder()
-                .environment(environment)
-                .maxAttempts(MAX_UPDATE_STATUS_ATTEMPTS)
-                .retryDelayTime(RETRY_DELAY)
-                .retryDelayUnit(RETRY_DELAY_UNIT)
-                .build();
-
-        this.unregisterRetryer = SimpleRetryer.builder()
-                .environment(environment)
-                .maxAttempts(MAX_UNREGISTER_ATTEMPTS)
-                .retryDelayTime(UNREGISTER_RETRY_DELAY)
-                .retryDelayUnit(UNREGISTER_RETRY_DELAY_UNIT)
-                .build();
+        this.registerRetryer = registerRetryer;
+        this.awaitRetryer = awaitRetryer;
+        this.updateStatusRetryer = updateStatusRetryer;
+        this.unregisterRetryer = unregisterRetryer;
 
         this.trackHeartbeats = config.isTrackHeartbeats();
 

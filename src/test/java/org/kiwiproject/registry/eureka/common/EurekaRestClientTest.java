@@ -37,7 +37,8 @@ import java.util.Map;
 class EurekaRestClientTest {
 
     @Container
-    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static final GenericContainer EUREKA = new GenericContainer(eurekaImage())
             .withExposedPorts(8080)
             .withLogConsumer(new Slf4jLogConsumer(LOG));
 
@@ -47,7 +48,7 @@ class EurekaRestClientTest {
     @BeforeEach
     void setUp() {
         client = new EurekaRestClient();
-        eurekaBaseUrl = EurekaTestDataHelper.eurekaUrl(eureka);
+        eurekaBaseUrl = EurekaTestDataHelper.eurekaUrl(EUREKA);
 
         EurekaTestDataHelper.waitForEurekaToStart(eurekaBaseUrl);
     }

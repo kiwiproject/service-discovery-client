@@ -50,7 +50,8 @@ import java.util.concurrent.TimeUnit;
 class EurekaRegistryServiceIntegrationTest {
 
     @Container
-    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static final GenericContainer EUREKA = new GenericContainer(eurekaImage())
             .withExposedPorts(8080)
             .withLogConsumer(new Slf4jLogConsumer(LOG));
 
@@ -66,7 +67,7 @@ class EurekaRegistryServiceIntegrationTest {
 
         config = new EurekaRegistrationConfig();
         config.setHeartbeatIntervalInSeconds(1);
-        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
+        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(EUREKA));
         config.setTrackHeartbeats(true);
 
         service = new EurekaRegistryService(config, client, environment);

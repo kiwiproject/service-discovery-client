@@ -39,7 +39,8 @@ import javax.ws.rs.core.Response;
 class EurekaRegistryClientTest {
 
     @Container
-    public static GenericContainer eureka = new GenericContainer(eurekaImage())
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static final GenericContainer EUREKA = new GenericContainer(eurekaImage())
             .withExposedPorts(8080)
             .withLogConsumer(new Slf4jLogConsumer(LOG));
 
@@ -49,7 +50,7 @@ class EurekaRegistryClientTest {
     @BeforeEach
     void setUp() {
         config = new EurekaConfig();
-        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(eureka));
+        config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(EUREKA));
 
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 

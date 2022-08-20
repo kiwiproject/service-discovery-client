@@ -35,7 +35,7 @@ public class ConsulStarterHelper {
                 if (!Files.exists(downloadPath)) {
                     Files.createDirectory(downloadPath);
                 }
-                starter.withConsulBinaryDownloadDirectory(Path.of(downloadLocation));
+                starter.withConsulBinaryDownloadDirectory(downloadPath);
             } catch (IOException e) {
                 LOG.error("Unable to create consul download directory going to use the default", e);
             }

@@ -38,7 +38,6 @@ class ConsulRegistryClientTest {
     private ConsulRegistryClient client;
     private ConsulConfig config;
 
-    @SuppressWarnings("UnstableApiUsage")
     @BeforeEach
     void setUp() {
         var consul = Consul.builder()

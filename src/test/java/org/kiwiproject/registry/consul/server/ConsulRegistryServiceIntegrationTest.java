@@ -37,6 +37,7 @@ class ConsulRegistryServiceIntegrationTest {
     // NOTE:
     // Even though this extension uses an AfterAllCallback, it can NOT be static as running all the tests fail.
     // I'm not sure if this is something with the extension or with the Nested test classes
+    // TODO Re-evaluate the above note. IntelliJ also flagged the same thing in ConsulRegistryClientTest
     @RegisterExtension
     final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
 
@@ -45,7 +46,6 @@ class ConsulRegistryServiceIntegrationTest {
     private Consul consul;
     private ConsulRegistrationConfig config;
 
-    @SuppressWarnings("UnstableApiUsage")
     @BeforeEach
     void setUp() {
         consul = Consul.builder()

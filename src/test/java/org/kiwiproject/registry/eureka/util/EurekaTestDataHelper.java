@@ -29,12 +29,12 @@ import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @UtilityClass
 @Slf4j
@@ -48,7 +48,7 @@ public class EurekaTestDataHelper {
                 .withFileFromClasspath("eureka-server-test.properties", "eureka-server/eureka-server-test.properties");
     }
 
-    public static String eurekaUrl(GenericContainer container) {
+    public static String eurekaUrl(GenericContainer<?> container) {
         var host = container.getHost();
         var port = container.getFirstMappedPort();
         return f("http://{}:{}/eureka/v2", host, port);

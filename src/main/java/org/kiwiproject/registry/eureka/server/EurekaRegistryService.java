@@ -9,6 +9,8 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
+import static org.kiwiproject.jaxrs.KiwiEntities.safeReadEntity;
+import static org.kiwiproject.jaxrs.KiwiResponses.closeQuietly;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -304,16 +306,21 @@ public class EurekaRegistryService implements RegistryService {
 
         var registrationFunction = registrationSender(appId, eurekaInstance);
 
-        var response = registerRetryer.tryGetObject(eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode()))
-                .orElseThrow(() -> {
+        var responseSupplier = eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode());
+        var responseOptional = registerRetryer.tryGetObject(responseSupplier);
+
+        Optionals.ifPresentOrElseThrow(responseOptional,
+                resp -> {
+                    LOG.info("Registration for app {} has been received by Eureka", appId);
+                    var entity = safelyReadEntity(resp);
+                    LOG.debug("Response from server: Status [{}], Body {}", resp.getStatus(), entity);
+                },
+                () -> {
                     var errMsg = format("Received errors or non-204 responses on ALL %s attempts to register (via POST) with Eureka",
                             MAX_REGISTRATION_ATTEMPTS);
                     return new RegistrationException(errMsg);
-                });
-
-        LOG.info("Registration for app {} has been received by Eureka", appId);
-        LOG.debug("Response from server: Status [{}], Body {}", response.getStatus(), response.readEntity(String.class));
-
+                }
+        );
     }
 
     private Function<String, Response> registrationSender(String appId, EurekaInstance candidate) {
@@ -331,9 +338,9 @@ public class EurekaRegistryService implements RegistryService {
         LOG.debug("Wait for registration to show in Eureka for app {}, instance {}", appId, instanceId);
 
         var instanceGetterFunction = instanceRequester(appId, instanceId);
-        var response = awaitRetryer.tryGetObject(eurekaCallRetrySupplier(instanceGetterFunction, OK.getStatusCode()));
+        var responseOptional = awaitRetryer.tryGetObject(eurekaCallRetrySupplier(instanceGetterFunction, OK.getStatusCode()));
 
-        return response
+        return responseOptional
                 .map(resp -> {
                     var eurekaResponse = resp.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
                     return EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
@@ -366,13 +373,14 @@ public class EurekaRegistryService implements RegistryService {
         var appId = instanceToUpdate.getApp();
         var instanceId = instanceToUpdate.getInstanceId();
 
-        var response = updateStatusRetryer.tryGetObject(eurekaCallRetrySupplier(
-                updateStatusSender(appId, instanceId, newStatus), OK.getStatusCode()));
+        var responseSupplier = eurekaCallRetrySupplier(updateStatusSender(appId, instanceId, newStatus), OK.getStatusCode());
+        var responseOptional = updateStatusRetryer.tryGetObject(responseSupplier);
 
-        Optionals.ifPresentOrElseThrow(response,
+        Optionals.ifPresentOrElseThrow(responseOptional,
                 resp -> {
                     LOG.info("Instance with appId {}, instanceId {} has been updated successfully to status {}", appId, instanceId, newStatus);
                     registeredInstance.set(instanceToUpdate.withStatus(newStatus.name()));
+                    closeQuietly(resp);
                 },
                 () -> {
                     var msg = format("Error updating status for app {}, instance {}", appId, instanceId);
@@ -416,13 +424,14 @@ public class EurekaRegistryService implements RegistryService {
         var appId = instanceToUnregister.getApp();
         var instanceId = instanceToUnregister.getInstanceId();
 
-        var response = unregisterRetryer.tryGetObject(eurekaCallRetrySupplier(
-                unregisterSender(appId, instanceId), OK.getStatusCode()));
+        var responseSupplier = eurekaCallRetrySupplier(unregisterSender(appId, instanceId), OK.getStatusCode());
+        var responseOptional = unregisterRetryer.tryGetObject(responseSupplier);
 
-        Optionals.ifPresentOrElseThrow(response,
+        Optionals.ifPresentOrElseThrow(responseOptional,
                 resp -> {
                     LOG.info("Instance with appId {}, instanceId {} has been unregistered successfully", appId, instanceId);
                     registeredInstance.set(null);
+                    closeQuietly(resp);
                 },
                 () -> {
                     var msg = format("Error un-registering app {}, instance {}", appId, instanceId);
@@ -450,6 +459,11 @@ public class EurekaRegistryService implements RegistryService {
         return !isRegistered();
     }
 
+    /**
+     * The returned Supplier returns the Response if its status code matches successfulStatusCode or null otherwise.
+     * <p>
+     * <strong>If the Supplier contains a Response, it is the caller's responsibility to ensure it is closed.</strong>
+     */
     private Supplier<Response> eurekaCallRetrySupplier(Function<String, Response> restCallFunction, int successfulStatusCode) {
         return () -> {
             var eurekaUrl = urlProvider.getCurrentEurekaUrl();
@@ -464,14 +478,20 @@ public class EurekaRegistryService implements RegistryService {
             }
 
             if (successfulStatusCode == response.getStatus()) {
+                // Caller is responsible for closing the returned Response
                 return response;
             }
 
             urlProvider.getNextEurekaUrl();
+            var entity = safelyReadEntity(response);
             LOG.error("HTTP {} - Call to Eureka at {} failed to respond successfully. Response body: {}",
-                    response.getStatus(), eurekaUrl, response.readEntity(String.class));
+                    response.getStatus(), eurekaUrl, entity);
             return null;
         };
+    }
+
+    private static String safelyReadEntity(Response response) {
+        return safeReadEntity(response).orElse("[Error reading response entity]");
     }
 
     String getRegisteredAppOrNull() {

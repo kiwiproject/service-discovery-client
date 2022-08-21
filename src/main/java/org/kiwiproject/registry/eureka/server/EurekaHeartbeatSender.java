@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.kiwiproject.jaxrs.KiwiResponses.closeQuietly;
 import static org.kiwiproject.jaxrs.KiwiResponses.successful;
 import static org.kiwiproject.logging.LazyLogParameterSupplier.lazy;
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.CANNOT_SELF_HEAL;
@@ -23,10 +24,10 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
-import java.time.Duration;
-import java.time.Instant;
 import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
+import java.time.Duration;
+import java.time.Instant;
 
 @Slf4j
 class EurekaHeartbeatSender implements Runnable {
@@ -74,6 +75,9 @@ class EurekaHeartbeatSender implements Runnable {
                     registeredInstance.getInstanceId());
         } catch (Exception e) {
             exception = e;
+        } finally {
+            // It's safe to close the response since we don't need the entity
+            closeQuietly(response);
         }
 
         if (nonNull(response) && successful(response)) {

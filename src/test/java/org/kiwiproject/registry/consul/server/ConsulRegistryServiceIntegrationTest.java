@@ -2,6 +2,8 @@ package org.kiwiproject.registry.consul.server;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.consulHostAndPort;
+import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.newConsulContainer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -10,7 +12,6 @@ import com.google.common.net.HostAndPort;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.orbitz.consul.model.catalog.CatalogService;
-import com.pszymczyk.consul.junit.ConsulExtension;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,28 +19,26 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.base.KiwiEnvironment;
 import org.kiwiproject.registry.consul.config.ConsulRegistrationConfig;
-import org.kiwiproject.registry.consul.util.ConsulStarterHelper;
 import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
+import org.testcontainers.consul.ConsulContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 @DisplayName("ConsulRegistryService")
+@Testcontainers
 @ExtendWith(SoftAssertionsExtension.class)
 class ConsulRegistryServiceIntegrationTest {
 
-    // NOTE:
-    // Even though this extension uses an AfterAllCallback, it can NOT be static as running all the tests fail.
-    // I'm not sure if this is something with the extension or with the Nested test classes
-    // TODO Re-evaluate the above note. IntelliJ also flagged the same thing in ConsulRegistryClientTest
-    @RegisterExtension
-    final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
+    @Container
+    public static final ConsulContainer CONSUL = newConsulContainer();
 
     private ConsulRegistryService service;
     private KiwiEnvironment environment;
@@ -48,8 +47,10 @@ class ConsulRegistryServiceIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        var consulHostAndPort = consulHostAndPort(CONSUL);
+
         consul = Consul.builder()
-                .withHostAndPort(HostAndPort.fromParts("localhost", consulExtension.getHttpPort()))
+                .withHostAndPort(HostAndPort.fromParts(consulHostAndPort.getHost(), consulHostAndPort.getPort()))
                 .build();
         environment = mock(KiwiEnvironment.class);
         config = new ConsulRegistrationConfig();

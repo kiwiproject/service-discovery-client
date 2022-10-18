@@ -36,7 +36,10 @@ public class ServiceInstance {
     private final Status status;
 
     private final String serviceName;
+
+    @With
     private final String hostName;
+
     private final String ip;
     private final List<Port> ports;
     private final ServicePaths paths;

@@ -114,7 +114,7 @@ class ConsulRegistryServiceIntegrationTest {
 
         @Test
         void shouldThrowIllegalStateException() {
-            service.registeredService.set(ServiceInstance.builder().build());
+            service.setRegisteredServiceInstance(ServiceInstance.builder().build());
 
             assertThatThrownBy(() -> service.register(ServiceInstance.builder().build()))
                     .isInstanceOf(IllegalStateException.class)
@@ -236,7 +236,7 @@ class ConsulRegistryServiceIntegrationTest {
         @Test
         void shouldReturnRegisteredInstanceUntouchedWhenRegistered() {
             var serviceInstance = ServiceInstance.builder().build();
-            service.registeredService.set(serviceInstance);
+            service.setRegisteredServiceInstance(serviceInstance);
             assertThat(service.updateStatus(ServiceInstance.Status.UP))
                     .usingRecursiveComparison()
                     .isEqualTo(serviceInstance);
@@ -248,7 +248,7 @@ class ConsulRegistryServiceIntegrationTest {
 
         @Test
         void shouldUnRegister() {
-            service.registeredService.set(ServiceInstance.builder().serviceName("APPID").instanceId("INSTANCEID").build());
+            service.setRegisteredServiceInstance(ServiceInstance.builder().serviceName("APPID").instanceId("INSTANCEID").build());
             consul.agentClient().register(ImmutableRegistration.builder().name("APPID").id("INSTANCEID").address("localhost").build());
 
             service.unregister();
@@ -268,7 +268,7 @@ class ConsulRegistryServiceIntegrationTest {
         void shouldRetryUnregisterAndThrowExceptionIfAllTriesExpire() {
             var badConsul = mock(Consul.class);
             var serviceToFail = new ConsulRegistryService(badConsul, new ConsulRegistrationConfig(), environment);
-            serviceToFail.registeredService.set(ServiceInstance.builder().serviceName("APPID").instanceId("INSTANCEID").build());
+            serviceToFail.setRegisteredServiceInstance(ServiceInstance.builder().serviceName("APPID").instanceId("INSTANCEID").build());
 
             doThrow(new RuntimeException("Oops")).when(badConsul).agentClient();
 

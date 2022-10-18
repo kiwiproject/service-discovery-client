@@ -92,8 +92,7 @@ public class ConsulRegistryService implements RegistryService {
      */
     private final List<String> metadataTags;
 
-    @VisibleForTesting
-    final AtomicReference<ServiceInstance> registeredService;
+    private final AtomicReference<ServiceInstance> registeredService;
 
     public ConsulRegistryService(Consul consul, ConsulRegistrationConfig config, KiwiEnvironment environment) {
         this.consul = consul;
@@ -187,7 +186,8 @@ public class ConsulRegistryService implements RegistryService {
         return nonNull(getRegisteredServiceInstance());
     }
 
-    private void setRegisteredServiceInstance(ServiceInstance serviceInstance) {
+    @VisibleForTesting
+    void setRegisteredServiceInstance(ServiceInstance serviceInstance) {
         registeredService.set(serviceInstance);
     }
 

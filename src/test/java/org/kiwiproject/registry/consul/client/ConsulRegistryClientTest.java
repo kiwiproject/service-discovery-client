@@ -2,11 +2,11 @@ package org.kiwiproject.registry.consul.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.consulHostAndPort;
+import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.newConsulContainer;
 
-import com.google.common.net.HostAndPort;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.model.agent.ImmutableRegistration;
-import com.pszymczyk.consul.junit.ConsulExtension;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,34 +14,35 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
-import org.kiwiproject.registry.consul.util.ConsulStarterHelper;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.model.ServicePaths;
+import org.testcontainers.consul.ConsulContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.Map;
 
 @DisplayName("ConsulRegistryClient")
+@Testcontainers
 @ExtendWith(SoftAssertionsExtension.class)
 class ConsulRegistryClientTest {
 
-    // NOTE:
-    // Even though this extension uses an AfterAllCallback, it can NOT be static as running all the tests fail.
-    // I'm not sure if this is something with the extension or with the Nested test classes
-    @RegisterExtension
-    final ConsulExtension consulExtension = new ConsulExtension(ConsulStarterHelper.buildStarterConfigWithEnvironment());
+    @Container
+    public static final ConsulContainer CONSUL = newConsulContainer();
 
     private ConsulRegistryClient client;
     private ConsulConfig config;
 
     @BeforeEach
     void setUp() {
+        var consulHostAndPort = consulHostAndPort(CONSUL);
+
         var consul = Consul.builder()
-                .withHostAndPort(HostAndPort.fromParts("localhost", consulExtension.getHttpPort()))
+                .withHostAndPort(consulHostAndPort)
                 .build();
 
         config = new ConsulConfig();

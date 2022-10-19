@@ -92,8 +92,7 @@ public class ConsulRegistryService implements RegistryService {
      */
     private final List<String> metadataTags;
 
-    @VisibleForTesting
-    final AtomicReference<ServiceInstance> registeredService;
+    private final AtomicReference<ServiceInstance> registeredService;
 
     public ConsulRegistryService(Consul consul, ConsulRegistrationConfig config, KiwiEnvironment environment) {
         this.consul = consul;
@@ -128,27 +127,32 @@ public class ConsulRegistryService implements RegistryService {
 
         var registration = fromServiceInstance(serviceToRegister);
 
-        var service = registerRetryer.tryGetObject(() -> {
+        var serviceOptional = registerRetryer.tryGetObject(() -> {
             consul.agentClient().register(registration);
-            return serviceToRegister.withInstanceId(registration.getId());
+            return serviceToRegister.withInstanceId(registration.getId())
+                    .withHostName(registration.getAddress().orElse(null));  // necessary for domain override
         });
 
-        if (service.isEmpty()) {
+        if (serviceOptional.isEmpty()) {
             LOG.error("Registration failed for service {} with id {}. See logs above", serviceToRegister.getServiceName(), registration.getId());
             var errMsg = format("Unable to register service %s, id %s with Consul after %s attempts",
                     serviceToRegister.getServiceName(), registration.getId(), MAX_REGISTRATION_ATTEMPTS);
             throw new RegistrationException(errMsg);
         }
 
-        registeredService.set(service.get());
-        return getRegisteredServiceInstance().toBuilder().build();
+        setRegisteredServiceInstance(serviceOptional.get());
+        return copyOfRegisteredServiceInstance();
     }
 
     @Override
     public ServiceInstance updateStatus(ServiceInstance.Status newStatus) {
         checkState(isRegistered(), "Can not update status before calling register");
 
-        LOG.warn("Ignoring status update as Consul handles it's own status through it's health check process");
+        LOG.warn("Ignoring status update as Consul handles its own status through its health check process");
+        return copyOfRegisteredServiceInstance();
+    }
+
+    private ServiceInstance copyOfRegisteredServiceInstance() {
         return getRegisteredServiceInstance().toBuilder().build();
     }
 
@@ -169,7 +173,7 @@ public class ConsulRegistryService implements RegistryService {
         Optionals.ifPresentOrElseThrow(result,
                 id -> {
                     LOG.info("Service with name {} and id {} has been unregistered successfully", serviceName, instanceId);
-                    registeredService.set(null);
+                    setRegisteredServiceInstance(null);
                 },
                 () -> {
                     var msg = format("Error un-registering service {}, id {}", serviceName, instanceId);
@@ -180,6 +184,11 @@ public class ConsulRegistryService implements RegistryService {
 
     private boolean isRegistered() {
         return nonNull(getRegisteredServiceInstance());
+    }
+
+    @VisibleForTesting
+    void setRegisteredServiceInstance(ServiceInstance serviceInstance) {
+        registeredService.set(serviceInstance);
     }
 
     private Registration fromServiceInstance(ServiceInstance serviceInstance) {

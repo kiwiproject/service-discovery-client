@@ -25,7 +25,7 @@ public class ConsulConfig {
     @Deprecated(since = "1.1.9", forRemoval = true)
     @KiwiDeprecated(removeAt = "2.0.0",
                     usageSeverity = Severity.SEVERE,
-                    reference = "https://github.com/kiwiproject/service-discovery-client/issues/269")
+                    reference = "https://github.com/kiwiproject/service-discovery-client/issues/268")
     private String domainOverride;
 
     /**

@@ -2,21 +2,31 @@ package org.kiwiproject.registry.eureka.config;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.kiwiproject.jackson.ser.ListToCsvStringDeserializer;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ *  Base configuration class for Eureka registry client configuration.
+ */
 @Getter
 @Setter
 @Slf4j
 public class EurekaConfig {
+
+    private static final String DEFAULT_RETRY_ID_PREFIX = "EurekaRegistryClient-";
+
+    private static final AtomicInteger INSTANCE_COUNT = new AtomicInteger(0);
 
     /**
      * A comma separated list of urls pointing to Eureka servers.
@@ -52,6 +62,14 @@ public class EurekaConfig {
     private boolean includeNativeData;
 
     /**
+     * A unique ID that will be used when logging HTTP call attempts to Eureka.
+     * <p>
+     * The default is "EurekaRegistryClient-" plus a unique
+     * integer, e.g. "EurekaRegistryClient-1", "EurekaRegistryClient-2", etc.
+     */
+    private String retryId = retryId(INSTANCE_COUNT.incrementAndGet());
+
+    /**
      * @return comma separated list of urls pointing to Eureka servers, with domains replaced if {@code domainOverride}
      * is set
      */
@@ -84,6 +102,34 @@ public class EurekaConfig {
         if (isNotBlank(domainOverride)) {
             LOG.warn("The 'domainOverride' parameter supersedes 'registryUrls'. Both are currently set in YAML config");
         }
+    }
+
+    /**
+     * Sets the retry ID to {@code "EurekaRegistryClient-" + id}.
+     *
+     * @param id a unique identifier
+     * @see #retryId(Object)
+     */
+    public void setRetryId(String id) {
+        this.retryId = retryId(id);
+    }
+
+    /**
+     * Generates a {@code retryId} by appending the String value of {@code identifier} to "EurekaRegistryClient-".
+     *
+     * @param identifier the unique identifier to use
+     * @return a new retry identifier
+     * @implNote if {@code identifier} as a String starts with "EurekaRegistryClient-", that value returned as-is
+     */
+    public static String retryId(Object identifier) {
+        checkArgumentNotNull(identifier, "identifier must not be null");
+
+        var idString = identifier.toString();
+        if (idString.startsWith(DEFAULT_RETRY_ID_PREFIX)) {
+            return idString;
+        }
+
+        return DEFAULT_RETRY_ID_PREFIX + idString;
     }
 
 }

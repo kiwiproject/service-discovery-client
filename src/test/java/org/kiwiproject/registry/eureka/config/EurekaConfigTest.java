@@ -1,11 +1,17 @@
 package org.kiwiproject.registry.eureka.config;
 
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.kiwiproject.collect.KiwiLists.first;
+import static org.kiwiproject.collect.KiwiLists.second;
+import static org.kiwiproject.collect.KiwiLists.third;
+import static org.kiwiproject.collect.KiwiLists.fourth;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.json.JsonHelper;
 import org.kiwiproject.test.util.Fixtures;
@@ -15,6 +21,51 @@ import java.util.List;
 
 @DisplayName("EurekaConfig")
 class EurekaConfigTest {
+
+    @RepeatedTest(5)
+    void shouldGenerateUniqueRetryIdsIncreasingByOne() {
+        var retryIds = List.of(
+                retryIdOfNewEurekaConfig(),
+                retryIdOfNewEurekaConfig(),
+                retryIdOfNewEurekaConfig(),
+                retryIdOfNewEurekaConfig()
+        );
+
+        var uniqueParts = retryIds.stream()
+                .map(retryId -> extractRetryIdUniquePart(retryId))
+                .collect(toList());
+
+        var firstId = first(uniqueParts);
+        assertThat(second(uniqueParts)).isEqualTo(firstId + 1);
+        assertThat(third(uniqueParts)).isEqualTo(firstId + 2);
+        assertThat(fourth(uniqueParts)).isEqualTo(firstId + 3);
+    }
+
+    private static String retryIdOfNewEurekaConfig() {
+        return new EurekaConfig().getRetryId();
+    }
+
+    private static int extractRetryIdUniquePart(String retryId) {
+        return Integer.parseInt(retryId.split("-")[1]);
+    }
+
+    @Nested
+    class SetRetryId {
+
+        @Test
+        void shouldPrefixTheGivenIdentifier() {
+            var config = new EurekaConfig();
+            config.setRetryId("vpc-xyz");
+            assertThat(config.getRetryId()).isEqualTo("EurekaRegistryClient-vpc-xyz");
+        }
+
+        @Test
+        void shouldNotDuplicatePrefix() {
+            var config = new EurekaConfig();
+            config.setRetryId("EurekaRegistryClient-vpc-test");
+            assertThat(config.getRetryId()).isEqualTo("EurekaRegistryClient-vpc-test");
+        }
+    }
 
     @Nested
     class GetRegistryUrls {

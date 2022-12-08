@@ -61,6 +61,7 @@ public class EurekaRegistryClient implements RegistryClient {
         this.urlProvider = new EurekaUrlProvider(config.getRegistryUrls());
         var maxAttempts = urlProvider.urlCount() * EUREKA_ATTEMPT_MULTIPLIER;
         this.clientRetryer = KiwiRetryer.<Response>builder()
+                .retryerId(config.getRetryId())
                 .exceptionPredicates(List.of(
                         CONNECTION_ERROR, NO_ROUTE_TO_HOST, SOCKET_TIMEOUT, SSL_HANDSHAKE_ERROR, UNKNOWN_HOST, temporaryServerSideStatusCodes()
                 ))

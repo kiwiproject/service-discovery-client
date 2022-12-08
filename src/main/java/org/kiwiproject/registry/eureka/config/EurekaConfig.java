@@ -11,13 +11,14 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.kiwiproject.jackson.ser.ListToCsvStringDeserializer;
+import org.slf4j.event.Level;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *  Base configuration class for Eureka registry client configuration.
+ * Base configuration class for Eureka registry client configuration.
  */
 @Getter
 @Setter
@@ -68,6 +69,17 @@ public class EurekaConfig {
      * integer, e.g. "EurekaRegistryClient-1", "EurekaRegistryClient-2", etc.
      */
     private String retryId = retryId(INSTANCE_COUNT.incrementAndGet());
+
+    /**
+     * The log level to use when logging HTTP call attempts. The default is DEBUG.
+     */
+    private Level retryProcessingLogLevel = Level.DEBUG;
+
+    /**
+     * The log level to use when logging HTTP call attempts that fail with an exception.
+     * The default is WARN.
+     */
+    private Level retryExceptionLogLevel = Level.WARN;
 
     /**
      * @return comma separated list of urls pointing to Eureka servers, with domains replaced if {@code domainOverride}

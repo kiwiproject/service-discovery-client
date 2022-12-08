@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.kiwiproject.json.JsonHelper;
 import org.kiwiproject.test.util.Fixtures;
 import org.kiwiproject.yaml.YamlHelper;
+import org.slf4j.event.Level;
 
 import java.util.List;
 
@@ -47,6 +48,18 @@ class EurekaConfigTest {
 
     private static int extractRetryIdUniquePart(String retryId) {
         return Integer.parseInt(retryId.split("-")[1]);
+    }
+
+    @Test
+    void shouldDefaultRetryProcessingLogLevelToDEBUG() {
+        var config = new EurekaConfig();
+        assertThat(config.getRetryProcessingLogLevel()).isEqualTo(Level.DEBUG);
+    }
+
+    @Test
+    void shouldDefaultRetryExceptionLogLevelToWARN() {
+        var config = new EurekaConfig();
+        assertThat(config.getRetryExceptionLogLevel()).isEqualTo(Level.WARN);
     }
 
     @Nested

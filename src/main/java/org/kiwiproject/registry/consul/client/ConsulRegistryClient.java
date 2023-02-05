@@ -10,6 +10,7 @@ import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.model.catalog.CatalogService;
 import org.kiwiproject.json.JsonHelper;
@@ -33,6 +34,7 @@ import java.util.Set;
 public class ConsulRegistryClient implements RegistryClient {
 
     private static final String ADMIN_PORT_FIELD = "adminPort";
+    private static final String SERVICE_UP_TIMESTAMP_FIELD = "serviceUpTimestamp";
     private static final List<String> METADATA_EXCLUDED_KEYS = List.of("commitRef", "description", "version", "homePagePath", "healthCheckPath", "statusPath",
             "scheme", ADMIN_PORT_FIELD, "ipAddress");
 
@@ -78,7 +80,7 @@ public class ConsulRegistryClient implements RegistryClient {
         ports.add(port);
 
         if (isNotBlank(metadata.get(ADMIN_PORT_FIELD))) {
-            var adminPortNumber = Integer.parseInt(metadata.get(ADMIN_PORT_FIELD));
+            var adminPortNumber = getAdminPortNumberOrThrow(metadata);
             var adminPort = Port.of(adminPortNumber, PortType.ADMIN, Security.fromScheme(scheme));
             ports.add(adminPort);
         }
@@ -87,8 +89,8 @@ public class ConsulRegistryClient implements RegistryClient {
         addTagsToMetadata(serviceMetadata, catalogService.getServiceTags());
         serviceMetadata.put("registryType", "CONSUL");
 
-        var upSince = metadata.containsKey("serviceUpTimestamp")
-                ? Instant.ofEpochMilli(Long.parseLong(metadata.get("serviceUpTimestamp"))) : Instant.EPOCH;
+        var upSince = metadata.containsKey(SERVICE_UP_TIMESTAMP_FIELD)
+                ? Instant.ofEpochMilli(getServiceUpTimestampOrThrow(metadata)) : Instant.EPOCH;
 
         var instance = ServiceInstance.builder()
                 .instanceId(catalogService.getServiceId())
@@ -114,7 +116,27 @@ public class ConsulRegistryClient implements RegistryClient {
         }
 
         return instance.withNativeRegistryData(Map.of());
-     }
+    }
+
+    @VisibleForTesting
+    static int getAdminPortNumberOrThrow(Map<String, String> metadata) {
+        var adminPortString = metadata.get(ADMIN_PORT_FIELD);
+        try {
+            return Integer.parseInt(adminPortString);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(ADMIN_PORT_FIELD + " is not a number", e);
+        }
+    }
+
+    @VisibleForTesting
+    static long getServiceUpTimestampOrThrow(Map<String, String> metadata) {
+        var serviceUpTimestampString = metadata.get(SERVICE_UP_TIMESTAMP_FIELD);
+        try {
+            return Long.parseLong(serviceUpTimestampString);
+        } catch (NumberFormatException e) {
+            throw new IllegalStateException(SERVICE_UP_TIMESTAMP_FIELD + " is not a number", e);
+        }
+    }
 
     private Map<String, String> filterMetadata(Map<String, String> metadata) {
         return metadata.entrySet().stream()
@@ -157,7 +179,7 @@ public class ConsulRegistryClient implements RegistryClient {
      *
      * @return a {@link List} containing all registered service instances
      * @implNote This will return ALL services in Consul (including Consul itself) and attempt to map it into a
-     *           {@link ServiceInstance} object
+     * {@link ServiceInstance} object
      */
     @Override
     public List<ServiceInstance> retrieveAllRegisteredInstances() {

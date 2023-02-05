@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.consul.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.consulHostAndPort;
 import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.newConsulContainer;
@@ -212,6 +213,26 @@ class ConsulRegistryClientTest {
             assertThat(instances)
                     .extracting("serviceName")
                     .contains("APPID", "consul");
+        }
+    }
+
+    @Nested
+    class InternalMethods {
+
+        @Test
+        void getAdminPortNumberOrThrow_shouldThrowIllegalState_whenNotANumber() {
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> ConsulRegistryClient.getAdminPortNumberOrThrow(Map.of("adminPort", "Foo")))
+                    .withMessage("adminPort is not a number")
+                    .withCauseExactlyInstanceOf(NumberFormatException.class);
+        }
+
+        @Test
+        void getServiceUpTimestampOrThrow_shouldThrowIllegalState_whenNotANumber() {
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> ConsulRegistryClient.getServiceUpTimestampOrThrow(Map.of("serviceUpTimestamp", "Bar")))
+                    .withMessage("serviceUpTimestamp is not a number")
+                    .withCauseExactlyInstanceOf(NumberFormatException.class);
         }
     }
 }

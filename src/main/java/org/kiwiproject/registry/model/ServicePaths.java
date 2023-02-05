@@ -1,13 +1,13 @@
 package org.kiwiproject.registry.model;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 /**
  * Model defining various known paths used by services
  */
+@Value
 @Builder
-@Getter
 @SuppressWarnings({"java:S1075"})  // Sonar S1075: URIs should not be hardcoded
 public class ServicePaths {
 
@@ -27,12 +27,12 @@ public class ServicePaths {
     public static final String DEFAULT_HEALTHCHECK_PATH = "/healthcheck";
 
     @Builder.Default
-    private String homePagePath = DEFAULT_HOMEPAGE_PATH;
+    String homePagePath = DEFAULT_HOMEPAGE_PATH;
 
     @Builder.Default
-    private String statusPath = DEFAULT_STATUS_PATH;
+    String statusPath = DEFAULT_STATUS_PATH;
 
     @Builder.Default
-    private String healthCheckPath = DEFAULT_HEALTHCHECK_PATH;
+    String healthCheckPath = DEFAULT_HEALTHCHECK_PATH;
 
 }

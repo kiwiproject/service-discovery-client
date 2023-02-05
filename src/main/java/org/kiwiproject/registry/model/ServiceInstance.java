@@ -3,7 +3,7 @@ package org.kiwiproject.registry.model;
 import static java.util.Objects.isNull;
 
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 import lombok.With;
 import org.kiwiproject.registry.config.ServiceInfo;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Model containing information about a running service
  */
-@Getter
+@Value
 @Builder(toBuilder = true)
 public class ServiceInstance {
 
@@ -30,29 +30,29 @@ public class ServiceInstance {
     }
 
     @With
-    private final String instanceId;
+    String instanceId;
 
     @With
-    private final Status status;
+    Status status;
 
-    private final String serviceName;
+    String serviceName;
 
     @With
-    private final String hostName;
+    String hostName;
 
-    private final String ip;
-    private final List<Port> ports;
-    private final ServicePaths paths;
-    private final String commitRef;
-    private final String description;
-    private final String version;
-    private final Instant upSince;
+    String ip;
+    List<Port> ports;
+    ServicePaths paths;
+    String commitRef;
+    String description;
+    String version;
+    Instant upSince;
 
     /**
      * Used to store extra data in a discovery service for this instance
      */
     @With
-    private final Map<String, String> metadata;
+    Map<String, String> metadata;
 
     /**
      * Used to store native registry data that includes data mapped into {@link ServiceInstance} as well as any
@@ -60,7 +60,7 @@ public class ServiceInstance {
      * specifies to include native data.
      */
     @With
-    private final Map<String, Object> nativeRegistryData;
+    Map<String, Object> nativeRegistryData;
 
     /**
      * Returns a new {@code ServiceInstanceBuilder} built from a given {@link ServiceInfo}.

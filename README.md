@@ -5,7 +5,7 @@
 [![CodeQL](https://github.com/kiwiproject/service-discovery-client/actions/workflows/codeql.yml/badge.svg)](https://github.com/kiwiproject/service-discovery-client/actions/workflows/codeql.yml)
 [![javadoc](https://javadoc.io/badge2/org.kiwiproject/service-discovery-client/javadoc.svg)](https://javadoc.io/doc/org.kiwiproject/service-discovery-client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Maven Central](https://img.shields.io/maven-central/v/org.kiwiproject/service-discovery-client)](https://central.sonatype.com/artifact/org.kiwiproject/service-discovery-client/1.1.10)
+[![Maven Central](https://img.shields.io/maven-central/v/org.kiwiproject/service-discovery-client)](https://central.sonatype.com/artifact/org.kiwiproject/service-discovery-client/)
 
 An abstract service discovery API that provides methods for registration and lookup
 

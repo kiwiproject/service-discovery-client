@@ -30,8 +30,7 @@ public class MultiRegistryClient implements RegistryClient {
      * @param registryClients a list of {@link RegistryClient} instances to use; must have at least one RegistryClient
      */
     public MultiRegistryClient(List<RegistryClient> registryClients) {
-        checkArgumentNotNull(registryClients, "registryClients must not be null");
-        checkArgumentNotEmpty(registryClients, "registryClients must not be empty");
+        checkArgumentNotEmpty(registryClients, "registryClients must not be null or empty");
         this.registryClients = List.copyOf(registryClients);
     }
 

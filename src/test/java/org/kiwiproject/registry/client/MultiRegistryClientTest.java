@@ -1,6 +1,5 @@
 package org.kiwiproject.registry.client;
 
-import static java.util.Objects.isNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +48,7 @@ class MultiRegistryClientTest {
         @NullAndEmptySource
         void shouldRequireAtLeastOneRegistryClient(List<RegistryClient> registryClients) {
             assertThatIllegalArgumentException().isThrownBy(() -> new MultiRegistryClient(registryClients))
-                    .withMessage("registryClients must not be %s", isNull(registryClients) ? "null" : "empty");
+                    .withMessage("registryClients must not be null or empty");
         }
 
         @Test
@@ -78,7 +77,7 @@ class MultiRegistryClientTest {
 
         @Test
         void shouldRequireAtLeastOneRegistryClient() {
-            assertThatIllegalArgumentException().isThrownBy(() -> MultiRegistryClient.of())
+            assertThatIllegalArgumentException().isThrownBy(MultiRegistryClient::of)
                     .withMessage("at least one RegistryClient must be provided");
         }
 

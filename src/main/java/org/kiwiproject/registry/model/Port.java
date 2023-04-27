@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Model that defines a port being used by a service, including the port number, the purpose of the port, and whether

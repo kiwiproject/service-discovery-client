@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.kiwiproject.base.KiwiThrowables;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
@@ -24,7 +25,6 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
-import javax.annotation.Nullable;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;

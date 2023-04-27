@@ -12,9 +12,9 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.kiwiproject.net.KiwiInternetAddresses;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

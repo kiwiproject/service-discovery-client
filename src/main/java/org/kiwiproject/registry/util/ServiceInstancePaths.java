@@ -6,10 +6,10 @@ import static org.kiwiproject.net.KiwiUrls.prependLeadingSlash;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 
 import lombok.experimental.UtilityClass;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

@@ -127,7 +127,7 @@ public class ConsulRegistryService implements RegistryService {
 
         var registration = fromServiceInstance(serviceToRegister);
 
-        var serviceOptional = registerRetryer.tryGetObject(() -> {
+        var serviceOptional = registerRetryer.tryGetObject("registered ServiceInstance", () -> {
             consul.agentClient().register(registration);
             return serviceToRegister.withInstanceId(registration.getId())
                     .withHostName(registration.getAddress().orElse(null));  // necessary for domain override
@@ -165,7 +165,7 @@ public class ConsulRegistryService implements RegistryService {
 
         LOG.info("Unregistering service {} with id {}", serviceName, instanceId);
 
-        var result = unregisterRetryer.tryGetObject(() -> {
+        var result = unregisterRetryer.tryGetObject("unregister result", () -> {
             consul.agentClient().deregister(getRegisteredServiceInstance().getInstanceId());
             return instanceId;
         });

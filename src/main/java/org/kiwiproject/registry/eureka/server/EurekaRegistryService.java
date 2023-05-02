@@ -307,7 +307,7 @@ public class EurekaRegistryService implements RegistryService {
         var registrationFunction = registrationSender(appId, eurekaInstance);
 
         var responseSupplier = eurekaCallRetrySupplier(registrationFunction, NO_CONTENT.getStatusCode());
-        var responseOptional = registerRetryer.tryGetObject(responseSupplier);
+        var responseOptional = registerRetryer.tryGetObject("registration Response", responseSupplier);
 
         Optionals.ifPresentOrElseThrow(responseOptional,
                 resp -> {
@@ -338,7 +338,7 @@ public class EurekaRegistryService implements RegistryService {
         LOG.debug("Wait for registration to show in Eureka for app {}, instance {}", appId, instanceId);
 
         var instanceGetterFunction = instanceRequester(appId, instanceId);
-        var responseOptional = awaitRetryer.tryGetObject(eurekaCallRetrySupplier(instanceGetterFunction, OK.getStatusCode()));
+        var responseOptional = awaitRetryer.tryGetObject("await registration Response", eurekaCallRetrySupplier(instanceGetterFunction, OK.getStatusCode()));
 
         return responseOptional
                 .map(resp -> {
@@ -374,7 +374,7 @@ public class EurekaRegistryService implements RegistryService {
         var instanceId = instanceToUpdate.getInstanceId();
 
         var responseSupplier = eurekaCallRetrySupplier(updateStatusSender(appId, instanceId, newStatus), OK.getStatusCode());
-        var responseOptional = updateStatusRetryer.tryGetObject(responseSupplier);
+        var responseOptional = updateStatusRetryer.tryGetObject("update status Response", responseSupplier);
 
         Optionals.ifPresentOrElseThrow(responseOptional,
                 resp -> {
@@ -425,7 +425,7 @@ public class EurekaRegistryService implements RegistryService {
         var instanceId = instanceToUnregister.getInstanceId();
 
         var responseSupplier = eurekaCallRetrySupplier(unregisterSender(appId, instanceId), OK.getStatusCode());
-        var responseOptional = unregisterRetryer.tryGetObject(responseSupplier);
+        var responseOptional = unregisterRetryer.tryGetObject("unregister Response", responseSupplier);
 
         Optionals.ifPresentOrElseThrow(responseOptional,
                 resp -> {

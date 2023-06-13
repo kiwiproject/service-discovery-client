@@ -11,8 +11,8 @@ import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.model.catalog.CatalogService;
+import org.kiwiproject.consul.Consul;
+import org.kiwiproject.consul.model.catalog.CatalogService;
 import org.kiwiproject.json.JsonHelper;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.client.ServiceInstanceFilter;

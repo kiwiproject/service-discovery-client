@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.consulHostAndPort;
 import static org.kiwiproject.registry.consul.util.ConsulTestcontainers.newConsulContainer;
 
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.model.agent.ImmutableRegistration;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.kiwiproject.consul.Consul;
+import org.kiwiproject.consul.model.agent.ImmutableRegistration;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.consul.config.ConsulConfig;
 import org.kiwiproject.registry.model.Port;

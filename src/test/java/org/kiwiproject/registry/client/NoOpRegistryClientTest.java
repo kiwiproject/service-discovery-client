@@ -14,7 +14,7 @@ import org.kiwiproject.registry.client.RegistryClient.InstanceQuery;
 import java.util.stream.Stream;
 
 @DisplayName("NoOpRegistryClient")
-public class NoOpRegistryClientTest {
+class NoOpRegistryClientTest {
 
     private static RandomStringGenerator generator;
 

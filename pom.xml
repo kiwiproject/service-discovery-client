@@ -31,6 +31,7 @@
         <kiwi-bom.version>0.31.0</kiwi-bom.version>
 
         <!-- Versions for provided dependencies -->
+        <consul-client.version>0.8.0</consul-client.version>
         <retrying-again.version>1.0.17</retrying-again.version>
 
         <!-- Versions for test dependencies -->
@@ -52,7 +53,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.kiwiproject</groupId>
                 <artifactId>kiwi</artifactId>
@@ -64,7 +65,7 @@
                 <artifactId>kiwi-test</artifactId>
                 <version>${kiwi-test.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.kiwiproject</groupId>
                 <artifactId>retrying-again</artifactId>
@@ -93,7 +94,7 @@
             <groupId>org.kiwiproject</groupId>
             <artifactId>retrying-again</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -102,8 +103,9 @@
         <!-- Provided dependencies -->
 
         <dependency>
-            <groupId>com.orbitz.consul</groupId>
+            <groupId>org.kiwiproject</groupId>
             <artifactId>consul-client</artifactId>
+            <version>${consul-client.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -126,7 +128,7 @@
             <artifactId>kiwi-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>

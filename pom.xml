@@ -32,7 +32,7 @@
 
         <!-- Versions for provided dependencies -->
         <consul-client.version>0.8.0</consul-client.version>
-        <retrying-again.version>1.0.17</retrying-again.version>
+        <retrying-again.version>1.0.18</retrying-again.version>
 
         <!-- Versions for test dependencies -->
         <kiwi-test.version>2.4.0</kiwi-test.version>

@@ -195,32 +195,6 @@ class ConsulRegistryServiceIntegrationTest {
 
             assertThat(serviceToFail.getRegisteredServiceInstance()).isNull();
         }
-
-        @Test
-        void shouldRegisterAndReturnRegisteredInstance_OverridingDomainIfConfiguredToDoSo() {
-            var now = Instant.now();
-            when(environment.currentInstant()).thenReturn(now);
-
-            var serviceInfo = ServiceInfoHelper.buildTestServiceInfo(serviceName, "example.com");
-            var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
-                    .withStatus(ServiceInstance.Status.UP);
-            config.setDomainOverride("test");
-
-            registeredInstance = service.register(serviceInstance);
-            assertThat(registeredInstance.getHostName())
-                    .describedAs("hostName on registered ServiceInstance should contain the overridden domain")
-                    .isEqualTo("example.test");
-
-            var services = consul.catalogClient().getService(serviceInstance.getServiceName()).getResponse();
-
-            assertThat(services).hasSize(1);
-
-            var foundService = first(services);
-            var hostName = foundService.getServiceAddress();
-            assertThat(hostName)
-                    .describedAs("serviceAddress on CatalogService should contain the overridden domain")
-                    .isEqualTo("example.test");
-        }
     }
 
     @Nested

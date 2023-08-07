@@ -3,11 +3,9 @@ package org.kiwiproject.registry.consul.server;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
-import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.ServiceInstancePaths.urlForPath;
 
@@ -28,11 +26,8 @@ import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.server.RegistryService;
-import org.kiwiproject.registry.util.ServiceInstancePaths;
 import org.kiwiproject.retry.SimpleRetryer;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -200,14 +195,12 @@ public class ConsulRegistryService implements RegistryService {
                         format("{}m", config.getDeregisterIntervalInMinutes()))
                 .build();
 
-        var address = adjustAddressIfNeeded(serviceInstance);
-
         return ImmutableRegistration.builder()
                 .port(findFirstPortPreferSecure(serviceInstance.getPorts(), PortType.APPLICATION).getNumber())
                 .check(check)
                 .id(UUIDs.randomUUIDString())
                 .name(serviceInstance.getServiceName())
-                .address(address)
+                .address(serviceInstance.getHostName())
                 .tags(buildTags(serviceInstance))
                 .meta(mergeMetadata(serviceInstance))
                 .build();
@@ -242,20 +235,6 @@ public class ConsulRegistryService implements RegistryService {
                         Map.Entry::getValue,
                         (value1, value2) -> value2
                 ));
-    }
-
-    private String adjustAddressIfNeeded(ServiceInstance instance) {
-        if (isBlank(config.getDomainOverride())) {
-            return instance.getHostName();
-        }
-
-        var urlString = ServiceInstancePaths.urlForPath(instance.getHostName(), instance.getPorts(), PortType.APPLICATION, instance.getPaths().getHomePagePath());
-        try {
-            var url = new URL(replaceDomainsIn(urlString, config.getDomainOverride()));
-            return url.getHost();
-        } catch (MalformedURLException e) {
-            return instance.getHostName();
-        }
     }
 
     @VisibleForTesting

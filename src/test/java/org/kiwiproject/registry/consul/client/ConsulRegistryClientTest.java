@@ -190,20 +190,6 @@ class ConsulRegistryClientTest {
     }
 
     @Nested
-    class WithDomainOverride {
-        @Test
-        void shouldChangeTheDomainInAddress() {
-            config.setDomainOverride("test");
-            var instance = client.findServiceInstanceBy("APPID");
-
-            assertThat(instance).isPresent();
-
-            var serviceInstance = instance.get();
-            assertThat(serviceInstance.getHostName()).isEqualTo("localhost.test");
-        }
-    }
-
-    @Nested
     class RetrieveAllRegisteredInstances {
 
         @Test

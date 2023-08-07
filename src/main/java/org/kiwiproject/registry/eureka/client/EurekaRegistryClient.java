@@ -1,7 +1,6 @@
 package org.kiwiproject.registry.eureka.client;
 
 import static java.util.Objects.isNull;
-import static java.util.stream.Collectors.toList;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.base.KiwiThrowables.typeOfNullable;
@@ -75,14 +74,14 @@ public class EurekaRegistryClient implements RegistryClient {
 
     private static Predicate<Exception> temporaryServerSideStatusCodes() {
         return t -> {
-            if (t instanceof ServerErrorException) {
-                return checkIfDesiredStatusCodeValueIsFoundIn((ServerErrorException) t);
+            if (t instanceof ServerErrorException serverErrorException) {
+                return checkIfDesiredStatusCodeValueIsFoundIn(serverErrorException);
             }
 
             var rootCause = ExceptionUtils.getRootCause(t);
 
-            if (rootCause instanceof ServerErrorException) {
-                return checkIfDesiredStatusCodeValueIsFoundIn((ServerErrorException) rootCause);
+            if (rootCause instanceof ServerErrorException serverErrorException) {
+                return checkIfDesiredStatusCodeValueIsFoundIn(serverErrorException);
             }
 
             LOG.warn("Will NOT retry after receiving {} error considered to be not temporary",
@@ -93,14 +92,10 @@ public class EurekaRegistryClient implements RegistryClient {
     }
 
     private static boolean checkIfDesiredStatusCodeValueIsFoundIn(ServerErrorException exception) {
-        switch (Response.Status.fromStatusCode(exception.getResponse().getStatus())) {
-            case BAD_GATEWAY:
-            case SERVICE_UNAVAILABLE:
-            case GATEWAY_TIMEOUT:
-                return true;
-            default:
-                return false;
-        }
+        return switch (Response.Status.fromStatusCode(exception.getResponse().getStatus())) {
+            case BAD_GATEWAY, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT -> true;
+            default -> false;
+        };
     }
 
     /**
@@ -134,7 +129,7 @@ public class EurekaRegistryClient implements RegistryClient {
 
         var serviceInstances = eurekaInstances.stream()
                 .map(eurekaInstance -> eurekaInstance.toServiceInstance(includeNativeData))
-                .collect(toList());
+                .toList();
 
         return ServiceInstanceFilter.filterInstancesByVersion(serviceInstances, query);
     }
@@ -179,7 +174,7 @@ public class EurekaRegistryClient implements RegistryClient {
 
         return eurekaInstances.stream()
                 .map(eurekaInstance -> eurekaInstance.toServiceInstance(includeNativeData))
-                .collect(toList());
+                .toList();
     }
 
     private static List<EurekaInstance> parseEurekaInstances(Response response) {
@@ -187,7 +182,7 @@ public class EurekaRegistryClient implements RegistryClient {
         return EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse)
                 .stream()
                 .filter(instance -> ServiceInstance.Status.UP.name().equals(instance.getStatus()))
-                .collect(toList());
+                .toList();
     }
 
     private Response getAllRegisteredServicesFromEureka() {

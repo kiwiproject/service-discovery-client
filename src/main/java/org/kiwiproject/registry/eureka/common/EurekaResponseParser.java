@@ -5,7 +5,6 @@ import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.kiwiproject.base.KiwiObjects.firstNonNullOrNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
@@ -58,7 +57,7 @@ public class EurekaResponseParser {
             var instanceList = (List<Map<String, Object>>) instanceOrInstanceList;
             return instanceList.stream()
                     .map(EurekaResponseParser::buildInstance)
-                    .collect(toList());
+                    .toList();
         }
 
         var instance = (Map<String, Object>) instanceOrInstanceList;

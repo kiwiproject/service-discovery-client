@@ -2,7 +2,6 @@ package org.kiwiproject.registry.consul.server;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.nonNull;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.kiwiproject.base.KiwiStrings.f;
@@ -224,7 +223,7 @@ public class ConsulRegistryService implements RegistryService {
         var metadataAsTags = serviceInstance.getMetadata().entrySet().stream()
                 .filter(entry -> metadataTags.contains(entry.getKey()))
                 .map(entry -> f("{}:{}", entry.getKey(), entry.getValue()))
-                .collect(toList());
+                .toList();
 
         tags.addAll(metadataAsTags);
         return tags;

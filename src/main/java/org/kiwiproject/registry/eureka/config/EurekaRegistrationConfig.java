@@ -1,10 +1,9 @@
 package org.kiwiproject.registry.eureka.config;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 
 /**
  * Configuration model needed for registering a service with Eureka

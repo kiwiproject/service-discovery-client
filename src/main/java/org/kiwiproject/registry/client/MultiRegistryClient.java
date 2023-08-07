@@ -1,7 +1,6 @@
 package org.kiwiproject.registry.client;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotEmpty;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
@@ -71,7 +70,7 @@ public class MultiRegistryClient implements RegistryClient {
                 .map(registryClient -> registryClient.findAllServiceInstancesBy(query))
                 .filter(KiwiLists::isNotNullOrEmpty)
                 .flatMap(List::stream)
-                .collect(toUnmodifiableList());
+                .toList();
     }
 
     /**
@@ -86,6 +85,6 @@ public class MultiRegistryClient implements RegistryClient {
                 .map(RegistryClient::retrieveAllRegisteredInstances)
                 .filter(KiwiLists::isNotNullOrEmpty)
                 .flatMap(List::stream)
-                .collect(toUnmodifiableList());
+                .toList();
     }
 }

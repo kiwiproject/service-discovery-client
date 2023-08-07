@@ -3,7 +3,6 @@ package org.kiwiproject.registry.eureka.common;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.kiwiproject.collect.KiwiMaps.isNullOrEmpty;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 import static org.kiwiproject.registry.util.Ports.findPort;
@@ -176,7 +175,7 @@ public class EurekaInstance {
     private List<Port> portListFromPortsIgnoringNulls(Port... ports) {
         return Arrays.stream(ports)
                 .filter(Objects::nonNull)
-                .collect(toUnmodifiableList());
+                .toList();
     }
 
     private Port buildAdminPortOrNull() {
@@ -199,8 +198,8 @@ public class EurekaInstance {
     }
 
     private boolean isEnabled(Object enabledFlag) {
-        if (enabledFlag instanceof String) {
-            return Boolean.parseBoolean((String) enabledFlag);
+        if (enabledFlag instanceof String s) {
+            return Boolean.parseBoolean(s);
         }
 
         return (boolean) enabledFlag;

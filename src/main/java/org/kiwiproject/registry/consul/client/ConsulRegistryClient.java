@@ -1,6 +1,5 @@
 package org.kiwiproject.registry.consul.client;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -66,7 +65,7 @@ public class ConsulRegistryClient implements RegistryClient {
         checkArgumentNotBlank(query.getServiceName(), "The service name cannot be blank");
 
         var services = consul.catalogClient().getService(query.getServiceName()).getResponse();
-        var convertedServices = services.stream().map(this::fromCatalogService).collect(toList());
+        var convertedServices = services.stream().map(this::fromCatalogService).toList();
 
         return ServiceInstanceFilter.filterInstancesByVersion(convertedServices, query);
     }
@@ -147,7 +146,7 @@ public class ConsulRegistryClient implements RegistryClient {
     private void addTagsToMetadata(Map<String, String> metadata, List<String> tags) {
         var filteredTags = tags.stream()
                 .filter(tag -> !TAGS_EXCLUDED.contains(tag))
-                .collect(toList());
+                .toList();
 
         if (isNotNullOrEmpty(filteredTags)) {
             filteredTags.forEach(tag -> {
@@ -186,6 +185,6 @@ public class ConsulRegistryClient implements RegistryClient {
         return consul.catalogClient().getServices().getResponse().keySet().stream()
                 .map(this::findAllServiceInstancesBy)
                 .flatMap(List::stream)
-                .collect(toList());
+                .toList();
     }
 }

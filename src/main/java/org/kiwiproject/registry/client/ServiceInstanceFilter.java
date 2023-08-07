@@ -1,6 +1,5 @@
 package org.kiwiproject.registry.client;
 
-import static java.util.stream.Collectors.toList;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
@@ -42,7 +41,7 @@ public class ServiceInstanceFilter {
 
         var instancesSatisfyingMinVersion = serviceInstances.stream()
                 .filter(instance -> query.hasNoMinimumVersion() || versionIsAtLeast(instance, query.getMinimumVersion()))
-                .collect(toList());
+                .toList();
 
         if (instancesSatisfyingMinVersion.isEmpty()) {
             LOG.trace("No running instances for service name {} satisfy the minimum version {}",
@@ -52,7 +51,7 @@ public class ServiceInstanceFilter {
 
         var instancesSatisfyingPreferredVersion = instancesSatisfyingMinVersion.stream()
                 .filter(instance -> query.hasNoPreferredVersion() || versionIsExactly(instance, query.getPreferredVersion()))
-                .collect(toList());
+                .toList();
 
         if (instancesSatisfyingPreferredVersion.isEmpty()) {
             LOG.trace("No running instances for service name {} match preferred version {}; finding latest instead",
@@ -112,6 +111,6 @@ public class ServiceInstanceFilter {
 
         return serviceInstances.stream()
                 .filter(instance -> versionIsExactly(instance, maxVersion))
-                .collect(toList());
+                .toList();
     }
 }

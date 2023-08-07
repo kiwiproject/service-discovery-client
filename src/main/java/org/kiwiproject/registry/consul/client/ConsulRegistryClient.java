@@ -1,13 +1,11 @@
 package org.kiwiproject.registry.consul.client;
 
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.base.KiwiPreconditions.requireNotNull;
 import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
-import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.kiwiproject.consul.Consul;
@@ -22,7 +20,6 @@ import org.kiwiproject.registry.model.Port.Security;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
 
-import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +91,7 @@ public class ConsulRegistryClient implements RegistryClient {
         var instance = ServiceInstance.builder()
                 .instanceId(catalogService.getServiceId())
                 .serviceName(catalogService.getServiceName())
-                .hostName(adjustAddressIfNeeded(catalogService.getServiceAddress(), scheme))
+                .hostName(catalogService.getServiceAddress())
                 .ports(ports)
                 .paths(ServicePaths.builder()
                         .homePagePath(metadata.get("homePagePath"))
@@ -157,19 +154,6 @@ public class ConsulRegistryClient implements RegistryClient {
                     metadata.put(tag, tag);
                 }
             });
-        }
-    }
-
-    private String adjustAddressIfNeeded(String hostname, String scheme) {
-        if (isBlank(config.getDomainOverride())) {
-            return hostname;
-        }
-
-        try {
-            var url = new URL(replaceDomainsIn(scheme + "://" + hostname, config.getDomainOverride()));
-            return url.getHost();
-        } catch (Exception e) {
-            return hostname;
         }
     }
 

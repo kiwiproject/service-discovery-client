@@ -3,9 +3,9 @@ package org.kiwiproject.registry.eureka.config;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.kiwiproject.collect.KiwiLists.first;
+import static org.kiwiproject.collect.KiwiLists.fourth;
 import static org.kiwiproject.collect.KiwiLists.second;
 import static org.kiwiproject.collect.KiwiLists.third;
-import static org.kiwiproject.collect.KiwiLists.fourth;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +33,7 @@ class EurekaConfigTest {
         );
 
         var uniqueParts = retryIds.stream()
-                .map(retryId -> extractRetryIdUniquePart(retryId))
+                .map(EurekaConfigTest::extractRetryIdUniquePart)
                 .collect(toList());
 
         var firstId = first(uniqueParts);

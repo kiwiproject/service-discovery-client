@@ -129,10 +129,11 @@ class EurekaRestClientTest {
 
             assertOkResponse(response);
 
-            var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
-            var eurekaResponse = instanceResponse.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-            var instance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
-            assertThat(instance.getStatus()).isEqualTo("UP");
+            try (var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID")) {
+                var eurekaResponse = instanceResponse.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+                var instance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
+                assertThat(instance.getStatus()).isEqualTo("UP");
+            }
         }
 
     }

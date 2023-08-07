@@ -36,7 +36,6 @@ class ConsulRegistryClientTest {
     public static final ConsulContainer CONSUL = newConsulContainer();
 
     private ConsulRegistryClient client;
-    private ConsulConfig config;
 
     @BeforeEach
     void setUp() {
@@ -46,7 +45,7 @@ class ConsulRegistryClientTest {
                 .withHostAndPort(consulHostAndPort)
                 .build();
 
-        config = new ConsulConfig();
+        var config = new ConsulConfig();
         client = new ConsulRegistryClient(consul, config);
 
         var now = System.currentTimeMillis();

@@ -111,7 +111,7 @@ public class EurekaTestDataHelper {
                 var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
                 var apps = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
 
-                return apps.size() > 0;
+                return !apps.isEmpty();
             }
 
             return false;
@@ -125,14 +125,15 @@ public class EurekaTestDataHelper {
 
         LOG.info("Found {} instances to delete", instances.size());
         instances.forEach(instance -> {
-            var unregisterResponse = client.target(baseUrl)
+            try (var unregisterResponse = client.target(baseUrl)
                     .path("apps/{appId}/{instanceId}")
                     .resolveTemplate("appId", instance.getApp())
                     .resolveTemplate("instanceId", instance.getInstanceId())
                     .request()
                     .accept(APPLICATION_JSON_TYPE)
-                    .delete();
-            LOG.info("Response deleting instance {}/{}: {}", instance.getApp(), instance.getInstanceId(), unregisterResponse.getStatus());
+                    .delete()) {
+                LOG.info("Response deleting instance {}/{}: {}", instance.getApp(), instance.getInstanceId(), unregisterResponse.getStatus());
+            }
         });
     }
 

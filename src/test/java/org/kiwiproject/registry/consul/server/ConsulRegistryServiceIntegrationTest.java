@@ -50,7 +50,6 @@ class ConsulRegistryServiceIntegrationTest {
     private ConsulRegistryService service;
     private KiwiEnvironment environment;
     private Consul consul;
-    private ConsulRegistrationConfig config;
 
     @BeforeEach
     void setUp() {
@@ -60,7 +59,7 @@ class ConsulRegistryServiceIntegrationTest {
                 .withHostAndPort(HostAndPort.fromParts(consulHostAndPort.getHost(), consulHostAndPort.getPort()))
                 .build();
         environment = mock(KiwiEnvironment.class);
-        config = new ConsulRegistrationConfig();
+        var config = new ConsulRegistrationConfig();
         config.setMetadataTags(List.of("leader"));
         service = new ConsulRegistryService(consul, config, environment);
     }

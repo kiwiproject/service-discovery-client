@@ -28,7 +28,7 @@
     <properties>
         <!-- Versions for required dependencies -->
         <kiwi.version>2.7.0</kiwi.version>
-        <kiwi-bom.version>1.1.1</kiwi-bom.version>
+        <kiwi-bom.version>2.0.0</kiwi-bom.version>
 
         <!-- Versions for provided dependencies -->
         <consul-client.version>0.8.0</consul-client.version>

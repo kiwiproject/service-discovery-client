@@ -1,11 +1,11 @@
 package org.kiwiproject.registry.eureka.server;
 
 import static com.google.common.base.Preconditions.checkState;
+import static jakarta.ws.rs.core.Response.Status.NO_CONTENT;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static java.time.ZoneOffset.UTC;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
 import static org.kiwiproject.base.KiwiStrings.f;
 import static org.kiwiproject.base.KiwiStrings.format;
 import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
@@ -14,6 +14,7 @@ import static org.kiwiproject.jaxrs.KiwiResponses.closeQuietly;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ import org.kiwiproject.registry.model.ServiceInstance.Status;
 import org.kiwiproject.registry.server.RegistryService;
 import org.kiwiproject.retry.SimpleRetryer;
 
-import javax.ws.rs.core.Response;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;

@@ -1,19 +1,19 @@
 package org.kiwiproject.registry.eureka.common;
 
-import static javax.ws.rs.client.Entity.json;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.client.Entity.json;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 import lombok.AllArgsConstructor;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.message.GZipEncoder;
 import org.kiwiproject.registry.model.ServiceInstance;
 
 import java.util.Map;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
 
 @AllArgsConstructor
 public class EurekaRestClient {

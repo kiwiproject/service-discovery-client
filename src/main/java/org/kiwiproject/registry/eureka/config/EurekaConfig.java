@@ -6,14 +6,13 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.net.KiwiUrls.replaceDomainsIn;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.kiwiproject.jackson.ser.ListToCsvStringDeserializer;
 import org.slf4j.event.Level;
 
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 

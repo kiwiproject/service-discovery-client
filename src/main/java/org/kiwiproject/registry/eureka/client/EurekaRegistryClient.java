@@ -12,6 +12,8 @@ import static org.kiwiproject.retry.KiwiRetryerPredicates.SSL_HANDSHAKE_ERROR;
 import static org.kiwiproject.retry.KiwiRetryerPredicates.UNKNOWN_HOST;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.ws.rs.ServerErrorException;
+import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.kiwiproject.jaxrs.KiwiGenericTypes;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
 
 /**
  * {@link RegistryClient} implementation for looking up services from Eureka registry server.

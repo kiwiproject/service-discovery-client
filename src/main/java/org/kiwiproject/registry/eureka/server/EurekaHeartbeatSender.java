@@ -12,6 +12,7 @@ import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.Failu
 import static org.kiwiproject.registry.eureka.server.EurekaHeartbeatSender.FailureHandlerResult.SELF_HEALING_SUCCEEDED;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.ws.rs.core.Response;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,7 +26,6 @@ import org.kiwiproject.registry.eureka.common.EurekaUrlProvider;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.retry.KiwiRetryerPredicates;
 
-import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.time.Instant;
 

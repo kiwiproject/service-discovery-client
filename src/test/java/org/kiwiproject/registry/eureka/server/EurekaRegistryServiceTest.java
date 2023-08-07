@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,14 +28,11 @@ import org.kiwiproject.registry.model.ServicePaths;
 import org.kiwiproject.registry.util.ResponseMock;
 import org.kiwiproject.retry.SimpleRetryer;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.core.Response;
 
 /**
  * Unlike the {@link EurekaRegistryServiceIntegrationTest}, this set of tests will mock out the actual calls to Eureka

@@ -4,12 +4,10 @@ import static org.mockito.AdditionalAnswers.answer;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-
-import org.mockito.ArgumentMatchers;
-
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import lombok.experimental.UtilityClass;
+import org.mockito.ArgumentMatchers;
 
 @UtilityClass
 public class ResponseMock {

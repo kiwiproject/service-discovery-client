@@ -36,7 +36,6 @@
 
         <!-- Versions for test dependencies -->
         <kiwi-test.version>3.0.0</kiwi-test.version>
-        <test-containers.version>1.19.3</test-containers.version>
 
         <!-- Sonar properties -->
         <sonar.projectKey>kiwiproject_service-discovery-client</sonar.projectKey>
@@ -70,14 +69,6 @@
                 <groupId>org.kiwiproject</groupId>
                 <artifactId>retrying-again</artifactId>
                 <version>${retrying-again.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${test-containers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -35,7 +35,7 @@
         <retrying-again.version>2.0.1</retrying-again.version>
 
         <!-- Versions for test dependencies -->
-        <kiwi-test.version>3.1.0</kiwi-test.version>
+        <kiwi-test.version>3.2.0</kiwi-test.version>
 
         <!-- Sonar properties -->
         <sonar.projectKey>kiwiproject_service-discovery-client</sonar.projectKey>

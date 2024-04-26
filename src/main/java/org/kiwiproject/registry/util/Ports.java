@@ -1,5 +1,9 @@
 package org.kiwiproject.registry.util;
 
+import static com.google.common.base.Preconditions.checkState;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.collect.KiwiLists.first;
+
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -8,10 +12,76 @@ import org.kiwiproject.registry.model.Port.Security;
 import java.util.List;
 
 /**
- * Utility methods for finding a desired port out of a list of port definitions
+ * Utility methods for finding a desired port out of a list of port definitions,
+ * or finding application or admin ports.
  */
 @UtilityClass
 public class Ports {
+
+    /**
+     * Find the single application port. If there are none or more than one, throw an exception.
+     *
+     * @param ports the ports to filter
+     * @return the application port
+     * @throws IllegalStateException if there are none or there is more than one port
+     */
+    public static Port findOnlyApplicationPort(List<Port> ports) {
+        var applicationPorts = findApplicationPorts(ports);
+        checkExactlyOnePort(applicationPorts, "application");
+        return first(applicationPorts);
+    }
+
+    /**
+     * Find only the application ports in the list of ports.
+     *
+     * @param ports the ports to filter
+     * @return a list of application ports
+     */
+    public static List<Port> findApplicationPorts(List<Port> ports) {
+        return findPorts(ports, PortType.APPLICATION);
+    }
+
+    /**
+     * Find the single admin port. If there are none or more than one, throw an exception.
+     *
+     * @param ports the ports to filter
+     * @return the admin port
+     * @throws IllegalStateException if there are none or there is more than one port
+     */
+    public static Port findOnlyAdminPort(List<Port> ports) {
+        var adminPorts = findAdminPorts(ports);
+        checkExactlyOnePort(adminPorts, "admin");
+        return first(adminPorts);
+    }
+
+    private static void checkExactlyOnePort(List<Port> ports, String portType) {
+        int numPorts = ports.size();
+        checkState(numPorts == 1, "expected one %s port but found %s", portType, numPorts);
+    }
+
+    /**
+     * Find only the admin ports in the list of ports.
+     *
+     * @param ports the ports to filter
+     * @return a list of application ports
+     */
+    public static List<Port> findAdminPorts(List<Port> ports) {
+        return findPorts(ports, PortType.ADMIN);
+    }
+
+    /**
+     * Find all ports having the specified {@link PortType}.
+     *
+     * @param ports the ports to filter
+     * @param portType the type of port to find
+     * @return a list of ports having the specified type
+     */
+    public static List<Port> findPorts(List<Port> ports, PortType portType) {
+        checkArgumentNotNull(portType, "portType must not be null");
+        return ports.stream()
+                .filter(port -> port.getType() == portType)
+                .toList();
+    }
 
     /**
      * Finds the first port of a given type (Application or Admin) from the list. If multiple ports are found and at

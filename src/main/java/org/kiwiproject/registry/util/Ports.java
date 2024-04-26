@@ -19,10 +19,11 @@ import java.util.List;
 public class Ports {
 
     /**
-     * TODO
+     * Find the single application port. If there is more than one, throw an exception.
      *
-     * @param ports
-     * @return
+     * @param ports the ports to filter
+     * @return the application port
+     * @throws IllegalStateException if there is more than one port
      */
     public static Port findOnlyApplicationPort(List<Port> ports) {
         var applicationPorts = findApplicationPorts(ports);
@@ -31,20 +32,21 @@ public class Ports {
     }
 
     /**
-     * TODO
+     * Find only the application ports in the list of ports.
      *
-     * @param ports
-     * @return
+     * @param ports the ports to filter
+     * @return a list of application ports
      */
     public static List<Port> findApplicationPorts(List<Port> ports) {
         return findPorts(ports, PortType.APPLICATION);
     }
 
     /**
-     * TODO
+     * Find the single admin port. If there is more than one, throw an exception.
      *
-     * @param ports
-     * @return
+     * @param ports the ports to filter
+     * @return the admin port
+     * @throws IllegalStateException if there is more than one port
      */
     public static Port findOnlyAdminPort(List<Port> ports) {
         var adminPorts = findAdminPorts(ports);
@@ -58,21 +60,21 @@ public class Ports {
     }
 
     /**
-     * TODO
+     * Find only the admin ports in the list of ports.
      *
-     * @param ports
-     * @return
+     * @param ports the ports to filter
+     * @return a list of application ports
      */
     public static List<Port> findAdminPorts(List<Port> ports) {
         return findPorts(ports, PortType.ADMIN);
     }
 
     /**
-     * TODO
+     * Find all ports having the specified {@link PortType}.
      *
-     * @param ports
-     * @param portType
-     * @return
+     * @param ports the ports to filter
+     * @param portType the type of port to find
+     * @return a list of ports having the specified type
      */
     public static List<Port> findPorts(List<Port> ports, PortType portType) {
         checkArgumentNotNull(portType, "portType must not be null");

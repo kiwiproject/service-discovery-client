@@ -1,6 +1,7 @@
 package org.kiwiproject.registry.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -106,30 +107,82 @@ class PortsTest {
     @Nested
     class FindOnlyApplicationPort {
 
-        // TODO
+        @Test
+        void shouldGetTheSingleApplicationPort() {
+            // TODO
+        }
+
+        @Test
+        void shouldThrowIllegalStateWhenNoApplicationPorts() {
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> Ports.findOnlyApplicationPort(List.of()))
+                    .withMessage("expected one application port but found 0");
+        }
+
+        @Test
+        void shouldThrowIllegalStateWhenMoreThanOneApplicationPort() {
+            // TODO
+        }
     }
 
     @Nested
     class FindApplicationPorts {
 
-        // TODO
+        @Test
+        void shouldFindOnlyApplicationPorts() {
+            // TODO
+        }
     }
 
     @Nested
     class FindOnlyAdminPort {
 
-        // TODO
+        @Test
+        void shouldGetTheSingleApplicationPort() {
+            // TODO
+        }
+
+        @Test
+        void shouldThrowIllegalStateWhenNoAdminPorts() {
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> Ports.findOnlyAdminPort(List.of()))
+                    .withMessage("expected one admin port but found 0");
+        }
+
+        @Test
+        void shouldThrowIllegalStateWhenMoreThanOneApplicationPort() {
+            // TODO
+        }
     }
 
     @Nested
     class FindAdminPorts {
 
-        // TODO
+        @Test
+        void shouldFindOnlyAdminPorts() {
+            // TODO
+        }
     }
 
     @Nested
     class FindPortsOfType {
 
-        // TODO
+        @Test
+        void shouldFindApplicationPorts() {
+            // TODO
+        }
+
+        @Test
+        void shouldFindAdminPorts() {
+            // TODO
+        }
+    }
+
+    private static Port newApplicationPort(int number) {
+        return Port.of(number, PortType.APPLICATION, Security.SECURE);
+    }
+
+    private static Port newAdminPort(int number) {
+        return Port.of(number, PortType.ADMIN, Security.SECURE);
     }
 }

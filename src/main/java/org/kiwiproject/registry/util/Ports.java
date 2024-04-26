@@ -27,7 +27,7 @@ public class Ports {
      */
     public static Port findOnlyApplicationPort(List<Port> ports) {
         var applicationPorts = findApplicationPorts(ports);
-        checkExactlyOnePort(ports, "application");
+        checkExactlyOnePort(applicationPorts, "application");
         return first(applicationPorts);
     }
 
@@ -50,7 +50,7 @@ public class Ports {
      */
     public static Port findOnlyAdminPort(List<Port> ports) {
         var adminPorts = findAdminPorts(ports);
-        checkExactlyOnePort(ports, "admin");
+        checkExactlyOnePort(adminPorts, "admin");
         return first(adminPorts);
     }
 

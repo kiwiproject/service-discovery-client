@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 import org.kiwiproject.registry.model.Port.Security;
@@ -80,6 +82,26 @@ class PortsTest {
             assertThat(port.getSecure()).isEqualTo(Security.SECURE);
             assertThat(port.getType()).isEqualTo(PortType.APPLICATION);
         }
+
+        @ParameterizedTest
+        @CsvSource(textBlock = """
+                APPLICATION, SECURE, 9090
+                APPLICATION, NOT_SECURE, 8080
+                ADMIN, SECURE, 9091
+                ADMIN, NOT_SECURE, 8081
+                """)
+        void shouldFindExpectedPort(PortType portType, Security security, int expectedPortNumber) {
+            var ports = List.of(
+                    newApplicationPort(8080, Security.NOT_SECURE),
+                    newAdminPort(8081, Security.NOT_SECURE),
+                    newApplicationPort(9090, Security.SECURE),
+                    newAdminPort(9091, Security.SECURE)
+            );
+
+            var port = Ports.findPort(ports, portType, security);
+
+            assertThat(port.getNumber()).isEqualTo(expectedPortNumber);
+        }
     }
 
     @Nested
@@ -109,7 +131,10 @@ class PortsTest {
 
         @Test
         void shouldGetTheSingleApplicationPort() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080), newAdminPort(8081));
+
+            var applicationPort = Ports.findOnlyApplicationPort(ports);
+            assertThat(applicationPort.getNumber()).isEqualTo(8080);
         }
 
         @Test
@@ -133,7 +158,19 @@ class PortsTest {
 
         @Test
         void shouldFindOnlyApplicationPorts() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080),
+                    newAdminPort(8081),
+                    newApplicationPort(8082),
+                    newAdminPort(8083));
+
+            var applicationPorts = Ports.findApplicationPorts(ports);
+            assertThat(applicationPorts).extracting(Port::getNumber).containsOnly(8080, 8082);
+        }
+
+        @Test
+        void shouldBeEmptyWhenThereAreNoApplicationPorts() {
+            var ports = List.of(newAdminPort(8081));
+            assertThat(Ports.findApplicationPorts(ports)).isEmpty();
         }
     }
 
@@ -141,8 +178,11 @@ class PortsTest {
     class FindOnlyAdminPort {
 
         @Test
-        void shouldGetTheSingleApplicationPort() {
-            // TODO
+        void shouldGetTheSingleAdminPort() {
+            var ports = List.of(newApplicationPort(8080), newAdminPort(8081));
+
+            var adminPort = Ports.findOnlyAdminPort(ports);
+            assertThat(adminPort.getNumber()).isEqualTo(8081);
         }
 
         @Test
@@ -166,7 +206,19 @@ class PortsTest {
 
         @Test
         void shouldFindOnlyAdminPorts() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080),
+                    newAdminPort(8081),
+                    newApplicationPort(8082),
+                    newAdminPort(8083));
+
+            var adminPorts = Ports.findAdminPorts(ports);
+            assertThat(adminPorts).extracting(Port::getNumber).containsOnly(8081, 8083);
+        }
+
+        @Test
+        void shouldBeEmptyWhenThereAreNoApplicationPorts() {
+            var ports = List.of(newApplicationPort(8080));
+            assertThat(Ports.findAdminPorts(ports)).isEmpty();
         }
     }
 
@@ -175,20 +227,40 @@ class PortsTest {
 
         @Test
         void shouldFindApplicationPorts() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080),
+                    newAdminPort(8081),
+                    newApplicationPort(8082),
+                    newAdminPort(8083));
+
+            var applicationPorts = Ports.findPorts(ports, PortType.APPLICATION);
+            assertThat(applicationPorts).extracting(Port::getNumber).containsOnly(8080, 8082);
         }
 
         @Test
         void shouldFindAdminPorts() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080),
+                    newAdminPort(8081),
+                    newApplicationPort(8082),
+                    newAdminPort(8083));
+
+            var adminPorts = Ports.findPorts(ports, PortType.ADMIN);
+            assertThat(adminPorts).extracting(Port::getNumber).containsOnly(8081, 8083);
         }
     }
 
     private static Port newApplicationPort(int number) {
-        return Port.of(number, PortType.APPLICATION, Security.SECURE);
+        return newApplicationPort(number, Security.SECURE);
+    }
+
+    private static Port newApplicationPort(int number, Security security) {
+        return Port.of(number, PortType.APPLICATION, security);
     }
 
     private static Port newAdminPort(int number) {
-        return Port.of(number, PortType.ADMIN, Security.SECURE);
+        return newAdminPort(number, Security.SECURE);
+    }
+
+    private static Port newAdminPort(int number, Security security) {
+        return Port.of(number, PortType.ADMIN, security);
     }
 }

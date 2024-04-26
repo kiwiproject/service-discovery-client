@@ -121,7 +121,10 @@ class PortsTest {
 
         @Test
         void shouldThrowIllegalStateWhenMoreThanOneApplicationPort() {
-            // TODO
+            var ports = List.of(newApplicationPort(8080), newApplicationPort(9090));
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> Ports.findOnlyApplicationPort(ports))
+                    .withMessage("expected one application port but found 2");
         }
     }
 
@@ -151,7 +154,10 @@ class PortsTest {
 
         @Test
         void shouldThrowIllegalStateWhenMoreThanOneApplicationPort() {
-            // TODO
+            var ports = List.of(newAdminPort(8081), newAdminPort(9091));
+            assertThatIllegalStateException()
+                    .isThrownBy(() -> Ports.findOnlyAdminPort(ports))
+                    .withMessage("expected one admin port but found 2");
         }
     }
 

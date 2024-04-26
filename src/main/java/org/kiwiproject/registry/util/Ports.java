@@ -1,5 +1,9 @@
 package org.kiwiproject.registry.util;
 
+import static com.google.common.base.Preconditions.checkState;
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
+import static org.kiwiproject.collect.KiwiLists.first;
+
 import lombok.experimental.UtilityClass;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -8,10 +12,74 @@ import org.kiwiproject.registry.model.Port.Security;
 import java.util.List;
 
 /**
- * Utility methods for finding a desired port out of a list of port definitions
+ * Utility methods for finding a desired port out of a list of port definitions,
+ * or finding application or admin ports.
  */
 @UtilityClass
 public class Ports {
+
+    /**
+     * TODO
+     *
+     * @param ports
+     * @return
+     */
+    public static Port findOnlyApplicationPort(List<Port> ports) {
+        var applicationPorts = findApplicationPorts(ports);
+        checkExactlyOnePort(ports, "application");
+        return first(applicationPorts);
+    }
+
+    /**
+     * TODO
+     *
+     * @param ports
+     * @return
+     */
+    public static List<Port> findApplicationPorts(List<Port> ports) {
+        return findPorts(ports, PortType.APPLICATION);
+    }
+
+    /**
+     * TODO
+     *
+     * @param ports
+     * @return
+     */
+    public static Port findOnlyAdminPort(List<Port> ports) {
+        var adminPorts = findAdminPorts(ports);
+        checkExactlyOnePort(ports, "admin");
+        return first(adminPorts);
+    }
+
+    private static void checkExactlyOnePort(List<Port> ports, String portType) {
+        int numPorts = ports.size();
+        checkState(numPorts == 1, "expected one %s port but found %s", portType, numPorts);
+    }
+
+    /**
+     * TODO
+     *
+     * @param ports
+     * @return
+     */
+    public static List<Port> findAdminPorts(List<Port> ports) {
+        return findPorts(ports, PortType.ADMIN);
+    }
+
+    /**
+     * TODO
+     *
+     * @param ports
+     * @param portType
+     * @return
+     */
+    public static List<Port> findPorts(List<Port> ports, PortType portType) {
+        checkArgumentNotNull(portType, "portType must not be null");
+        return ports.stream()
+                .filter(port -> port.getType() == portType)
+                .toList();
+    }
 
     /**
      * Finds the first port of a given type (Application or Admin) from the list. If multiple ports are found and at

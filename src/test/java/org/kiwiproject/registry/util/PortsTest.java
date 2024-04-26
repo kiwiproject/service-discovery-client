@@ -102,4 +102,34 @@ class PortsTest {
             assertThat(scheme).isEqualTo("http");
         }
     }
+
+    @Nested
+    class FindOnlyApplicationPort {
+
+        // TODO
+    }
+
+    @Nested
+    class FindApplicationPorts {
+
+        // TODO
+    }
+
+    @Nested
+    class FindOnlyAdminPort {
+
+        // TODO
+    }
+
+    @Nested
+    class FindAdminPorts {
+
+        // TODO
+    }
+
+    @Nested
+    class FindPortsOfType {
+
+        // TODO
+    }
 }

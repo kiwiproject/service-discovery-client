@@ -19,11 +19,11 @@ import java.util.List;
 public class Ports {
 
     /**
-     * Find the single application port. If there are none or more than one, throw an exception.
+     * Find the single application port. If there is not exactly one, throw an exception.
      *
      * @param ports the ports to filter
      * @return the application port
-     * @throws IllegalStateException if there are none or there is more than one port
+     * @throws IllegalStateException if there is not exactly one port
      */
     public static Port findOnlyApplicationPort(List<Port> ports) {
         var applicationPorts = findApplicationPorts(ports);
@@ -42,11 +42,11 @@ public class Ports {
     }
 
     /**
-     * Find the single admin port. If there are none or more than one, throw an exception.
+     * Find the single admin port. If there is not exactly one, throw an exception.
      *
      * @param ports the ports to filter
      * @return the admin port
-     * @throws IllegalStateException if there are none or there is more than one port
+     * @throws IllegalStateException if there is not exactly one port
      */
     public static Port findOnlyAdminPort(List<Port> ports) {
         var adminPorts = findAdminPorts(ports);

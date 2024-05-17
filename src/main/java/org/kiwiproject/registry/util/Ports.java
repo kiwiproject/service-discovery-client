@@ -87,6 +87,8 @@ public class Ports {
      * Finds the first port of a given type (Application or Admin) from the list. If multiple ports are found and at
      * least one is marked secure, that port will be given priority.  If multiple ports are found with the same security
      * level, then the first one is returned.
+     * <p>
+     * If not found, returns a new Port with number 0 and the given value for {@link PortType}.
      *
      * @param ports The list of ports to traverse
      * @param type  The type of port that is being requested

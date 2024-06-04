@@ -1,6 +1,5 @@
 package org.kiwiproject.registry.eureka.config;
 
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.kiwiproject.collect.KiwiLists.first;
 import static org.kiwiproject.collect.KiwiLists.fourth;
@@ -34,7 +33,7 @@ class EurekaConfigTest {
 
         var uniqueParts = retryIds.stream()
                 .map(EurekaConfigTest::extractRetryIdUniquePart)
-                .collect(toList());
+                .toList();
 
         var firstId = first(uniqueParts);
         assertThat(second(uniqueParts)).isEqualTo(firstId + 1);

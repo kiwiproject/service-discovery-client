@@ -24,7 +24,7 @@ class NoOpRegistryClientTest {
     static void beforeAll() {
         generator = new RandomStringGenerator.Builder()
                 .withinRange('a', 'z')
-                .build();
+                .get();
     }
 
     @BeforeEach

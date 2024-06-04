@@ -35,6 +35,7 @@
         <retrying-again.version>2.0.3</retrying-again.version>
 
         <!-- Versions for test dependencies -->
+        <kiwi-beta.version>1.4.0</kiwi-beta.version>
         <kiwi-test.version>3.3.0</kiwi-test.version>
 
         <!-- Sonar properties -->
@@ -113,6 +114,13 @@
         </dependency>
 
         <!-- Test dependencies -->
+
+        <dependency>
+            <groupId>org.kiwiproject</groupId>
+            <artifactId>kiwi-beta</artifactId>
+            <version>${kiwi-beta.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.kiwiproject</groupId>

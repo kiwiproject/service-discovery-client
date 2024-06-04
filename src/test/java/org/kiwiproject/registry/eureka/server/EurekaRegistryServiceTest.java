@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.kiwiproject.base.KiwiEnvironment;
+import org.kiwiproject.beta.test.jersey.ws.rs.JakartaRestTestHelpers;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaRegistrationConfig;
@@ -25,7 +26,6 @@ import org.kiwiproject.registry.exception.RegistrationException;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.model.ServicePaths;
-import org.kiwiproject.registry.util.ResponseMock;
 import org.kiwiproject.retry.SimpleRetryer;
 
 import java.time.Instant;
@@ -83,7 +83,7 @@ class EurekaRegistryServiceTest {
             var now = Instant.now();
             when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-            var serverErrorResponse = ResponseMock.simulateInbound(Response.serverError().build());
+            var serverErrorResponse = simulateInbound(Response.serverError().build());
             var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
             when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                     .thenReturn(serverErrorResponse);
@@ -134,12 +134,12 @@ class EurekaRegistryServiceTest {
             var now = Instant.now();
             when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-            var noContentResponse = ResponseMock.simulateInbound(Response.noContent().build());
+            var noContentResponse = simulateInbound(Response.noContent().build());
             var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
             when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                     .thenReturn(noContentResponse);
 
-            var serverErrorResponse = ResponseMock.simulateInbound(Response.serverError().build());        
+            var serverErrorResponse = simulateInbound(Response.serverError().build());
             when(eurekaRestClient.findInstance(config.getRegistryUrls(), appId, "localhost"))
                     .thenReturn(serverErrorResponse);
 
@@ -164,7 +164,7 @@ class EurekaRegistryServiceTest {
             var now = Instant.now();
             when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-            var noContentResponse = ResponseMock.simulateInbound(Response.noContent().build());
+            var noContentResponse = simulateInbound(Response.noContent().build());
             var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
             when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                     .thenReturn(noContentResponse);
@@ -193,7 +193,7 @@ class EurekaRegistryServiceTest {
             var now = Instant.now();
             when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-            var noContentResponse = ResponseMock.simulateInbound(Response.noContent().build());
+            var noContentResponse = simulateInbound(Response.noContent().build());
             var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
             when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                 .thenReturn(noContentResponse);
@@ -210,7 +210,7 @@ class EurekaRegistryServiceTest {
                 .build();   
 
             var eurekaInstance = JSON_HELPER.convertToMap(EurekaInstance.fromServiceInstance(instance));
-            var okResponse = ResponseMock.simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());    
+            var okResponse = simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());
             when(eurekaRestClient.findInstance(config.getRegistryUrls(), appId, "localhost"))
                 .thenReturn(okResponse);
 
@@ -227,7 +227,7 @@ class EurekaRegistryServiceTest {
             var now = Instant.now();
             when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-            var noContentResponse = ResponseMock.simulateInbound(Response.noContent().build());
+            var noContentResponse = simulateInbound(Response.noContent().build());
             var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
             when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                 .thenReturn(noContentResponse);
@@ -244,7 +244,7 @@ class EurekaRegistryServiceTest {
                 .build();   
 
             var eurekaInstance = JSON_HELPER.convertToMap(EurekaInstance.fromServiceInstance(instance));
-            var okResponse = ResponseMock.simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());    
+            var okResponse = simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());
             when(eurekaRestClient.findInstance(config.getRegistryUrls(), appId, "localhost"))
                 .thenReturn(okResponse);
 
@@ -270,7 +270,7 @@ class EurekaRegistryServiceTest {
                 var now = Instant.now();
                 when(kiwiEnvironment.currentInstant()).thenReturn(now);
 
-                var noContentResponse = ResponseMock.simulateInbound(Response.noContent().build());
+                var noContentResponse = simulateInbound(Response.noContent().build());
                 var appId = f("test-service-{}", APP_TIMESTAMP_FORMATTER.format(now)).toUpperCase(Locale.getDefault());
                 when(eurekaRestClient.register(eq(config.getRegistryUrls()), eq(appId), any(EurekaInstance.class)))
                     .thenReturn(noContentResponse);
@@ -287,7 +287,7 @@ class EurekaRegistryServiceTest {
                     .build();   
 
                 var eurekaInstance = JSON_HELPER.convertToMap(EurekaInstance.fromServiceInstance(instance).withApp(appId));
-                var okResponse = ResponseMock.simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());    
+                var okResponse = simulateInbound(Response.ok(Map.of("instance", eurekaInstance)).build());
                 when(eurekaRestClient.findInstance(config.getRegistryUrls(), appId, "localhost"))
                     .thenReturn(okResponse);
 
@@ -301,6 +301,7 @@ class EurekaRegistryServiceTest {
                 verifyHeartbeats(10, 2);
             }
 
+            @SuppressWarnings("SameParameterValue")
             private void verifyHeartbeats(int maxWaitTimeInSeconds, int expectedCount) {
                 await().atMost(maxWaitTimeInSeconds, TimeUnit.SECONDS).until(() -> {
                     LOG.info("Heartbeat count: {}", eurekaRegistryService.heartbeatCount.get());
@@ -310,5 +311,10 @@ class EurekaRegistryServiceTest {
             }
         }
     
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private static Response simulateInbound(Response outboundResponse) {
+        return JakartaRestTestHelpers.toInboundResponse(outboundResponse);
     }
 }

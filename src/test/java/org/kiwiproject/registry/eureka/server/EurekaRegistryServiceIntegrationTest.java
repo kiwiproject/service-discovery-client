@@ -169,7 +169,7 @@ class EurekaRegistryServiceIntegrationTest {
         void shouldRetryLookupAfterRegistrationAndThrowExceptionIfAllTriesExpire() {
             // Going to spy the EurekaClient, so I can fake a bad response from the registry lookup
             var eurekaClientSpy = spy(new EurekaRestClient());
-            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+            service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
@@ -194,7 +194,7 @@ class EurekaRegistryServiceIntegrationTest {
 
             // Going to spy the EurekaClient, so I can fake a bad response from the heartbeat sender
             var eurekaClientSpy = spy(new EurekaRestClient());
-            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+            service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
             var now = Instant.now();
             when(environment.currentInstant()).thenReturn(now);
@@ -251,7 +251,7 @@ class EurekaRegistryServiceIntegrationTest {
 
             // Going to spy the EurekaClient, so I can fake a bad response from the status update sender
             var eurekaClientSpy = spy(new EurekaRestClient());
-            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+            service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
             var serviceInfo = ServiceInfoHelper.buildTestServiceInfoWithHostName("FailStatusChange");
             var serviceInstance = ServiceInstance.fromServiceInfo(serviceInfo)
@@ -291,7 +291,7 @@ class EurekaRegistryServiceIntegrationTest {
         void shouldRetryUnregisterAndThrowExceptionIfAllTriesExpire() {
             // Going to spy the EurekaClient, so I can fake a bad response from the unregistering sender
             var eurekaClientSpy = spy(new EurekaRestClient());
-            var service = new EurekaRegistryService(config, eurekaClientSpy, environment);
+            service = new EurekaRegistryService(config, eurekaClientSpy, environment);
 
             service.registeredInstance.set(EurekaInstance.builder().app("APPID").hostName("FailUnregister").build());
 

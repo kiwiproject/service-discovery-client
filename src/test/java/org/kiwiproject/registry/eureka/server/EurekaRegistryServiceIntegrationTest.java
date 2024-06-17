@@ -22,6 +22,7 @@ import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ import java.time.Instant;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+@Disabled("Dockerfile using obsolete image; see #429 and #430")
 @DisplayName("EurekaRegistryService")
 @ExtendWith(SoftAssertionsExtension.class)
 @Testcontainers

@@ -17,6 +17,7 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 
+@Disabled("Dockerfile using obsolete image; see #429 and #430")
 @DisplayName("EurekaRestClient")
 @Testcontainers
 @Slf4j

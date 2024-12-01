@@ -7,8 +7,8 @@ import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAU
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAULT_DATA_CENTER_NAME;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_DURATION_IN_SECONDS;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_RENEWAL_INTERVAL_IN_SECONDS;
-import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.loadInstanceAndWaitForRegistration;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.newEurekaContainer;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.sampleInstance;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
@@ -17,7 +17,6 @@ import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,23 +25,18 @@ import org.kiwiproject.registry.eureka.util.EurekaTestDataHelper;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 
-@Disabled("Dockerfile using obsolete image; see #429 and #430")
 @DisplayName("EurekaRestClient")
 @Testcontainers
 @Slf4j
 class EurekaRestClientTest {
 
     @Container
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static final GenericContainer EUREKA = new GenericContainer(eurekaImage())
-            .withExposedPorts(8080)
-            .withLogConsumer(new Slf4jLogConsumer(LOG));
+    public static final GenericContainer<?> EUREKA = newEurekaContainer(LOG);
 
     private EurekaRestClient client;
     private String eurekaBaseUrl;

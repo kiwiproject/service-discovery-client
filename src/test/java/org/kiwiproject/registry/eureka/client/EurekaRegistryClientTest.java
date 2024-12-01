@@ -2,7 +2,7 @@ package org.kiwiproject.registry.eureka.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.eurekaImage;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.newEurekaContainer;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -16,7 +16,6 @@ import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,21 +28,16 @@ import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
 import org.kiwiproject.retry.WaitStrategy;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@Disabled("Dockerfile using obsolete image; see #429 and #430")
 @DisplayName("EurekaRegistryClient")
 @Testcontainers
 @Slf4j
 class EurekaRegistryClientTest {
 
     @Container
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static final GenericContainer EUREKA = new GenericContainer(eurekaImage())
-            .withExposedPorts(8080)
-            .withLogConsumer(new Slf4jLogConsumer(LOG));
+    public static final GenericContainer<?> EUREKA = newEurekaContainer(LOG);
 
     private EurekaRegistryClient client;
     private EurekaConfig config;

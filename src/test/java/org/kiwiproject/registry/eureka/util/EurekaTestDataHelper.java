@@ -29,8 +29,10 @@ import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaResponseParser;
 import org.kiwiproject.registry.model.ServiceInstance;
 import org.kiwiproject.registry.util.ServiceInfoHelper;
+import org.slf4j.Logger;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,18 +42,24 @@ import java.util.Map;
 @Slf4j
 public class EurekaTestDataHelper {
 
-    public static ImageFromDockerfile eurekaImage() {
-        return new ImageFromDockerfile()
-                .withFileFromClasspath("Dockerfile", "eureka-server/Dockerfile")
-                .withFileFromClasspath("config.properties", "eureka-server/config.properties")
-                .withFileFromClasspath("eureka-client-test.properties", "eureka-server/eureka-client-test.properties")
-                .withFileFromClasspath("eureka-server-test.properties", "eureka-server/eureka-server-test.properties");
+    public static final int DEFAULT_EUREKA_PORT = 8761;
+
+    public static GenericContainer<?> newEurekaContainer(Logger logger) {
+        //noinspection resource
+        return new GenericContainer<>(eurekaImageName())
+                .withExposedPorts(DEFAULT_EUREKA_PORT)
+                .withLogConsumer(new Slf4jLogConsumer(logger));
+    }
+
+    public static DockerImageName eurekaImageName() {
+        // https://registry.hub.docker.com/r/milcho0604/todak-eureka
+        return DockerImageName.parse("milcho0604/todak-eureka");
     }
 
     public static String eurekaUrl(GenericContainer<?> container) {
         var host = container.getHost();
         var port = container.getFirstMappedPort();
-        return f("http://{}:{}/eureka/v2", host, port);
+        return f("http://{}:{}/eureka", host, port);
     }
 
     public static void waitForEurekaToStart(String baseUrl) {

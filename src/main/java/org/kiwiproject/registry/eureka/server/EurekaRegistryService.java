@@ -69,7 +69,8 @@ public class EurekaRegistryService implements RegistryService {
      * Funny story ... this class doesn't actually exist. It's for "backwards compatibility".
      * <p>
      * See com.netflix.discovery.converters.jackson.DataCenterTypeInfoResolver for details.
-     * (NOTE: javadoc annotation not used to avoid unnecessary errors.)
+     * Link:
+     * <a href="https://github.com/Netflix/eureka/blob/015400c60d3dc730c3fc4871e9b586d3805cce0d/eureka-client/src/main/java/com/netflix/discovery/converters/jackson/DataCenterTypeInfoResolver.java#L22">DataCenterTypeInfoResolver.java</a>
      */
     public static final String DEFAULT_DATA_CENTER_INFO_CLASS = "com.netflix.appinfo.InstanceInfo$DefaultDataCenterInfo";
 

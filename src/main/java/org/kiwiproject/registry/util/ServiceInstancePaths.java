@@ -6,7 +6,7 @@ import static org.kiwiproject.net.KiwiUrls.prependLeadingSlash;
 import static org.kiwiproject.registry.util.Ports.findFirstPortPreferSecure;
 
 import lombok.experimental.UtilityClass;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
 

@@ -11,7 +11,7 @@ import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import lombok.experimental.UtilityClass;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.kiwiproject.net.KiwiInternetAddresses;
 
 import java.util.ArrayList;

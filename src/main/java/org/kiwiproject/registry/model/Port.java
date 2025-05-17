@@ -6,8 +6,7 @@ import static org.kiwiproject.base.KiwiPreconditions.checkValidPort;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Model that defines a port being used by a service, including the port number, the purpose of the port, and whether

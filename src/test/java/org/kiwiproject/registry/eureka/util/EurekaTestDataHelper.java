@@ -32,8 +32,10 @@ import org.kiwiproject.registry.util.ServiceInfoHelper;
 import org.slf4j.Logger;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +50,10 @@ public class EurekaTestDataHelper {
         //noinspection resource
         return new GenericContainer<>(eurekaImageName())
                 .withExposedPorts(DEFAULT_EUREKA_PORT)
-                .withLogConsumer(new Slf4jLogConsumer(logger));
+                .withLogConsumer(new Slf4jLogConsumer(logger))
+                .waitingFor(Wait.forHttp("/eureka/apps").forStatusCode(200))
+                .withStartupTimeout(Duration.ofMinutes(1))
+                .withStartupAttempts(3);
     }
 
     public static DockerImageName eurekaImageName() {

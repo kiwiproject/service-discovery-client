@@ -50,6 +50,8 @@ public class EurekaTestDataHelper {
         //noinspection resource
         return new GenericContainer<>(eurekaImageName())
                 .withExposedPorts(DEFAULT_EUREKA_PORT)
+                .withEnv("MANAGEMENT_METRICS_BINDERS_PROCESSOR_ENABLED", "false")
+                .withEnv("MANAGEMENT_METRICS_EXPORT_SIMPLE_ENABLED", "false")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .waitingFor(Wait.forHttp("/eureka/apps").forStatusCode(200))
                 .withStartupTimeout(Duration.ofMinutes(1))

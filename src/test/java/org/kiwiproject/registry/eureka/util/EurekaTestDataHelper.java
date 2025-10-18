@@ -111,7 +111,7 @@ public class EurekaTestDataHelper {
                         }
                         """)
                 .withEnv("SPRING_CONFIG_LOCATION", "classpath:/")
-                .withEnv("JAVA_TOOL_OPTIONS", "-Dcom.sun.management.jmxremote=false -Dservo.jmx.enabled=false -Dnetflix.platform.metrics=false")
+                .withEnv("JAVA_TOOL_OPTIONS", "-Dservo.jmx.enabled=false")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .waitingFor(Wait.forHttp("/eureka/apps").forStatusCode(200))
                 .withStartupTimeout(Duration.ofSeconds(30))

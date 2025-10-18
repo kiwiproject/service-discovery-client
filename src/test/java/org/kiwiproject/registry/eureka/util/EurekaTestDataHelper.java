@@ -65,13 +65,55 @@ public class EurekaTestDataHelper {
                 .withEnv("EUREKA_CLIENT_FETCH_REGISTRY", "false")
                 .withEnv("EUREKA_SERVER_ENABLE_SELF_PRESERVATION", "false")
                 .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
-                // Disable peer replication and override any profile-defaulted URL (support both relaxed-bind variants)
-                .withEnv("EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE", "")
-                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "")
-                .withEnv("EUREKA_CLIENT_AVAILABILITY_ZONES_DEFAULT", "")
+                // Set server port and defaultZone URL for Eureka
+                .withEnv("SERVER_PORT", "8761")
+                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
+                .withEnv("SPRING_PROFILES_ACTIVE", "default")
+                .withEnv("SPRING_APPLICATION_JSON", """
+                        {
+                          "eureka": {
+                            "client": {
+                              "register-with-eureka": false,
+                              "fetch-registry": false,
+                              "service-url": {
+                                "defaultZone": "http://127.0.0.1:8761/eureka/"
+                              }
+                            },
+                            "instance": {
+                              "hostname": "127.0.0.1",
+                              "non-secure-port": 8761
+                            }
+                          },
+                          "management": {
+                            "metrics": {
+                              "binders": {
+                                "enabled": false,
+                                "processor": {
+                                  "enabled": false
+                                },
+                                "jvm": {
+                                  "enabled": false
+                                },
+                                "tomcat": {
+                                  "enabled": false
+                                },
+                                "logback": {
+                                  "enabled": false
+                                }
+                              },
+                              "export": {
+                                "simple": {
+                                  "enabled": false
+                                }
+                              }
+                            }
+                          }
+                        }
+                        """)
+                .withEnv("SPRING_CONFIG_LOCATION", "classpath:/")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .waitingFor(Wait.forHttp("/eureka/apps").forStatusCode(200))
-                .withStartupTimeout(Duration.ofMinutes(2))
+                .withStartupTimeout(Duration.ofSeconds(30))
                 .withStartupAttempts(3);
     }
 

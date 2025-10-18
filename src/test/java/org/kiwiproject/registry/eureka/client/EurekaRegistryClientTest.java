@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
@@ -39,6 +40,11 @@ class EurekaRegistryClientTest {
     @Container
     public static final GenericContainer<?> EUREKA = newEurekaContainer(LOG);
 
+    @RegisterExtension
+    @SuppressWarnings("unused")
+    static final EurekaTestDataHelper.ContainerTestWatcher TEST_WATCHER =
+        new EurekaTestDataHelper.ContainerTestWatcher(() -> EUREKA ,LOG);
+
     private EurekaRegistryClient client;
     private EurekaConfig config;
 
@@ -46,6 +52,7 @@ class EurekaRegistryClientTest {
     void setUp() {
         config = new EurekaConfig();
         config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(EUREKA));
+        LOG.info("Using registryUrls: {}", config.getRegistryUrls());
 
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 

@@ -64,7 +64,7 @@ public class EurekaTestDataHelper {
 //                .withEnv("EUREKA_CLIENT_REGISTER_WITH_EUREKA", "false")
 //                .withEnv("EUREKA_CLIENT_FETCH_REGISTRY", "false")
                 .withEnv("EUREKA_SERVER_ENABLE_SELF_PRESERVATION", "false")
-                .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
+//                .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
                 // Set server port and defaultZone URL for Eureka
                 .withEnv("SERVER_PORT", "8761")
                 .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")

@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * This model matches the format of the data being sent to the Eureka server
+ * This model matches the format of the data being sent to the Eureka server.
  */
 @Builder
 @Value

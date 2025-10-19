@@ -70,7 +70,7 @@ public class EurekaTestDataHelper {
                             },
                             "instance": {
                               "hostname": "127.0.0.1",
-                              "nonSecurePort": ${server.port}
+                              "nonSecurePort": "${server.port}"
                             }
                           }
                         }

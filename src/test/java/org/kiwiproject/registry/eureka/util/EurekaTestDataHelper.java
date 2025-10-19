@@ -67,7 +67,7 @@ public class EurekaTestDataHelper {
 //                .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
                 // Set server port and defaultZone URL for Eureka
                 .withEnv("SERVER_PORT", "8761")
-                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
+//                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
                 .withEnv("SPRING_PROFILES_ACTIVE", "default")
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {

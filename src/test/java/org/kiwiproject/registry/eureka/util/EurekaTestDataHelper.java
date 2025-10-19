@@ -58,23 +58,23 @@ public class EurekaTestDataHelper {
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {
                           "server": {
-                            "port": 8761
+                            "port": %d
                           },
                           "eureka": {
                             "client": {
                               "registerWithEureka": false,
                               "fetchRegistry": false,
                               "serviceUrl": {
-                                "defaultZone": "http://127.0.0.1:${server.port}/eureka/"
+                                "defaultZone": "http://127.0.0.1:%d/eureka/"
                               }
                             },
                             "instance": {
                               "hostname": "127.0.0.1",
-                              "nonSecurePort": "${server.port}"
+                              "nonSecurePort": %d
                             }
                           }
                         }
-                        """)
+                        """.formatted(DEFAULT_EUREKA_PORT, DEFAULT_EUREKA_PORT, DEFAULT_EUREKA_PORT))
                 .withEnv("JAVA_TOOL_OPTIONS", "-Dservo.jmx.enabled=false")
                 .withLogConsumer(new Slf4jLogConsumer(logger))
                 .waitingFor(Wait.forHttp("/eureka/apps").forStatusCode(200))

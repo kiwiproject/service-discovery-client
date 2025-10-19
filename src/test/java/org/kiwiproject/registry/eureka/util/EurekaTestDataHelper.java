@@ -4,7 +4,6 @@ import static jakarta.ws.rs.client.Entity.json;
 import static jakarta.ws.rs.core.HttpHeaders.CONTENT_TYPE;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static java.util.Objects.nonNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.awaitility.Awaitility.await;
 import static org.kiwiproject.base.KiwiStrings.f;
@@ -25,8 +24,6 @@ import jakarta.ws.rs.core.Response;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.glassfish.jersey.message.GZipEncoder;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestWatcher;
 import org.kiwiproject.jaxrs.KiwiGenericTypes;
 import org.kiwiproject.registry.eureka.common.EurekaInstance;
 import org.kiwiproject.registry.eureka.common.EurekaResponseParser;
@@ -42,7 +39,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 @UtilityClass
 @Slf4j
@@ -213,42 +209,5 @@ public class EurekaTestDataHelper {
 
     public static Client newJerseyClient() {
         return ClientBuilder.newClient().register(GZipEncoder.class);
-    }
-
-
-    /**
-     * JUnit TestWatcher that dumps the container logs when a test fails.
-     * Usage:
-     * <pre>
-     *  {@literal @}RegisterExtension
-     *   static EurekaTestDataHelper.ContainerTestWatcher eurekaLogs =
-     *       new EurekaTestDataHelper.ContainerTestWatcher(() -> container, LOG);
-     *  </pre>
-     */
-    public static class ContainerTestWatcher implements TestWatcher {
-        private final Supplier<GenericContainer<?>> containerSupplier;
-        private final Logger logger;
-
-        /**
-         * Prefer this constructor. Pass a Supplier that returns the current container instance.
-         * This avoids static field initialization order issues in tests.
-         */
-        public ContainerTestWatcher(Supplier<GenericContainer<?>> containerSupplier, Logger logger) {
-            this.containerSupplier = containerSupplier;
-            this.logger = logger;
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public void testFailed(ExtensionContext context, Throwable cause) {
-            try {
-                var container = nonNull(containerSupplier) ? containerSupplier.get() : null;
-                var logs = nonNull(container) ? container.getLogs() : "<no container available>";
-                logger.error("Container logs for {} (failure):\n{}", context.getDisplayName(), logs);
-            } catch (Exception e) {
-                logger.error("Unable to fetch container logs for {} after failure",
-                        context.getDisplayName(), e);
-            }
-        }
     }
 }

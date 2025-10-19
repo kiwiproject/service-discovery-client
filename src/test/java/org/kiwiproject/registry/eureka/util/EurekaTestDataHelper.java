@@ -82,6 +82,9 @@ public class EurekaTestDataHelper {
                             "instance": {
                               "hostname": "127.0.0.1",
                               "non-secure-port": 8761
+                            },
+                            "server": {
+                              "port": 8761
                             }
                           },
                           "management": {

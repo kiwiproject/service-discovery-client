@@ -46,7 +46,6 @@ class EurekaRegistryClientTest {
     void setUp() {
         config = new EurekaConfig();
         config.setRegistryUrls(EurekaTestDataHelper.eurekaUrl(EUREKA));
-        LOG.info("Using registryUrls: {}", config.getRegistryUrls());
 
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 

@@ -69,6 +69,47 @@ public class EurekaTestDataHelper {
                 .withEnv("SERVER_PORT", "8761")
 //                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
                 .withEnv("SPRING_PROFILES_ACTIVE", "default")
+//                .withEnv("SPRING_APPLICATION_JSON", """
+//                        {
+//                          "eureka": {
+//                            "client": {
+//                              "register-with-eureka": false,
+//                              "fetch-registry": false,
+//                              "service-url": {
+//                                "defaultZone": "http://127.0.0.1:8761/eureka/"
+//                              }
+//                            },
+//                            "instance": {
+//                              "hostname": "127.0.0.1",
+//                              "non-secure-port": 8761
+//                            }
+//                          },
+//                          "management": {
+//                            "metrics": {
+//                              "binders": {
+//                                "enabled": false,
+//                                "processor": {
+//                                  "enabled": false
+//                                },
+//                                "jvm": {
+//                                  "enabled": false
+//                                },
+//                                "tomcat": {
+//                                  "enabled": false
+//                                },
+//                                "logback": {
+//                                  "enabled": false
+//                                }
+//                              },
+//                              "export": {
+//                                "simple": {
+//                                  "enabled": false
+//                                }
+//                              }
+//                            }
+//                          }
+//                        }
+//                        """)
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {
                           "eureka": {
@@ -82,30 +123,6 @@ public class EurekaTestDataHelper {
                             "instance": {
                               "hostname": "127.0.0.1",
                               "non-secure-port": 8761
-                            }
-                          },
-                          "management": {
-                            "metrics": {
-                              "binders": {
-                                "enabled": false,
-                                "processor": {
-                                  "enabled": false
-                                },
-                                "jvm": {
-                                  "enabled": false
-                                },
-                                "tomcat": {
-                                  "enabled": false
-                                },
-                                "logback": {
-                                  "enabled": false
-                                }
-                              },
-                              "export": {
-                                "simple": {
-                                  "enabled": false
-                                }
-                              }
                             }
                           }
                         }

@@ -110,23 +110,23 @@ public class EurekaTestDataHelper {
 //                          }
 //                        }
 //                        """)
-//                .withEnv("SPRING_APPLICATION_JSON", """
-//                        {
-//                          "eureka": {
-//                            "client": {
-//                              "register-with-eureka": false,
-//                              "fetch-registry": false,
-//                              "service-url": {
-//                                "defaultZone": "http://127.0.0.1:8761/eureka/"
-//                              }
-//                            },
-//                            "instance": {
-//                              "hostname": "127.0.0.1",
-//                              "non-secure-port": 8761
-//                            }
-//                          }
-//                        }
-//                        """)
+                .withEnv("SPRING_APPLICATION_JSON", """
+                        {
+                          "eureka": {
+                            "client": {
+                              "register-with-eureka": false,
+                              "fetch-registry": false,
+                              "service-url": {
+                                "defaultZone": "http://127.0.0.1:8761/eureka/"
+                              }
+                            },
+                            "instance": {
+                              "hostname": "127.0.0.1",
+                              "non-secure-port": 8761
+                            }
+                          }
+                        }
+                        """)
 //                .withEnv("SPRING_CONFIG_LOCATION", "classpath:/")
                 .withEnv("JAVA_TOOL_OPTIONS", "-Dservo.jmx.enabled=false")
                 .withLogConsumer(new Slf4jLogConsumer(logger))

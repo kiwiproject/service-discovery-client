@@ -63,11 +63,8 @@ public class EurekaTestDataHelper {
                           "eureka": {
                             "client": {
                               "registerWithEureka": false,
-                              "fetchRegistry": false,
-                              "serviceUrl": {
-                                "defaultZone": "http://127.0.0.1:8761/eureka/"
-                              }
-                            }
+                              "fetchRegistry": false
+                            },
                             "instance": {
                               "hostname": "127.0.0.1",
                               "nonSecurePort": 8761

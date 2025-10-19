@@ -56,6 +56,26 @@ public class EurekaTestDataHelper {
                 .withExposedPorts(DEFAULT_EUREKA_PORT)
                 .withEnv("SPRING_AUTOCONFIGURE_EXCLUDE", "org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration")
 //                .withEnv("SPRING_PROFILES_ACTIVE", "default")
+//                .withEnv("SPRING_APPLICATION_JSON", """
+//                        {
+//                          "server": {
+//                            "port": 8761
+//                          },
+//                          "eureka": {
+//                            "client": {
+//                              "registerWithEureka": false,
+//                              "fetchRegistry": false,
+//                              "serviceUrl": {
+//                                "defaultZone": "http://127.0.0.1:8761/eureka/"
+//                              }
+//                            },
+//                            "instance": {
+//                              "hostname": "127.0.0.1",
+//                              "nonSecurePort": 8761
+//                            }
+//                          }
+//                        }
+//                        """)
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {
                           "server": {
@@ -68,10 +88,6 @@ public class EurekaTestDataHelper {
                               "serviceUrl": {
                                 "defaultZone": "http://127.0.0.1:8761/eureka/"
                               }
-                            },
-                            "instance": {
-                              "hostname": "127.0.0.1",
-                              "nonSecurePort": 8761
                             }
                           }
                         }

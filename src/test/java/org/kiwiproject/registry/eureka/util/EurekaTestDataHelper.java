@@ -55,7 +55,7 @@ public class EurekaTestDataHelper {
         return new GenericContainer<>(eurekaImageName())
                 .withExposedPorts(DEFAULT_EUREKA_PORT)
                 .withEnv("SPRING_AUTOCONFIGURE_EXCLUDE", "org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration")
-                .withEnv("SPRING_PROFILES_ACTIVE", "default")
+//                .withEnv("SPRING_PROFILES_ACTIVE", "default")
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {
                           "server": {

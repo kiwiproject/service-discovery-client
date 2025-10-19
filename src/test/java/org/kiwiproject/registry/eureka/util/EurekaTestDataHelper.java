@@ -61,13 +61,13 @@ public class EurekaTestDataHelper {
 //                .withEnv("MANAGEMENT_METRICS_BINDERS_JVM_ENABLED", "false")
 //                .withEnv("MANAGEMENT_METRICS_BINDERS_LOGBACK_ENABLED", "false")
                 .withEnv("SPRING_AUTOCONFIGURE_EXCLUDE", "org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.web.servlet.WebMvcMetricsAutoConfiguration,org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration")
-                .withEnv("EUREKA_CLIENT_REGISTER_WITH_EUREKA", "false")
-                .withEnv("EUREKA_CLIENT_FETCH_REGISTRY", "false")
-                .withEnv("EUREKA_SERVER_ENABLE_SELF_PRESERVATION", "false")
-                .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
+//                .withEnv("EUREKA_CLIENT_REGISTER_WITH_EUREKA", "false")
+//                .withEnv("EUREKA_CLIENT_FETCH_REGISTRY", "false")
+//                .withEnv("EUREKA_SERVER_ENABLE_SELF_PRESERVATION", "false")
+//                .withEnv("EUREKA_INSTANCE_HOSTNAME", "127.0.0.1")
                 // Set server port and defaultZone URL for Eureka
-                .withEnv("SERVER_PORT", "8761")
-                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
+//                .withEnv("SERVER_PORT", "8761")
+//                .withEnv("EUREKA_CLIENT_SERVICEURL_DEFAULTZONE", "http://127.0.0.1:8761/eureka/")
                 .withEnv("SPRING_PROFILES_ACTIVE", "default")
                 .withEnv("SPRING_APPLICATION_JSON", """
                         {

@@ -35,7 +35,7 @@
         <retrying-again.version>2.1.11</retrying-again.version>
 
         <!-- Versions for test dependencies -->
-        <kiwi-beta.version>2.7.0</kiwi-beta.version>
+        <kiwi-beta.version>3.0.0</kiwi-beta.version>
         <kiwi-test.version>3.12.2</kiwi-test.version>
 
         <!-- Sonar properties -->

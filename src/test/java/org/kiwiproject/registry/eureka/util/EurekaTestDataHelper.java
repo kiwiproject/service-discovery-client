@@ -139,7 +139,6 @@ public class EurekaTestDataHelper {
             }
 
             LOG.debug("Wait for the instance to be registered and included in /apps response");
-//            await().pollInterval(Duration.ofMillis(250)).atMost(1, MINUTES).until(() -> {
             await().atMost(1, MINUTES).until(() -> {
                 try (var response = client.target(baseUrl)
                         .path("apps")

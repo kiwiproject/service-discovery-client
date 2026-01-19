@@ -139,28 +139,30 @@ public class EurekaTestDataHelper {
             }
 
             LOG.debug("Wait for the instance to be registered and included in /apps response");
-            await().atMost(1, MINUTES).until(() -> {
-                try (var response = client.target(baseUrl)
-                        .path("apps")
-                        .request()
-                        .accept(APPLICATION_JSON_TYPE)
-                        .get()) {
-
-                    if (successful(response)) {
-                        var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-                        var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
-
-                        return eurekaInstances.stream()
-                                .filter(eurekaInstance -> eurekaInstance.getApp().equals(instance.getApp()))
-                                .anyMatch(eurekaInstance -> eurekaInstance.getInstanceId().equals(instance.getInstanceId()));
-                    } else {
-                        LOG.debug("Got {} response from /apps so continue waiting for successful response", response.getStatus());
-                    }
-                }
-
-                return false;
-            });
+            await().atMost(1, MINUTES).until(() -> instanceIsRegistered(client, baseUrl, instance));
         }
+    }
+
+    private static boolean instanceIsRegistered(Client client, String baseUrl, EurekaInstance instance) {
+        try (var response = client.target(baseUrl)
+                .path("apps")
+                .request()
+                .accept(APPLICATION_JSON_TYPE)
+                .get()) {
+
+            if (successful(response)) {
+                var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+                var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
+
+                return eurekaInstances.stream()
+                        .filter(eurekaInstance -> eurekaInstance.getApp().equals(instance.getApp()))
+                        .anyMatch(eurekaInstance -> eurekaInstance.getInstanceId().equals(instance.getInstanceId()));
+            } else {
+                LOG.debug("Got {} response from /apps so continue waiting for successful response", response.getStatus());
+            }
+        }
+
+        return false;
     }
 
     public static void clearAllInstances(String baseUrl) {

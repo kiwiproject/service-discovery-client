@@ -83,6 +83,7 @@ public class EurekaTestDataHelper {
         return DockerImageName.parse("milcho0604/todak-eureka");
     }
 
+    @SuppressWarnings("HttpUrlsUsage")
     public static String eurekaUrl(GenericContainer<?> container) {
         var host = container.getHost();
         var port = container.getFirstMappedPort();
@@ -90,16 +91,18 @@ public class EurekaTestDataHelper {
     }
 
     public static void waitForEurekaToStart(String baseUrl) {
-        var client = newJerseyClient();
-        await().atMost(1, MINUTES).until(() -> {
-            var response = client.target(baseUrl)
-                    .path("apps")
-                    .request()
-                    .accept(APPLICATION_JSON_TYPE)
-                    .get();
-            LOG.info("Waiting for Eureka to start.  Status: {}", response.getStatus());
-            return successful(response);
-        });
+        try (var client = newJerseyClient()) {
+            await().pollInterval(Duration.ofMillis(250)).atMost(1, MINUTES).until(() -> {
+                try (var response = client.target(baseUrl)
+                        .path("apps")
+                        .request()
+                        .accept(APPLICATION_JSON_TYPE)
+                        .get()) {
+                    LOG.info("Waiting for Eureka to start.  Status: {}", response.getStatus());
+                    return successful(response);
+                }
+            });
+        }
     }
 
     public static EurekaInstance sampleInstance(String appName, String hostname, String vipAddress, ServiceInstance.Status status) {
@@ -123,83 +126,100 @@ public class EurekaTestDataHelper {
     }
 
     public static void loadInstanceAndWaitForRegistration(EurekaInstance instance, String baseUrl) {
-        var client = newJerseyClient();
-
-        var loadResponse = client.target(baseUrl)
-                .path("apps/{appId}")
-                .resolveTemplate("appId", instance.getApp())
-                .request()
-                .accept(APPLICATION_JSON_TYPE)
-                .header(CONTENT_TYPE, APPLICATION_JSON)
-                .post(json(Map.of("instance", instance)));
-
-        assertNoContentResponse(loadResponse);
-
-        await().atMost(1, MINUTES).until(() -> {
-            var response = client.target(baseUrl)
-                    .path("apps")
+        try (var client = newJerseyClient()) {
+            try (var loadResponse = client.target(baseUrl)
+                    .path("apps/{appId}")
+                    .resolveTemplate("appId", instance.getApp())
                     .request()
                     .accept(APPLICATION_JSON_TYPE)
-                    .get();
+                    .header(CONTENT_TYPE, APPLICATION_JSON)
+                    .post(json(Map.of("instance", instance)))) {
 
-            if (successful(response)) {
-                var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-                var apps = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
-
-                return !apps.isEmpty();
+                assertNoContentResponse(loadResponse);
             }
 
-            return false;
-        });
+            LOG.debug("Wait for the instance to be registered and included in /apps response");
+//            await().pollInterval(Duration.ofMillis(250)).atMost(1, MINUTES).until(() -> {
+            await().atMost(1, MINUTES).until(() -> {
+                try (var response = client.target(baseUrl)
+                        .path("apps")
+                        .request()
+                        .accept(APPLICATION_JSON_TYPE)
+                        .get()) {
+
+                    if (successful(response)) {
+                        var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+                        var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
+
+                        return eurekaInstances.stream()
+                                .filter(eurekaInstance -> eurekaInstance.getApp().equals(instance.getApp()))
+                                .anyMatch(eurekaInstance -> eurekaInstance.getInstanceId().equals(instance.getInstanceId()));
+                    } else {
+                        LOG.debug("Got {} response from /apps so continue waiting for successful response", response.getStatus());
+                    }
+                }
+
+                return false;
+            });
+        }
     }
 
     public static void clearAllInstances(String baseUrl) {
-        var client = newJerseyClient();
+        LOG.info("Clearing all instances from Eureka");
 
-        var instances = findAllInstances(baseUrl);
+        try (var client = newJerseyClient()) {
+            var instances = findAllInstances(baseUrl);
 
-        LOG.info("Found {} instances to delete", instances.size());
-        instances.forEach(instance -> {
-            try (var unregisterResponse = client.target(baseUrl)
-                    .path("apps/{appId}/{instanceId}")
-                    .resolveTemplate("appId", instance.getApp())
-                    .resolveTemplate("instanceId", instance.getInstanceId())
-                    .request()
-                    .accept(APPLICATION_JSON_TYPE)
-                    .delete()) {
-                LOG.info("Response deleting instance {}/{}: {}", instance.getApp(), instance.getInstanceId(), unregisterResponse.getStatus());
-            }
-        });
+            LOG.info("Found {} instances to delete", instances.size());
+            instances.forEach(instance -> {
+                try (var unregisterResponse = client.target(baseUrl)
+                        .path("apps/{appId}/{instanceId}")
+                        .resolveTemplate("appId", instance.getApp())
+                        .resolveTemplate("instanceId", instance.getInstanceId())
+                        .request()
+                        .accept(APPLICATION_JSON_TYPE)
+                        .delete()) {
+                    LOG.info("Response deleting instance {}/{}: {}", instance.getApp(), instance.getInstanceId(), unregisterResponse.getStatus());
+                }
+            });
+        }
     }
 
     private static List<EurekaInstance> findAllInstances(String baseUrl) {
-        var response = newJerseyClient().target(baseUrl)
-                .path("apps")
-                .request()
-                .accept(APPLICATION_JSON_TYPE)
-                .get();
+        try (var client = newJerseyClient()) {
+            try (var response = client.target(baseUrl)
+                    .path("apps")
+                    .request()
+                    .accept(APPLICATION_JSON_TYPE)
+                    .get()) {
 
-        if (successful(response)) {
-            LOG.info("Successful response finding all instances");
-            var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-            return EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
-        } else {
-            LOG.warn("Call to retrieve all instances returned a non-success code: {}", response.getStatus());
+                if (successful(response)) {
+                    LOG.info("Successful response finding all instances");
+                    var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
+                    return EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
+                } else {
+                    LOG.warn("Call to retrieve all instances returned a non-success code: {}", response.getStatus());
+                }
+            }
         }
 
         return List.of();
     }
 
     public static void assertApplicationIsRegistered(String appId, String baseUrl) {
-        assertOkResponse(findApplication(appId, baseUrl));
+        try (var client = newJerseyClient(); var response = findApplication(client, appId, baseUrl)) {
+            assertOkResponse(response);
+        }
     }
 
     public static void assertApplicationIsNotRegistered(String appId, String baseUrl) {
-        assertNotFoundResponse(findApplication(appId, baseUrl));
+        try (var client = newJerseyClient(); var response = findApplication(client, appId, baseUrl)) {
+            assertNotFoundResponse(response);
+        }
     }
 
-    private static Response findApplication(String appId, String baseUrl) {
-        return newJerseyClient().target(baseUrl)
+    private static Response findApplication(Client client, String appId, String baseUrl) {
+        return client.target(baseUrl)
                 .path("apps/{appId}")
                 .resolveTemplate("appId", appId)
                 .request()
@@ -207,6 +227,7 @@ public class EurekaTestDataHelper {
                 .get();
     }
 
+    @SuppressWarnings("resource")
     public static Client newJerseyClient() {
         return ClientBuilder.newClient().register(GZipEncoder.class);
     }

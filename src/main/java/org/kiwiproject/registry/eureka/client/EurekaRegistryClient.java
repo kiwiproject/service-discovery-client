@@ -4,6 +4,7 @@ import static java.util.Objects.isNull;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 import static org.kiwiproject.base.KiwiThrowables.typeOfNullable;
+import static org.kiwiproject.logging.LazyLogParameterSupplier.lazy;
 import static org.kiwiproject.retry.KiwiRetryerPredicates.CONNECTION_ERROR;
 import static org.kiwiproject.retry.KiwiRetryerPredicates.NO_ROUTE_TO_HOST;
 import static org.kiwiproject.retry.KiwiRetryerPredicates.SOCKET_TIMEOUT;
@@ -168,6 +169,7 @@ public class EurekaRegistryClient implements RegistryClient {
         }
 
         var eurekaInstances = parseEurekaInstances(response);
+        LOG.debug("Received {} eureka instances", lazy(eurekaInstances::size));
 
         var includeNativeData = config.isIncludeNativeData()
                 ? NativeRegistryData.INCLUDE_NATIVE_DATA : NativeRegistryData.IGNORE_NATIVE_DATA;
@@ -189,7 +191,7 @@ public class EurekaRegistryClient implements RegistryClient {
         return clientRetryer.call(() -> {
             var targetUrl = urlProvider.getCurrentEurekaUrl();
 
-            LOG.debug("Attempting to lookup all service instances using {}", targetUrl);
+            LOG.debug("Attempting to lookup all service instances using base URL {}", targetUrl);
 
             try {
                 return client.findAllInstances(targetUrl);

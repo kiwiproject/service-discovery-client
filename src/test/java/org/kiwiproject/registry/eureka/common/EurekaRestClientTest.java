@@ -7,9 +7,10 @@ import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAU
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.DEFAULT_DATA_CENTER_NAME;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_DURATION_IN_SECONDS;
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.LEASE_RENEWAL_INTERVAL_IN_SECONDS;
-import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.loadInstanceAndWaitForRegistration;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.newEurekaContainer;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.registerInstanceAndAwaitVisibility;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.sampleInstance;
+import static org.kiwiproject.registry.util.InstanceIdGenerator.uniqueInstanceId;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNoContentResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertNotFoundResponse;
 import static org.kiwiproject.test.jaxrs.JaxrsTestHelper.assertOkResponse;
@@ -85,16 +86,18 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO-SERVICE", ServiceInstance.Status.UP), eurekaBaseUrl);
+            var appId = "APPID";
+            var instanceId = uniqueInstanceId();
+            registerInstanceAndAwaitVisibility(sampleInstance(appId, instanceId, "FOO-SERVICE", ServiceInstance.Status.UP), eurekaBaseUrl);
 
-            var response = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var response = client.findInstance(eurekaBaseUrl, appId, instanceId);
 
             assertOkResponse(response);
         }
 
         @Test
         void shouldReturn404ResponseFromEurekaWhenNotFound() {
-            var response = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var response = client.findInstance(eurekaBaseUrl, "APPID", uniqueInstanceId());
             assertNotFoundResponse(response);
         }
 
@@ -105,9 +108,10 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEurekaWhenFound() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
+            var vipAddress = "foo-service";
+            registerInstanceAndAwaitVisibility(sampleInstance("APPID", uniqueInstanceId(), vipAddress, ServiceInstance.Status.UP), eurekaBaseUrl);
 
-            var response = client.findInstancesByVipAddress(eurekaBaseUrl, "FOO");
+            var response = client.findInstancesByVipAddress(eurekaBaseUrl, vipAddress);
 
             assertOkResponse(response);
         }
@@ -119,13 +123,15 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.DOWN), eurekaBaseUrl);
+            var appId = "APPID";
+            var instanceId = uniqueInstanceId();
+            registerInstanceAndAwaitVisibility(sampleInstance(appId, instanceId, "foo-service", ServiceInstance.Status.DOWN), eurekaBaseUrl);
 
-            var response = client.updateStatus(eurekaBaseUrl, "APPID", "INSTANCEID", ServiceInstance.Status.UP);
+            var response = client.updateStatus(eurekaBaseUrl, appId, instanceId, ServiceInstance.Status.UP);
 
             assertOkResponse(response);
 
-            try (var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID")) {
+            try (var instanceResponse = client.findInstance(eurekaBaseUrl, appId, instanceId)) {
                 var eurekaResponse = instanceResponse.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
                 var instance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
                 assertThat(instance.getStatus()).isEqualTo("UP");
@@ -139,13 +145,15 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
+            var appId = "APPID";
+            var instanceId = uniqueInstanceId();
+            registerInstanceAndAwaitVisibility(sampleInstance(appId, instanceId, "foo-service", ServiceInstance.Status.UP), eurekaBaseUrl);
 
-            var response = client.unregister(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var response = client.unregister(eurekaBaseUrl, appId, instanceId);
 
             assertOkResponse(response);
 
-            var instanceResponse = client.findInstance(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var instanceResponse = client.findInstance(eurekaBaseUrl, appId, instanceId);
             assertNotFoundResponse(instanceResponse);
         }
 
@@ -156,9 +164,11 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
+            var appId = "APPID";
+            var instanceId = uniqueInstanceId();
+            registerInstanceAndAwaitVisibility(sampleInstance(appId, instanceId, "foo-service", ServiceInstance.Status.UP), eurekaBaseUrl);
 
-            var response = client.sendHeartbeat(eurekaBaseUrl, "APPID", "INSTANCEID");
+            var response = client.sendHeartbeat(eurekaBaseUrl, appId, instanceId);
 
             assertOkResponse(response);
         }
@@ -170,7 +180,7 @@ class EurekaRestClientTest {
 
         @Test
         void shouldReturnResponseFromEureka() {
-            loadInstanceAndWaitForRegistration(sampleInstance("APPID", "INSTANCEID", "FOO", ServiceInstance.Status.UP), eurekaBaseUrl);
+            registerInstanceAndAwaitVisibility(sampleInstance("APPID", uniqueInstanceId(), "foo-service", ServiceInstance.Status.UP), eurekaBaseUrl);
 
             var response = client.findAllInstances(eurekaBaseUrl);
 

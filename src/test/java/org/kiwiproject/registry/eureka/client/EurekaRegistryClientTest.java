@@ -2,6 +2,10 @@ package org.kiwiproject.registry.eureka.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.kiwiproject.collect.KiwiLists.first;
+import static org.kiwiproject.collect.KiwiLists.isNotNullOrEmpty;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.newEurekaContainer;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -23,6 +27,7 @@ import org.kiwiproject.registry.client.RegistryClient;
 import org.kiwiproject.registry.eureka.common.EurekaRestClient;
 import org.kiwiproject.registry.eureka.config.EurekaConfig;
 import org.kiwiproject.registry.eureka.util.EurekaTestDataHelper;
+import org.kiwiproject.registry.eureka.util.RegisteredInstanceInfo;
 import org.kiwiproject.retry.KiwiRetryerException;
 import org.kiwiproject.retry.RetryException;
 import org.kiwiproject.retry.WaitStrategies;
@@ -30,6 +35,9 @@ import org.kiwiproject.retry.WaitStrategy;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 @DisplayName("EurekaRegistryClient")
 @Testcontainers
@@ -41,6 +49,7 @@ class EurekaRegistryClientTest {
 
     private EurekaRegistryClient client;
     private EurekaConfig config;
+    private RegisteredInstanceInfo registeredInstanceInfo;
 
     @BeforeEach
     void setUp() {
@@ -50,7 +59,7 @@ class EurekaRegistryClientTest {
         client = new EurekaRegistryClient(config, new EurekaRestClient());
 
         EurekaTestDataHelper.waitForEurekaToStart(config.getRegistryUrls());
-        EurekaTestDataHelper.loadInstanceAndWaitForRegistration(config.getRegistryUrls());
+        registeredInstanceInfo = EurekaTestDataHelper.registerInstanceAndAwaitVisibility(config.getRegistryUrls());
     }
 
     @AfterEach
@@ -65,7 +74,7 @@ class EurekaRegistryClientTest {
         class WithServiceName {
             @Test
             void shouldReturnServiceInstanceWhenMatchFound() {
-                var instance = client.findServiceInstanceBy("TEST-APP");
+                var instance = client.findServiceInstanceBy(registeredInstanceInfo.vipAddress());
 
                 assertThat(instance).isPresent();
             }
@@ -81,7 +90,10 @@ class EurekaRegistryClientTest {
         class WithQuery {
             @Test
             void shouldReturnServiceInstanceWhenMatchFound() {
-                var instance = client.findServiceInstanceBy(RegistryClient.InstanceQuery.builder().serviceName("TEST-APP").build());
+                var instanceQuery = RegistryClient.InstanceQuery.builder()
+                        .serviceName(registeredInstanceInfo.vipAddress())
+                        .build();
+                var instance = client.findServiceInstanceBy(instanceQuery);
 
                 assertThat(instance).isPresent();
             }
@@ -100,7 +112,7 @@ class EurekaRegistryClientTest {
         class WithServiceName {
             @Test
             void shouldReturnListOfServiceInstancesWhenMatchFound() {
-                var instance = client.findAllServiceInstancesBy("TEST-APP");
+                var instance = client.findAllServiceInstancesBy(registeredInstanceInfo.vipAddress());
 
                 assertThat(instance).hasSize(1);
             }
@@ -116,7 +128,10 @@ class EurekaRegistryClientTest {
         class WithQuery {
             @Test
             void shouldReturnListOfServiceInstancesWhenMatchFound() {
-                var instance = client.findAllServiceInstancesBy(RegistryClient.InstanceQuery.builder().serviceName("TEST-APP").build());
+                var instanceQuery = RegistryClient.InstanceQuery.builder()
+                        .serviceName(registeredInstanceInfo.vipAddress())
+                        .build();
+                var instance = client.findAllServiceInstancesBy(instanceQuery);
 
                 assertThat(instance).hasSize(1);
             }
@@ -133,7 +148,8 @@ class EurekaRegistryClientTest {
     class FindInstanceByServiceAndInstanceId {
         @Test
         void shouldReturnServiceInstanceWhenMatchFound() {
-            var instance = client.findServiceInstanceBy("TEST-APP", "localhost");
+            var instance = client.findServiceInstanceBy(
+                    registeredInstanceInfo.vipAddress(), registeredInstanceInfo.instanceId());
 
             assertThat(instance).isPresent();
         }
@@ -258,9 +274,21 @@ class EurekaRegistryClientTest {
     class RetrieveAllRegisteredInstances {
         @Test
         void shouldReturnListOfServiceInstancesWhenFound() {
+            await().pollInterval(Duration.ofMillis(500)).atMost(1, TimeUnit.MINUTES).until(() -> {
+                var instances = client.retrieveAllRegisteredInstances();
+                return isNotNullOrEmpty(instances);
+            });
+
             var instances = client.retrieveAllRegisteredInstances();
 
             assertThat(instances).hasSize(1);
+
+            var instance = first(instances);
+
+            assertAll(
+                    () -> assertThat(instance.getInstanceId()).isEqualTo(registeredInstanceInfo.instanceId()),
+                    () -> assertThat(instance.getServiceName()).isEqualTo(registeredInstanceInfo.vipAddress())
+            );
         }
     }
 }

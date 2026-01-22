@@ -121,11 +121,12 @@ public class EurekaTestDataHelper {
                 ));
     }
 
-    public static void loadInstanceAndWaitForRegistration(String baseUrl) {
-        loadInstanceAndWaitForRegistration(sampleInstance("TEST-APP", "localhost", "TEST-APP", ServiceInstance.Status.UP), baseUrl);
+    public static RegisteredInstanceInfo registerInstanceAndAwaitVisibility(String baseUrl) {
+        var instance = sampleInstance("TEST-APP", "localhost", "TEST-APP", ServiceInstance.Status.UP);
+        return registerInstanceAndAwaitVisibility(instance, baseUrl);
     }
 
-    public static void loadInstanceAndWaitForRegistration(EurekaInstance instance, String baseUrl) {
+    public static RegisteredInstanceInfo registerInstanceAndAwaitVisibility(EurekaInstance instance, String baseUrl) {
         try (var client = newJerseyClient()) {
             try (var loadResponse = client.target(baseUrl)
                     .path("apps/{appId}")
@@ -138,25 +139,33 @@ public class EurekaTestDataHelper {
                 assertNoContentResponse(loadResponse);
             }
 
-            LOG.debug("Wait for the instance to be registered and included in /apps response");
+            LOG.debug("Waiting for instance {}/{} to become visible via instance endpoint",
+                    instance.getApp(), instance.getInstanceId());
             await().atMost(1, MINUTES).until(() -> instanceIsRegistered(client, baseUrl, instance));
+
+            return new RegisteredInstanceInfo(
+                    instance.getApp(),
+                    instance.getInstanceId(),
+                    instance.getVipAddress()
+            );
         }
     }
 
     private static boolean instanceIsRegistered(Client client, String baseUrl, EurekaInstance instance) {
         try (var response = client.target(baseUrl)
-                .path("apps")
+                .path("apps/{appId}/{instanceId}")
+                .resolveTemplate("appId", instance.getApp())
+                .resolveTemplate("instanceId", instance.getInstanceId())
                 .request()
                 .accept(APPLICATION_JSON_TYPE)
                 .get()) {
 
             if (successful(response)) {
                 var eurekaResponse = response.readEntity(KiwiGenericTypes.MAP_OF_STRING_TO_OBJECT_GENERIC_TYPE);
-                var eurekaInstances = EurekaResponseParser.parseEurekaApplicationsResponse(eurekaResponse);
+                var eurekaInstance = EurekaResponseParser.parseEurekaInstanceResponse(eurekaResponse);
 
-                return eurekaInstances.stream()
-                        .filter(eurekaInstance -> eurekaInstance.getApp().equals(instance.getApp()))
-                        .anyMatch(eurekaInstance -> eurekaInstance.getInstanceId().equals(instance.getInstanceId()));
+                return eurekaInstance.getApp().equals(instance.getApp())
+                        && eurekaInstance.getInstanceId().equals(instance.getInstanceId());
             } else {
                 LOG.debug("Got {} response from /apps so continue waiting for successful response", response.getStatus());
             }

@@ -8,8 +8,9 @@ import static org.kiwiproject.jaxrs.KiwiStandardResponses.standardBadRequestResp
 import static org.kiwiproject.registry.eureka.server.EurekaRegistryService.APP_TIMESTAMP_FORMATTER;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.assertApplicationIsNotRegistered;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.assertApplicationIsRegistered;
-import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.loadInstanceAndWaitForRegistration;
 import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.newEurekaContainer;
+import static org.kiwiproject.registry.eureka.util.EurekaTestDataHelper.registerInstanceAndAwaitVisibility;
+import static org.kiwiproject.registry.util.InstanceIdGenerator.uniqueInstanceId;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
@@ -233,7 +234,7 @@ class EurekaRegistryServiceIntegrationTest {
             var sampleInstance = EurekaTestDataHelper.sampleInstance(initialEurekaInstance.getApp(), initialEurekaInstance.getInstanceId(),
                     initialEurekaInstance.getVipAddress(), ServiceInstance.Status.STARTING);
 
-            loadInstanceAndWaitForRegistration(sampleInstance, config.getRegistryUrls());
+            registerInstanceAndAwaitVisibility(sampleInstance, config.getRegistryUrls());
 
             service.updateStatus(ServiceInstance.Status.UP);
 
@@ -272,15 +273,17 @@ class EurekaRegistryServiceIntegrationTest {
 
         @Test
         void shouldUnRegister() {
-            service.registeredInstance.set(EurekaInstance.builder().app("APPID").hostName("INSTANCEID").build());
+            var appId = "APPID";
+            var instanceId = uniqueInstanceId();
+            service.registeredInstance.set(EurekaInstance.builder().app(appId).hostName(instanceId).build());
 
-            var sampleInstance = EurekaTestDataHelper.sampleInstance("APPID", "INSTANCEID", "VIP-SERVICE", ServiceInstance.Status.UP);
-            loadInstanceAndWaitForRegistration(sampleInstance, config.getRegistryUrls());
+            var sampleInstance = EurekaTestDataHelper.sampleInstance(appId, instanceId, "test-service", ServiceInstance.Status.UP);
+            registerInstanceAndAwaitVisibility(sampleInstance, config.getRegistryUrls());
 
             service.unregister();
 
             assertThat(service.registeredInstance.get()).isNull();
-            assertApplicationIsNotRegistered("APPID", config.getRegistryUrls());
+            assertApplicationIsNotRegistered(appId, config.getRegistryUrls());
         }
 
         @Test

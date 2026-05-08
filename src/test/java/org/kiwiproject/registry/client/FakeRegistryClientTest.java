@@ -142,7 +142,7 @@ class FakeRegistryClientTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = {" ", "  "})
+        @ValueSource(strings = {" ", "\t", "\n"})
         void shouldRejectBlankServiceName(String serviceName) {
             assertThatIllegalArgumentException()
                     .isThrownBy(() -> fakeClient.findServiceInstanceBy(serviceName, "instance-1"))
@@ -151,7 +151,7 @@ class FakeRegistryClientTest {
 
         @ParameterizedTest
         @NullAndEmptySource
-        @ValueSource(strings = {" ", "  "})
+        @ValueSource(strings = {" ", "\t", "\n"})
         void shouldRejectBlankInstanceId(String instanceId) {
             assertThatIllegalArgumentException()
                     .isThrownBy(() -> fakeClient.findServiceInstanceBy("order-service", instanceId))

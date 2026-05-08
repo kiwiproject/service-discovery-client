@@ -72,11 +72,7 @@ public class FakeRegistryClient implements RegistryClient {
         instances.forEach(this::addServiceInstance);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Finds the instance matching both service name and instance ID, or returns empty if not found.
-     */
+    /** {@inheritDoc} */
     @Override
     public Optional<ServiceInstance> findServiceInstanceBy(String serviceName, String instanceId) {
         return findAllServiceInstancesBy(serviceName).stream()
@@ -84,22 +80,14 @@ public class FakeRegistryClient implements RegistryClient {
                 .findFirst();
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Returns all instances matching the query's service name, filtered by version predicates if present.
-     */
+    /** {@inheritDoc} */
     @Override
     public List<ServiceInstance> findAllServiceInstancesBy(InstanceQuery query) {
         var instances = serviceInstances.getOrDefault(query.getServiceName(), List.of());
         return ServiceInstanceFilter.filterInstancesByVersion(instances, query);
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Returns all registered instances across all service names.
-     */
+    /** {@inheritDoc} */
     @Override
     public List<ServiceInstance> retrieveAllRegisteredInstances() {
         return serviceInstances.values().stream()

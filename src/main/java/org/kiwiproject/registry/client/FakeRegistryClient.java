@@ -75,6 +75,7 @@ public class FakeRegistryClient implements RegistryClient {
     /** {@inheritDoc} */
     @Override
     public Optional<ServiceInstance> findServiceInstanceBy(String serviceName, String instanceId) {
+        checkArgumentNotNull(instanceId, "instanceId must not be null");
         return findAllServiceInstancesBy(serviceName).stream()
                 .filter(instance -> instanceId.equals(instance.getInstanceId()))
                 .findFirst();

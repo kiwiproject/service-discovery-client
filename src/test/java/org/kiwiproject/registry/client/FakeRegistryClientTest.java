@@ -136,6 +136,13 @@ class FakeRegistryClientTest {
         void shouldReturnEmpty_WhenNoInstancesRegistered() {
             assertThat(fakeClient.findServiceInstanceBy("order-service", "instance-1")).isEmpty();
         }
+
+        @Test
+        void shouldRejectNullInstanceId() {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> fakeClient.findServiceInstanceBy("order-service", null))
+                    .withMessage("instanceId must not be null");
+        }
     }
 
     @Nested

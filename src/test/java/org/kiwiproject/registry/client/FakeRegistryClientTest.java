@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.kiwiproject.registry.client.RegistryClient.InstanceQuery;
 import org.kiwiproject.registry.model.Port;
 import org.kiwiproject.registry.model.Port.PortType;
@@ -137,11 +140,22 @@ class FakeRegistryClientTest {
             assertThat(fakeClient.findServiceInstanceBy("order-service", "instance-1")).isEmpty();
         }
 
-        @Test
-        void shouldRejectNullInstanceId() {
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "  "})
+        void shouldRejectBlankServiceName(String serviceName) {
             assertThatIllegalArgumentException()
-                    .isThrownBy(() -> fakeClient.findServiceInstanceBy("order-service", null))
-                    .withMessage("instanceId must not be null");
+                    .isThrownBy(() -> fakeClient.findServiceInstanceBy(serviceName, "instance-1"))
+                    .withMessage("serviceName must not be blank");
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        @ValueSource(strings = {" ", "  "})
+        void shouldRejectBlankInstanceId(String instanceId) {
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> fakeClient.findServiceInstanceBy("order-service", instanceId))
+                    .withMessage("instanceId must not be blank");
         }
     }
 

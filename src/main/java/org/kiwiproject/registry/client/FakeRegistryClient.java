@@ -1,5 +1,6 @@
 package org.kiwiproject.registry.client;
 
+import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotBlank;
 import static org.kiwiproject.base.KiwiPreconditions.checkArgumentNotNull;
 
 import org.kiwiproject.registry.model.ServiceInstance;
@@ -75,7 +76,8 @@ public class FakeRegistryClient implements RegistryClient {
     /** {@inheritDoc} */
     @Override
     public Optional<ServiceInstance> findServiceInstanceBy(String serviceName, String instanceId) {
-        checkArgumentNotNull(instanceId, "instanceId must not be null");
+        checkArgumentNotBlank(serviceName, "serviceName must not be blank");
+        checkArgumentNotBlank(instanceId, "instanceId must not be blank");
         return findAllServiceInstancesBy(serviceName).stream()
                 .filter(instance -> instanceId.equals(instance.getInstanceId()))
                 .findFirst();

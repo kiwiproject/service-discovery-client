@@ -268,7 +268,9 @@ class FakeRegistryClientTest {
         return newServiceInstance(serviceName, hostName, version, null);
     }
 
-    private static ServiceInstance newServiceInstance(String serviceName, String hostName, String version,
+    private static ServiceInstance newServiceInstance(String serviceName,
+                                                       String hostName,
+                                                       String version,
                                                        String instanceId) {
         return ServiceInstance.builder()
                 .serviceName(serviceName)
